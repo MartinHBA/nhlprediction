@@ -27,5 +27,15 @@ class EngineTest {
     @Test void liveGamesAreSkipped(){ObjectNode g=(ObjectNode)data.path("games").get(0);g.put("status","live");g.set("markets",arr());((ObjectNode)g.path("checks").path("fields")).removeAll();assertTrue(Checks.audit(data).path("complete").asBoolean());assertEquals("ALREADY_STARTED_OR_FINAL",text(Engine.run(data,1000,1,false).path("games").get(0),"skipped"));}
     @Test void beamNeverStacksSameGame(){ArrayNode games=arr();for(int i=0;i<3;i++)games.add(obj("game_id","g"+i,"status","scheduled","matchup","A @ B","markets",List.of(obj("id","a","p_push",0,"p_win",.9,"odds",1.25,"scenario_ev_min",.1,"research_eligible",true),obj("id","b","p_push",0,"p_win",.95,"odds",1.22,"scenario_ev_min",.12,"research_eligible",true))));var c=Engine.combo(games);Set<String>seen=new HashSet<>();for(JsonNode l:c.path("legs"))assertTrue(seen.add(text(l,"game_id")));assertTrue(number(c,"odds")<=4);}
     @Test void goalieSmallSampleShrinks(){assertTrue(Math.abs(Engine.goalie(obj("starts_current",2,"starts_prior",80,"gsax_per60_current",2.5,"gsax_per60_prior",.05)))<.15);assertTrue(Engine.blend(2.4,7.2,2)<3);}
+    @Test void uncertainLineupIsNotAnOutOfRangeLambda(){
+        ObjectNode g=(ObjectNode)data.path("games").get(0);((ObjectNode)g.path("home").path("roster")).put("quantified",false);
+        var result=Engine.evaluate(g,text(data,"as_of"),1000,42);
+        assertTrue(result.path("projection_details").path("warnings").toString().contains("LINEUP_DELTAS_UNKNOWN"));
+        for(var market:result.path("markets"))assertFalse(strings(market.path("issues")).contains("LAMBDA_OUT_OF_RANGE"));
+        ((ObjectNode)g.path("home").path("roster")).put("attack_delta_goals",30);
+        result=Engine.evaluate(g,text(data,"as_of"),1000,42);
+        for(var market:result.path("markets"))assertTrue(strings(market.path("issues")).contains("LAMBDA_OUT_OF_RANGE"));
+        assertTrue(result.path("recommendation").isNull());
+    }
 }
 

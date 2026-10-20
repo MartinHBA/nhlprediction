@@ -76,7 +76,8 @@ final class Engine {
         ArrayNode markets=arr();
         for(JsonNode m:g.path("markets")){
             double[]prob=settle(m,sim);double value=ev(prob,number(m,"odds")),min=value,max=value;
-            for(Scores s:scenarios){double v=ev(settle(m,s),number(m,"odds"));min=Math.min(min,v);max=Math.max(max,v);}
+            double minimumProbability=prob[0],maximumProbability=prob[0],minimumOdds=prob[0]>0?(1-prob[1])/prob[0]:Double.POSITIVE_INFINITY;
+            for(Scores s:scenarios){double[] scenario=settle(m,s);double v=ev(scenario,number(m,"odds"));min=Math.min(min,v);max=Math.max(max,v);minimumProbability=Math.min(minimumProbability,scenario[0]);maximumProbability=Math.max(maximumProbability,scenario[0]);minimumOdds=Math.max(minimumOdds,scenario[0]>0?(1-scenario[1])/scenario[0]:Double.POSITIVE_INFINITY);}
             ArrayNode issues=arr(),warnings=arr();String kind=text(m,"kind"),sel=text(m,"selection");
             if(kind.equals("team_total")&&sel.equals("over")&&number(m,"line")==2.5)issues.add("SUSPENDED_TEAM_OVER_2_5");
             if(!confirmed)issues.add("GOALIE_NOT_CONFIRMED");if(!quantified)warnings.add("LINEUP_IMPACT_UNQUANTIFIED; sensitivity widened");
@@ -90,11 +91,14 @@ final class Engine {
             }
             if(java.time.Duration.between(cutoff,Checks.time(text(g,"starts_at"))).toSeconds()>28800)issues.add("FINAL_LINEUP_WINDOW_NOT_REACHED");
             if(number(m,"odds")>1.3)issues.add("ABOVE_PREFERRED_SINGLE_ODDS_CAP");if(min<=0)issues.add("NO_CONSERVATIVE_EDGE_IN_SCENARIOS");
-            if(!p.details.path("warnings").isEmpty())issues.add("LAMBDA_OUT_OF_RANGE");
-            markets.add(obj("id",text(m,"id"),"kind",kind,"selection",sel,"line",m.path("line"),"team",m.path("team"),"score_basis",text(m,"score_basis"),"odds",number(m,"odds"),"p_win",round(prob[0],5),"p_push",round(prob[1],5),"p_loss",round(prob[2],5),"p_break_even_no_push",round(1/number(m,"odds"),5),"ev",round(value,5),"scenario_ev_min",round(min,5),"scenario_ev_max",round(max,5),"issues",issues,"warnings",warnings,"research_eligible",issues.isEmpty()));
+            if(strings(p.details.path("warnings")).stream().anyMatch(w->w.startsWith("PROJECTED_LAMBDA_OUTSIDE_PLAUSIBLE_RANGE")))issues.add("LAMBDA_OUT_OF_RANGE");
+            markets.add(obj("id",text(m,"id"),"kind",kind,"selection",sel,"line",m.path("line"),"team",m.path("team"),"score_basis",text(m,"score_basis"),"odds",number(m,"odds"),"p_win",round(prob[0],5),"p_push",round(prob[1],5),"p_loss",round(prob[2],5),"p_win_min",round(minimumProbability,5),"p_win_max",round(maximumProbability,5),"minimum_odds_conservative",Double.isFinite(minimumOdds)?round(minimumOdds,5):null,"p_break_even_no_push",round(1/number(m,"odds"),5),"ev",round(value,5),"scenario_ev_min",round(min,5),"scenario_ev_max",round(max,5),"issues",issues,"warnings",warnings,"research_eligible",issues.isEmpty()));
         }
         int hw=0,draw=0,regHome=0;for(int i=0;i<n;i++){if(sim.fh[i]>sim.fa[i])hw++;if(sim.rh[i]==sim.ra[i])draw++;if(sim.rh[i]>sim.ra[i])regHome++;}
-        return obj("game_id",text(g,"game_id"),"matchup",text(g,"away.name")+" @ "+text(g,"home.name"),"starts_at",text(g,"starts_at"),"status",text(g,"status"),"lambda_home",round(p.home,4),"lambda_away",round(p.away,4),"lambda_total",round(p.home+p.away,4),"projection_details",p.details,"goalies_confirmed",confirmed,"lineups_quantified",quantified,"p_home_win",round((double)hw/n,5),"p_away_win",round((double)(n-hw)/n,5),"p_regulation_home",round((double)regHome/n,5),"p_regulation_draw",round((double)draw/n,5),"markets",markets,"simulations",n);
+        ArrayNode estimates=AlternativeTotals.estimate(g,sim,scenarios,asOf);
+        ArrayNode handicapEstimates=AlternativeHandicaps.estimate(g,sim,scenarios,asOf),allEstimates=estimates.deepCopy();allEstimates.addAll(handicapEstimates);
+        ObjectNode recommendation=Recommendations.select(g,markets,allEstimates,p.details,asOf);
+        return obj("game_id",text(g,"game_id"),"matchup",text(g,"away.name")+" @ "+text(g,"home.name"),"starts_at",text(g,"starts_at"),"status",text(g,"status"),"lambda_home",round(p.home,4),"lambda_away",round(p.away,4),"lambda_total",round(p.home+p.away,4),"projection_details",p.details,"goalies_confirmed",confirmed,"lineups_quantified",quantified,"p_home_win",round((double)hw/n,5),"p_away_win",round((double)(n-hw)/n,5),"p_regulation_home",round((double)regHome/n,5),"p_regulation_draw",round((double)draw/n,5),"markets",markets,"estimated_totals",estimates,"estimated_handicaps",handicapEstimates,"recommendation",recommendation,"simulations",n);
     }
     record Combo(List<JsonNode>legs,double odds,double prob){double rank(){return odds*prob-1-.008*Math.max(0,legs.size()-1);}}
     static ObjectNode combo(JsonNode games){
@@ -125,11 +129,12 @@ final class Engine {
                     if(!text(rep,"status").equals("READY_FOR_MODEL")){((ArrayNode)m.path("issues")).add("CHECKLIST_INCOMPLETE");((ObjectNode)m).put("research_eligible",false);}
                     marketCount++;if(m.path("research_eligible").asBoolean())eligible++;if(strings(m.path("issues")).contains("SUSPENDED_TEAM_OVER_2_5"))blocked++;
                 }
+                if(!text(rep,"status").equals("READY_FOR_MODEL"))result.putNull("recommendation");
             }
             results.add(result);
         }
         boolean complete=checks.path("complete").asBoolean();ObjectNode combo=complete?combo(results):obj("legs",arr(),"odds",null,"conservative_joint_ev",null);
         String status=!complete?"CHECKLIST_INCOMPLETE":missing?"INSUFFICIENT_DATA":d.path("synthetic_data").asBoolean()?"SYNTHETIC_DEMO_ONLY":!combo.path("legs").isEmpty()?"CANDIDATE_REVIEW_REQUIRED":"NO_BET";
-        return obj("engine_version","2.0.0-java","as_of",text(d,"as_of"),"status",status,"model_note","Heuristic uncalibrated baseline; probabilities are provisional estimates.","checklist",checks,"audit",obj("scheduled_game_count",d.path("expected_game_ids").size(),"processed_game_count",results.size(),"confirmed_goalie_count",confirmed,"unconfirmed_goalie_count",unconfirmed,"market_count",marketCount,"research_eligible_market_count",eligible,"blocked_team_over_2_5",blocked),"games",results,"ticket",status.equals("CANDIDATE_REVIEW_REQUIRED")?combo:null,"candidate_preview_not_validated",research?combo:null);
+        return obj("engine_version","2.1.0-java","as_of",text(d,"as_of"),"status",status,"model_note","Heuristic uncalibrated baseline; probabilities are provisional estimates.","checklist",checks,"audit",obj("scheduled_game_count",d.path("expected_game_ids").size(),"processed_game_count",results.size(),"confirmed_goalie_count",confirmed,"unconfirmed_goalie_count",unconfirmed,"market_count",marketCount,"research_eligible_market_count",eligible,"blocked_team_over_2_5",blocked),"games",results,"ticket",status.equals("CANDIDATE_REVIEW_REQUIRED")?combo:null,"candidate_preview_not_validated",research?combo:null);
     }
 }

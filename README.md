@@ -128,7 +128,7 @@ automaticky zaradia nový Java výpočet. ChatGPT research robí tvoja úloha o 
 
 Podporované sú skutočne publikované DraftKings kurzy: moneyline vrátane OT/SO,
 1/X/2 po 60 minútach, celkové góly over/under a handicap. Dvojtipy, tímové totals
-ani alternatívne hranice sa nevyrábajú dopočtom. Neznámy typ `TNB` sa ignoruje.
+sa nepovažujú za dostupné bez skutočnej ponuky. Neznámy typ `TNB` sa ignoruje.
 Páruje sa presný NHL gameId, tímy a UTC začiatok. Feed musí pokrývať požadovaný
 NHL deň a byť najviac dve hodiny starý. Čas stiahnutia neobnovuje čas publikácie.
 Začaté zápasy sa vyradia; chýbajúca protistrana alebo konfliktný kurz sa nepoužije.
@@ -137,6 +137,40 @@ Začaté zápasy sa vyradia; chýbajúca protistrana alebo konfliktný kurz sa n
 Web zobrazuje počet zápasov s kurzami a čas kontroly aj publikácie zdroja.
 Výpadok alebo starý feed odstráni predošlé automatické kurzy. Natívne kurzy sú
 pri `save_game` chránené proti prepísaniu; konflikt revision vyžaduje nové `get_game`.
+
+Pre chýbajúce alternatívne celkové góly 2,5–10,5 sa počítajú **označené odhady**
+v `report.games[].estimated_totals`. Z čerstvej kompletnej dvojice over/under
+na rovnakej hranici, s rovnakým zdrojom, časom a pravidlami sa odstráni marža
+normalizáciou recipročných kurzov. Poissonov priemer sa prispôsobí tejto trhovej
+pravdepodobnosti; na ďalších hraniciach sa predpokladá rovnaký overround.
+Je to aproximácia tvaru rozdelenia aj cien; ponuka bookmakera sa tým neoveruje.
+Pri celom zápase sa Poissonovo rozdelenie približuje aj súčtu vrátane OT/SO.
+Príliš extrémne hranice, ktorým by vychádzal kurz ≤ 1, cenu odhadu nedostanú.
+Náš model sa na tieto trhové ceny neprekalibruje. Zo svojich simulácií nezávisle
+uvádza pravdepodobnosť, férový kurz a minimálny skutočný kurz pre kladné EV aj
+v najhoršom citlivostnom scenári. Alternatívne handicapy ±0,5 až ±4,5 sú v
+`estimated_handicaps`: rozdelenie rozdielu skóre zo simulácií sa exponenciálne
+nakloní tak, aby zodpovedalo pravdepodobnosti aktuálnej dvojice handicapov po
+odstránení marže. Z tvaru tohto rozdelenia a rovnakej marže sa odhadnú iné hranice.
+Ide o dodatočný predpoklad ceny, nie o nezávislú validáciu modelu.
+Odhady nevstupujú do skutočných `markets`, počítadiel pokrytia ani tiketu a nemenia
+`NO_BET`. `report.games[].recommendation` vyberá najviac jeden tip na zápas:
+porovnáva aktuálne overené skutočné kurzy (víťaz, 1/X/2, handicap, góly) a dopočítané
+alternatívy pri kurze > 1 a ≤ 1,30 a kladnom EV základného modelu. Z nich vyberá
+najvyššie konzervatívne EV. Ak výhoda v konzervatívnom scenári zmizne, výber
+ostáva iba predbežným modelovým tipom s nízkou confidence a explicitnou poznámkou;
+`robust_edge=false`. Prísny filter kladného konzervatívneho EV pre skutočný tiket
+ostáva zachovaný.
+Odhadovaný tip alebo tip s neistými brankármi/zostavou ostáva `PRELIMINARY`
+aj pri kladnom odhadovanom EV. Neplatné alebo neaktuálne kurzy, neoverené vstupy,
+pozastavené trhy a neúplný checklist sa na odporúčanie nepoužijú. Potvrdená
+výhodnosť vyžaduje skutočnú ponuku a splnené pôvodné dátové filtre.
+`confidence` je kvalita podkladov (`LOW`/`MODERATE`), nie kalibrovaná úspešnosť.
+Na webe sa zobrazuje iba vybraný tip, jeho kurz/odhad, P(model), confidence a
+minimálny potrebný skutočný kurz; zoznam trhov sa nezobrazuje. Dôvody confidence
+sú v hover vysvetlivke. Bez výhodného výberu je „Bez odporúčania do kurzu 1,30“.
+Bez aktuálnej overenej dvojice kurzov alebo pri začatom zápase sa negenerujú.
+Podklad k marži: https://support.pinnacle.bet/hc/en-us/articles/44854189442065-What-is-a-betting-margin
 
 Web obsahuje oficiálne SVG logá všetkých 32 tímov v `frontend/assets/teams`;
 pri chybe načítania zostane čitateľná tímová skratka.
