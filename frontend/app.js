@@ -33,32 +33,37 @@ function fieldDetails(game,criticalOnly){
  section.dataset.section=criticalOnly?'critical':'fields';
  section.append(el('summary','',`${criticalOnly?'Kľúčové vstupy':'Dostupné polia'}: ${entries.filter(e=>e.found).length}/${entries.length}`));
  section.append(el('p','subtle',criticalOnly?'Vstupy potrebné na výpočet modelovej projekcie.':'Všetky kontrolované polia vrátane nedostupných a nepreverených údajov.'));
+ const teams=el('div','comparison-teams');
  for(const side of ['away','home']){
-  const rows=entries.filter(e=>e.side===side),team=el('details','field-team'),code=game[side].name;
-  team.dataset.section=`${section.dataset.section}-${side}`;
-  team.append(el('summary','',`${teamLocations[code]||''} ${teamNames[code]||code} · ${rows.filter(e=>e.found).length}/${rows.length}`.trim()));
-  for(const [group,definition] of Object.entries(fieldGroups)){
-   const fields=rows.filter(e=>e.group===group);if(!fields.length)continue;
-   const block=el('section','field-group');block.append(el('h3','',definition.label));
-   for(const field of fields){
-    const row=el('div','field-row'),heading=el('div','field-heading');row.dataset.fieldPath=field.path;
-    const status=field.found?'Získané':field.status==='unavailable'?'Nedostupné':field.status==='found'?'Chýba hodnota':'Nepreverené';
-    const label=el(field.note?'button':'span','field-label',field.label);
-    heading.append(label,el('span','field-status '+(field.found?'good':field.status==='unavailable'?'caution':'subtle'),status));
-    row.append(heading,el('p','field-value',fieldValue(field.value)));
-    if(field.note){
-     const note=el('span','field-tooltip',field.note);note.id=`field-note-${game.game_id}-${section.dataset.section}-${field.path.replaceAll('.','-')}`;note.setAttribute('role','tooltip');
+  const fields=entries.filter(e=>e.side===side),team=el('div','comparison-team '+side),code=game[side].name;
+  team.append(el('strong','',code),el('small','',`${fields.filter(e=>e.found).length}/${fields.length} získané`));teams.append(team);
+ }
+ section.append(teams);
+ for(const [group,definition] of Object.entries(fieldGroups)){
+  const fields=entries.filter(e=>e.side==='away'&&e.group===group);if(!fields.length)continue;
+  const block=el('details','field-group');block.dataset.section=`${section.dataset.section}-${group}`;block.append(el('summary','',definition.label));
+  for(const away of fields){
+   const home=entries.find(e=>e.path===away.path.replace(/^away\./,'home.')),pair=[away,home];
+   const row=el('div','field-row'),heading=el('div','field-heading'),values=el('div','field-values');row.dataset.metricPath=`${group}.${away.path.split('.').at(-1)}`;
+   const explanation=pair.filter(field=>field.note).map(field=>`${game[field.side].name}: ${field.note}`).join('\n\n');
+   const label=el(explanation?'button':'span','field-label',away.label);heading.append(label);row.append(heading);
+   for(const field of pair){
+    const cell=el('div','field-cell '+field.side),status=field.found?'Získané':field.status==='unavailable'?'Nedostupné':field.status==='found'?'Chýba hodnota':'Nepreverené';
+    cell.dataset.fieldPath=field.path;cell.setAttribute('role','group');cell.setAttribute('aria-label',`${game[field.side].name}: ${field.label}`);
+    cell.append(el('p','field-value',fieldValue(field.value)),el('span','field-status '+(field.found?'good':field.status==='unavailable'?'caution':'subtle'),status));values.append(cell);
+   }
+   row.append(values);
+   if(explanation){
+     const note=el('span','field-tooltip',explanation);note.id=`field-note-${game.game_id}-${section.dataset.section}-${row.dataset.metricPath.replaceAll('.','-')}`;note.setAttribute('role','tooltip');
      row.classList.add('has-note');label.type='button';label.setAttribute('aria-describedby',note.id);
      label.onfocus=()=>row.classList.remove('note-dismissed');
      label.onclick=()=>{const open=row.classList.toggle('note-open');row.classList.toggle('note-dismissed',!open);if(!open)label.blur();};
      row.onmouseleave=()=>row.classList.remove('note-dismissed');
      row.append(note);
-    }
-    block.append(row);
    }
-   team.append(block);
+   block.append(row);
   }
-  section.append(team);
+  section.append(block);
  }
  return section;
 }

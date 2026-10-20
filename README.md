@@ -144,7 +144,8 @@ Pri spracovaní alebo nadchádzajúcich zápasoch web potichu kontroluje údaje 
 5 minút. V skrytej karte kontrolu preskočí. Nezmenené karty neprekresľuje,
 zachová rozbalené detaily a pri výpadku pripojenia ponechá posledné výsledky.
 Pod „Kontroly a trhy“ má každý zápas samostatne rozbaliteľné kľúčové vstupy
-a dostupné polia, rozdelené podľa tímu a oblasti. Zobrazujú hodnotu a stav kontroly;
+a dostupné polia, rozdelené podľa oblasti. Každá metrika má v jednom riadku
+vľavo hodnotu a stav prvého tímu a vpravo druhého, rovnako ako v hlavičke zápasu;
 poznámka sa ukáže po podržaní myši nad metrikou, pri fokuse klávesnicou alebo
 ťuknutí na názov. Zoznam zdrojových odkazov sa v detaile zápasu nezobrazuje.
 
