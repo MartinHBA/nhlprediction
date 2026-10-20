@@ -3,7 +3,7 @@
 Web je už v Azure:
 https://nhlpredicttxocp2arkmldw.z6.web.core.windows.net
 
-Na prezeranie výsledkov netreba Docker ani Python.
+Výsledky otvoríš priamo v prehliadači.
 
 ## Zapnutie zberu cez ChatGPT
 
@@ -32,4 +32,3 @@ Používa sa resource group `nhlprediction`, región `westeurope`.
 Skript nevytvára Azure OpenAI ani nevolá platené LLM API.
 
 Podrobnosti: [Azure deployment](docs/azure-deployment.md).
-Pôvodné lokálne Docker spúšťanie: [archivovaný quickstart](docs/legacy-quickstart-windows.md).

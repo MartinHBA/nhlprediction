@@ -158,8 +158,8 @@ jedného trhu na zápas. **Tímový over 2,5 je pozastavený.**
 
 Model je heuristický a historicky nekalibrovaný. Predikcia nie je dôkaz úspešnosti.
 `NO_BET` je normálny výsledok. Výpočty nezačínajú vymýšľať údaje, keď zdroj chýba.
-NumPy a Java používajú iný generátor náhody; zhodujú sa vzorce, nie jednotlivé
-náhodné vzorky. Java beh je s rovnakým seedom reprodukovateľný.
+Java beh je s rovnakým seedom reprodukovateľný. Projekcie a checklist sa
+overujú aj voči uloženým referenčným výsledkom.
 
 ## Vývoj a deployment
 
@@ -168,6 +168,10 @@ Java 21 + Maven:
 ```powershell
 mvn -B -f backend/pom.xml verify
 ```
+
+Autoritatívna JSON schéma je v `backend/src/main/resources/schema.json`.
+GitHub Actions po pushi alebo pull requeste overí Java backend a frontend.
+Do Azure sa nasadzuje samostatne cez Azure CLI.
 
 Frontend nepotrebuje build. Jeho DOM testy používajú Node 22:
 
@@ -186,11 +190,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/deploy.ps1
 [Podrobný deployment, autentifikácia a prevádzka](docs/azure-deployment.md)
 obsahujú presné zdroje, nastavenia a živé smoke overenie. Microsoft client secret
 treba obnoviť pred jeho ročnou expiráciou; postup je v dokumentácii.
-
-Pôvodný Python engine, Docker a testy zostali ako lokálna referencia. Starý
-postup je v [Docker README](docs/legacy-docker-readme.md) a
-[pôvodnom Windows quickstarte](docs/legacy-quickstart-windows.md).
-Projekt `ainoviny` nebol upravovaný.
 
 ## Voliteľný ručný import vlastníka
 

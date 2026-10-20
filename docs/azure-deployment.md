@@ -171,6 +171,8 @@ Jednorazový testovací authorization code vloží priamo správca; tým sa over
 PKCE/token/MCP cesta, **nie interaktívne Microsoft prihlásenie**. Všetky testovacie
 client/code/access/refresh údaje sa po teste odstránia. Nezískava platené AI dáta.
 
-Java projekcie a checklist sa overujú voči uloženým Python referenciám. Náhodný
-generátor je v Jave iný, takže jednotlivé Monte Carlo pravdepodobnosti nie sú
-bitovo zhodné s NumPy. Rovnaký Java seed je reprodukovateľný.
+Java projekcie a checklist sa overujú voči uloženým referenčným výsledkom
+v `backend/src/test/resources/reference-report.json`. Rovnaký Java seed je
+reprodukovateľný. Autoritatívna JSON schéma je súčasťou Java backendu
+v `backend/src/main/resources/schema.json`. GitHub Actions overuje Java backend
+a frontend; nasadenie prebieha samostatne cez Azure CLI.
