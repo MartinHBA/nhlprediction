@@ -68,13 +68,14 @@ test('changed data updates only affected cards and preserves expanded details',a
  const {dom,data,next}=await pollingPage();
  try{
   const doc=dom.window.document,before=[...doc.querySelectorAll('.game-card')];
-  before[0].querySelector('details').open=true;
+  before[0].querySelectorAll('details').forEach(detail=>{detail.open=true;});
   const changed=structuredClone(data);changed.report.games[0].lambda_away=4.25;changed.enrichment={warnings:['Source delayed']};
   dom.window.fetch=async()=>({ok:true,json:async()=>changed});
   await next().run();
   const after=[...doc.querySelectorAll('.game-card')];
   assert.notEqual(after[0],before[0]);assert.match(after[0].textContent,/4\.25/);
   assert.equal(after[0].querySelector('details').open,true);
+  for(const detail of after[0].querySelectorAll('details'))assert.equal(detail.open,true);
   assert.equal(after[1],before[1]);assert.equal(after[2],before[2]);
   assert.equal(doc.getElementById('import-warnings').hidden,false);
   dom.window.fetch=async()=>({ok:true,json:async()=>structuredClone(data)});

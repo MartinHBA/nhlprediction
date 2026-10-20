@@ -45,7 +45,7 @@ potvrdenia zápisov a dostupnosť nástrojov v tvojej plánovanej úlohe.
 - Jedno Standard LRS úložisko pre súkromné pracovné dáta, frontu a statický web.
 - OAuth s Microsoft prihlásením, PKCE, jednorazovými kódmi a rotáciou refresh tokenov.
 - Verejný web s dennými zápasmi, modelovými gólmi, pravdepodobnosťami, trhmi,
-  dôkazmi, časom aktualizácie a archívom. Stavy neúplného alebo zlyhaného zberu
+  rozbaliteľnými kontrolami údajov, časom aktualizácie a archívom. Stavy neúplného alebo zlyhaného zberu
   sa zobrazujú otvorene. Vybraný dátum sa nenahrádza staršími výsledkami.
 
 Azure OpenAI ani platený AI model sa nevytvára. ChatGPT research čerpá tvoje
@@ -143,6 +143,9 @@ pri chybe načítania zostane čitateľná tímová skratka.
 Pri spracovaní alebo nadchádzajúcich zápasoch web potichu kontroluje údaje každých
 5 minút. V skrytej karte kontrolu preskočí. Nezmenené karty neprekresľuje,
 zachová rozbalené detaily a pri výpadku pripojenia ponechá posledné výsledky.
+Pod „Kontroly a trhy“ má každý zápas samostatne rozbaliteľné kľúčové vstupy
+a dostupné polia, rozdelené podľa tímu a oblasti. Zobrazujú hodnotu, stav kontroly
+a poznámku; zoznam zdrojových odkazov sa v detaile zápasu nezobrazuje.
 
 ## Zachované analytické pravidlá
 
