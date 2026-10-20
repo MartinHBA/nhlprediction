@@ -138,8 +138,8 @@ Web zobrazuje počet zápasov s kurzami a čas kontroly aj publikácie zdroja.
 Výpadok alebo starý feed odstráni predošlé automatické kurzy. Natívne kurzy sú
 pri `save_game` chránené proti prepísaniu; konflikt revision vyžaduje nové `get_game`.
 
-Pre chýbajúce alternatívne celkové góly 2,5–10,5 sa počítajú **označené odhady**
-v `report.games[].estimated_totals`. Z čerstvej kompletnej dvojice over/under
+Pre chýbajúce alternatívne celkové góly 2,5–10,5 sa interne počítajú **označené odhady**.
+Z čerstvej kompletnej dvojice over/under
 na rovnakej hranici, s rovnakým zdrojom, časom a pravidlami sa odstráni marža
 normalizáciou recipročných kurzov. Poissonov priemer sa prispôsobí tejto trhovej
 pravdepodobnosti; na ďalších hraniciach sa predpokladá rovnaký overround.
@@ -148,13 +148,15 @@ Pri celom zápase sa Poissonovo rozdelenie približuje aj súčtu vrátane OT/SO
 Príliš extrémne hranice, ktorým by vychádzal kurz ≤ 1, cenu odhadu nedostanú.
 Náš model sa na tieto trhové ceny neprekalibruje. Zo svojich simulácií nezávisle
 uvádza pravdepodobnosť, férový kurz a minimálny skutočný kurz pre kladné EV aj
-v najhoršom citlivostnom scenári. Alternatívne handicapy ±0,5 až ±4,5 sú v
-`estimated_handicaps`: rozdelenie rozdielu skóre zo simulácií sa exponenciálne
+v najhoršom citlivostnom scenári. Pri alternatívnych handicapoch ±0,5 až ±4,5
+sa rozdelenie rozdielu skóre zo simulácií exponenciálne
 nakloní tak, aby zodpovedalo pravdepodobnosti aktuálnej dvojice handicapov po
 odstránení marže. Z tvaru tohto rozdelenia a rovnakej marže sa odhadnú iné hranice.
 Ide o dodatočný predpoklad ceny, nie o nezávislú validáciu modelu.
 Odhady nevstupujú do skutočných `markets`, počítadiel pokrytia ani tiketu a nemenia
-`NO_BET`. `report.games[].recommendation` vyberá najviac jeden tip na zápas:
+`NO_BET`. Do reportu a MCP sa posiela iba počet dopočítaných alternatív
+(`alternative_market_count`) a vybraný tip, aby odpoveď nenarástla o stovky
+nepoužitých variantov. `report.games[].recommendation` vyberá najviac jeden tip na zápas:
 porovnáva aktuálne overené skutočné kurzy (víťaz, 1/X/2, handicap, góly) a dopočítané
 alternatívy pri kurze > 1 a ≤ 1,30 a kladnom EV základného modelu. Z nich vyberá
 najvyššie konzervatívne EV. Ak výhoda v konzervatívnom scenári zmizne, výber

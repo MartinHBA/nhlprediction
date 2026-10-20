@@ -76,6 +76,11 @@ NHL Observatory cez start_day, save_game a finalize_day.
    Uveď NHL dátum, počet spracovaných zápasov, stav researchu, počet zápasov
    s aktuálnymi kurzami, podstatné chýbajúce údaje a web_url z odpovede.
    Rozlišuj dokončený výpočet, NO_BET a čakanie na aktuálny NHL feed.
+   Ak report.games obsahuje recommendation, odlíš predbežné modelové tipy
+   (PRELIMINARY) od potvrdených kandidátov. Kurz ESTIMATED je aproximovaný,
+   confidence vyjadruje kvalitu podkladov a robust_edge=false znamená, že
+   výhoda v konzervatívnom scenári zmizne. Predbežný tip nemení NO_BET
+   pre overené kandidáty; nikdy ho neoznač za potvrdenú ponuku bookmakera.
    Backend počíta pravdepodobnosti a EV; nenahrádzaj ich vlastnými odhadmi.
 
 Ak nemáš prístup k MCP, webovému researchu alebo oprávneniu uložiť výsledky,

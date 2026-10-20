@@ -37,5 +37,13 @@ class EngineTest {
         for(var market:result.path("markets"))assertTrue(strings(market.path("issues")).contains("LAMBDA_OUT_OF_RANGE"));
         assertTrue(result.path("recommendation").isNull());
     }
+    @Test void alternativeCalculationsOnlyExposeCountAndSingleSelection(){
+        ObjectNode g=(ObjectNode)data.path("games").get(0);
+        g.set("markets",arr().add(AlternativeMarketsTest.quote("total","over",6.5,1.9)).add(AlternativeMarketsTest.quote("total","under",6.5,1.9))
+            .add(AlternativeMarketsTest.quote("handicap","home",-1.5,2.5)).add(AlternativeMarketsTest.quote("handicap","away",1.5,1.6)));
+        var result=Engine.evaluate(g,AlternativeMarketsTest.AS_OF,10000,42);
+        assertEquals(34,result.path("alternative_market_count").asInt());assertEquals(4,result.path("markets").size());
+        assertFalse(result.has("estimated_totals"));assertFalse(result.has("estimated_handicaps"));assertTrue(result.has("recommendation"));
+    }
 }
 
