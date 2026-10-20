@@ -62,12 +62,12 @@ public final class LiveSmoke {
         ObjectNode data=original.path("dataset").deepCopy();ObjectNode game=data.path("games").get(0).deepCopy();
         game.put("status","scheduled").put("starts_at","2099-12-30T00:00:00Z");String id=text(game,"game_id");
         data.put("synthetic_data",true).put("as_of",Instant.now().toString());data.set("games",arr().add(game));data.set("expected_game_ids",arr().add(id));
-        ObjectNode report=Engine.run(data,1000,1707,false);require(report.path("checklist").path("complete").asBoolean(),"Source research incomplete");
-        ObjectNode fixture=obj("day",day,"state","COMPLETE","revision",0,"research_complete",true,"dataset",data,"report",report,"updated_at",Instant.now().toString());
+        require(Checks.audit(data).path("complete").asBoolean(),"Source research incomplete");
+        ObjectNode fixture=obj("day",day,"state","READY_FOR_ANALYSIS","revision",0,"research_complete",true,"dataset",data,"updated_at",Instant.now().toString());
         boolean created=false;
         try{
             store.create(key,fixture);created=true;
-            JsonNode snapshot=tool("get_candidates",obj("day",day,"game_id",id),access);require(text(snapshot,"state").equals("READY"),"AI snapshot ready");
+            JsonNode snapshot=tool("get_analysis",obj("day",day,"game_id",id),access);require(text(snapshot,"state").equals("READY"),"AI snapshot ready");
             ObjectNode decision=obj("game_id",id,"decision","NO_BET","candidate_id",null,"confidence","LOW",
                 "rationale","Deployment verification on synthetic data; no real betting selection is published.",
                 "comparison","No candidate is selected because this is an isolated synthetic deployment test.","risks",List.of("Synthetic test fixture; not a real recommendation."),"evidence_ids",arr());
@@ -99,27 +99,13 @@ public final class LiveSmoke {
             if(Arrays.asList(args).contains("--native-save")){verifyNativeSave(store,day,access);return;}
             if(Arrays.asList(args).contains("--ai-tips")){verifyAiTips(store,day,access);return;}
             require(text(rpc("initialize",obj("protocolVersion","2025-06-18","capabilities",obj(),"clientInfo",obj("name","deployment-smoke","version","1")),access),"serverInfo.name").equals("nhl-prediction"),"MCP initialization");
-            require(rpc("tools/list",obj(),access).path("tools").size()==10,"Tool count");
+            require(rpc("tools/list",obj(),access).path("tools").size()==11,"Tool count");
             JsonNode instructions=rpc("tools/call",obj("name","get_instructions","arguments",obj()),access);require(!instructions.path("isError").asBoolean(),"instructions");
             var priorResponse=request("/api/days/"+day,null,null);JsonNode prior=priorResponse.statusCode()==200?parse(priorResponse.body()):obj();
             JsonNode start=rpc("tools/call",obj("name","start_day","arguments",obj("day",day)),access);require(!start.path("isError").asBoolean(),"Official schedule: "+start);
             ObjectNode summary=(ObjectNode)parse(start.path("content").get(0).path("text").asText());
             if(text(prior,"enrichment.version").equals(DataCollector.VERSION)&&text(prior,"enrichment.transport").equals("owner_upload")&&Checks.time(text(prior,"enrichment.updated_at")).isAfter(Instant.now().minusSeconds(21600))&&prior.path("coverage").path("critical_found").equals(prior.path("coverage").path("critical_total")))require(!text(summary,"state").equals("PREFILLING"),"Fresh owner upload must not trigger a re-import");
-            if(repair){
-                long deadline=System.nanoTime()+Duration.ofMinutes(6).toNanos();JsonNode publication;
-                do{Thread.sleep(3000);publication=parse(request("/api/days/"+day,null,null).body());}while(text(publication,"state").equals("PREFILLING")&&System.nanoTime()<deadline);
-                require(!List.of("PREFILLING","ERROR").contains(text(publication,"state")),"Native import failed or timed out: "+publication.path("error"));
-                JsonNode coverage=publication.path("coverage");require(coverage.path("critical_found").asInt()>0&&coverage.path("critical_found").equals(coverage.path("critical_total")),"Real-data import did not supply every critical input: "+coverage);
-                JsonNode finalized=rpc("tools/call",obj("name","finalize_day","arguments",obj("day",day,"sims",100000)),access);require(!finalized.path("isError").asBoolean(),"repair finalization: "+finalized);
-                require(!text(parse(finalized.path("content").get(0).path("text").asText()),"status").equals("CHECKLIST_INCOMPLETE"),"Remaining research must be completed before publication");
-                do{Thread.sleep(3000);publication=parse(request("/api/days/"+day,null,null).body());}while(List.of("QUEUED","RUNNING").contains(text(publication,"state"))&&System.nanoTime()<deadline);
-                require(text(publication,"state").equals("COMPLETE"),"Recalculation did not complete: "+text(publication,"state"));
-                int projected=0;for(JsonNode g:publication.path("report").path("games"))if(g.has("lambda_total"))projected++;
-                require(projected==coverage.path("scheduled_games").asInt(),"Missing projections after repair");
-                System.out.println(obj("repair","passed","projected_games",projected,"coverage",coverage,"warnings",publication.path("enrichment").path("warnings"),"result_status",publication.path("report").path("status")).toPrettyString());
-                summary=(ObjectNode)publication;
-                summary.set("expected_game_ids",M.valueToTree(publication.path("games").findValuesAsText("game_id")));
-            }
+            if(repair)throw new IllegalArgumentException("Legacy calculation repair was removed. Use data collection and get_analysis.");
             int checks=11;
             if(summary.path("game_count").asInt()>0){
                 String gameId=summary.path("expected_game_ids").get(0).asText();
@@ -129,7 +115,7 @@ public final class LiveSmoke {
                 // Only exercise a write on a wholly untouched scaffold; never invalidate a collected publication.
                 if(text(summary,"state").equals("COLLECTING")&&summary.path("revision").asInt()==0&&Checks.time(text(editable,"game.starts_at")).isAfter(Instant.now())){
                     JsonNode saved=rpc("tools/call",obj("name","save_game","arguments",obj("day",day,"game",editable.path("game"),"evidence",arr(),"revision",0)),access);require(!saved.path("isError").asBoolean(),"save_game: "+saved);checks++;
-                    JsonNode finalized=rpc("tools/call",obj("name","finalize_day","arguments",obj("day",day,"sims",1000)),access);require(!finalized.path("isError").asBoolean()&&text(parse(finalized.path("content").get(0).path("text").asText()),"status").equals("CHECKLIST_INCOMPLETE"),"Incomplete checklist must not queue a prediction");checks++;
+                    JsonNode finalized=rpc("tools/call",obj("name","finalize_day","arguments",obj("day",day)),access);require(!finalized.path("isError").asBoolean()&&text(parse(finalized.path("content").get(0).path("text").asText()),"status").equals("CHECKLIST_INCOMPLETE"),"Incomplete checklist must block research finalization");checks++;
                 }
             }
             require(request("/api/days/"+day,null,null).statusCode()==200,"Published day API");

@@ -36,6 +36,6 @@ public final class DataSync {
         String day=Schedule.day(args[0]);Store store=Store.cloud();QueueClient queue=new QueueClientBuilder().connectionString(System.getenv("AzureWebJobsStorage")).queueName("predictions").messageEncoding(QueueMessageEncoding.BASE64).buildClient();Workflow workflow=new Workflow(store,Schedule::fetch,j->queue.sendMessage(j.toString()));workflow.start(day);ObjectNode before=workflow.require(day);
         ObjectNode imported;if(args.length>1&&!args[1].equals("-"))imported=(ObjectNode)parse(Files.readString(Path.of(args[1])));else{DataCollector collector=new DataCollector(store);int season=DataCollector.season(LocalDate.parse(day));collector.goalieIndex(day,season);collector.goalieIndex(day,season-1);imported=collector.enrich(day,before.path("dataset"));}ObjectNode result=apply(store,day,imported,before.path("revision").asInt());
         System.out.println(obj("status","imported","day",day,"revision",result.path("revision"),"coverage",Checks.coverage(result.path("dataset")),"warnings",result.path("enrichment").path("warnings")).toPrettyString());
-        if(Arrays.asList(args).contains("--finalize"))System.out.println(workflow.finish(day,100000).toPrettyString());
+        if(Arrays.asList(args).contains("--finalize"))System.out.println(workflow.finish(day).toPrettyString());
     }
 }

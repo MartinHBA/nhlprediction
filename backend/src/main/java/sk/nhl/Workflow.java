@@ -11,7 +11,13 @@ final class Workflow {
     final Store store;final Function<String,ObjectNode> schedule;final Consumer<ObjectNode> queue;final DataCollector collector;
     Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue){this(store,schedule,queue,null);}
     Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue,DataCollector collector){this.store=store;this.schedule=schedule;this.queue=queue;this.collector=collector;}
-    ObjectNode require(String day){ObjectNode d=store.get("days/"+Schedule.day(day)+".json");if(d==null)throw new IllegalArgumentException("Day not found. Call start_day first.");return d;}
+    ObjectNode require(String day){ObjectNode d=store.get("days/"+Schedule.day(day)+".json");if(d==null)throw new IllegalArgumentException("Day not found. Call start_day first.");return migrate(d);}
+    static ObjectNode migrate(ObjectNode d){
+        if(d.hasNonNull("report")||List.of("QUEUED","RUNNING").contains(text(d,"state"))){
+            d.put("state",d.path("research_complete").asBoolean()?"READY_FOR_ANALYSIS":"COLLECTING");
+        }
+        d.remove(List.of("report","last_sims","job_id"));return d;
+    }
     ObjectNode start(String day){
         Schedule.day(day);ObjectNode existing=store.get("days/"+day+".json");if(existing!=null)return requestPrefill(day);
         ObjectNode data=schedule.apply(day);
@@ -39,7 +45,7 @@ final class Workflow {
         try{
             ObjectNode result=collector.enrich(day,snapshot.path("dataset"));
             store.locked("day/"+day,()->{ObjectNode d=require(day);if(!text(d,"enrichment.job_id").equals(text(job,"job_id"))||!text(d,"state").equals("PREFILLING")||d.path("revision").asInt()!=snapshot.path("revision").asInt())return null;
-                store.put("history/"+day+"/"+d.path("revision").asInt()+".json",d);d.set("dataset",result.remove("dataset"));JsonNode odds=result.remove("odds_import");if(odds!=null&&!odds.isNull())d.set("odds_import",odds);ObjectNode paths=(ObjectNode)result.remove("auto_fields");d.path("auto_fields").fields().forEachRemaining(entry->{ArrayNode combined=paths.has(entry.getKey())?(ArrayNode)paths.path(entry.getKey()):arr();Set<String> all=new LinkedHashSet<>(strings(combined));all.addAll(strings(entry.getValue()));paths.set(entry.getKey(),M.valueToTree(all));});d.set("auto_fields",paths);result.remove("coverage");result.put("state","DONE");result.put("job_id",text(job,"job_id"));d.set("enrichment",result);d.put("revision",d.path("revision").asInt()+1);d.put("state","COLLECTING");d.putNull("report");d.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",d);return null;});
+                store.put("history/"+day+"/"+d.path("revision").asInt()+".json",d);d.set("dataset",result.remove("dataset"));JsonNode odds=result.remove("odds_import");if(odds!=null&&!odds.isNull())d.set("odds_import",odds);ObjectNode paths=(ObjectNode)result.remove("auto_fields");d.path("auto_fields").fields().forEachRemaining(entry->{ArrayNode combined=paths.has(entry.getKey())?(ArrayNode)paths.path(entry.getKey()):arr();Set<String> all=new LinkedHashSet<>(strings(combined));all.addAll(strings(entry.getValue()));paths.set(entry.getKey(),M.valueToTree(all));});d.set("auto_fields",paths);result.remove("coverage");result.put("state","DONE");result.put("job_id",text(job,"job_id"));d.set("enrichment",result);d.put("revision",d.path("revision").asInt()+1);d.put("state","COLLECTING");d.remove("report");d.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",d);return null;});
         }catch(RuntimeException e){store.locked("day/"+day,()->{ObjectNode d=require(day);if(text(d,"enrichment.job_id").equals(text(job,"job_id"))&&text(d,"state").equals("PREFILLING")){d.put("state","ERROR");d.put("error","Source import failed. Retry start_day. "+DataCollector.rootMessage(e));((ObjectNode)d.path("enrichment")).put("state","ERROR").put("updated_at",Instant.now().toString());store.put("days/"+day+".json",d);}return null;});throw e;}
     }
     ObjectNode saveGame(String day,JsonNode game,JsonNode evidence,int expectedRevision){
@@ -63,7 +69,18 @@ final class Workflow {
                     if(!oldMarket.equals(incoming))throw new IllegalArgumentException("Backend NHL odds are immutable. Reload get_game and preserve backend market records.");
                 }
                 for(JsonNode incoming:savedGame.path("markets"))if(NhlOdds.managed(incoming)){JsonNode original=null;for(JsonNode oldMarket:games.get(i).path("markets"))if(text(oldMarket,"id").equals(text(incoming,"id")))original=oldMarket;if(!incoming.equals(original))throw new IllegalArgumentException("Cannot create or change a backend NHL market through save_game");}
+                for(JsonNode incoming:savedGame.path("markets"))if(!NhlOdds.managed(incoming)){
+                    JsonNode original=null;for(JsonNode oldMarket:games.get(i).path("markets"))if(text(oldMarket,"id").equals(text(incoming,"id")))original=oldMarket;
+                    if(!incoming.equals(original)&&(!MarketQuotes.fresh(incoming,Instant.now())||incoming.path("evidence_ids").isEmpty()))throw new IllegalArgumentException("New/revised researched prices need fresh verified source, settlement rules and evidence_ids. Never save an estimate as a quote.");
+                }
                 for(String search:Checks.SEARCHES){JsonNode original=games.get(i).path("checks").path("market_searches").path(search),incoming=savedGame.path("checks").path("market_searches").path(search);if(NhlOdds.nativeCheck(original)){if(!incoming.isMissingNode()&&!original.equals(incoming))throw new IllegalArgumentException("Backend market checks are immutable: "+search);((ObjectNode)savedGame.path("checks").path("market_searches")).set(search,original.deepCopy());}}
+                // An independently verified offer can satisfy a category absent from the NHL feed.
+                // The caller still preserves native checks; the server records the additional proof.
+                for(String search:Checks.SEARCHES){
+                    Set<String> manualProofs=new LinkedHashSet<>();boolean nativeFound=false;
+                    for(JsonNode quote:savedGame.path("markets"))if(Checks.matches(search,quote)){if(NhlOdds.managed(quote))nativeFound=true;else manualProofs.addAll(strings(quote.path("evidence_ids")));}
+                    if(!nativeFound&&!manualProofs.isEmpty())((ObjectNode)savedGame.path("checks").path("market_searches")).set(search,obj("status","found","evidence_ids",manualProofs,"note","Additional bookmaker offer verified by GPT research; not an inferred NHL quote."));
+                }
                 for(JsonNode path:d.path("auto_fields").path(id)){
                     String p=path.asText();JsonNode nativeValue=at(games.get(i),p),incomingValue=at(savedGame,p);
                     JsonNode original=games.get(i).path("checks").path("fields").path(p),incoming=savedGame.path("checks").path("fields").path(p);
@@ -80,34 +97,29 @@ final class Workflow {
             for(JsonNode e:savedEvidence){String eid=text(e,"id");if(refs.containsKey(eid)&&!refs.get(eid).equals(e))throw new IllegalArgumentException("Evidence IDs are immutable; use a new ID for a recheck");refs.put(eid,e);}
             dataset.set("evidence",M.valueToTree(refs.values()));refreshStarted(dataset);
             List<String>errors=Checks.validate(dataset);if(!errors.isEmpty())throw new IllegalArgumentException(String.join("; ",errors.subList(0,Math.min(12,errors.size()))));
-            d.set("dataset",dataset);d.put("research_complete",false);d.put("revision",expectedRevision+1);d.put("state","COLLECTING");d.putNull("report");d.putNull("error");d.put("updated_at",Instant.now().toString());
+            d.set("dataset",dataset);d.put("research_complete",false);d.put("revision",expectedRevision+1);d.put("state","COLLECTING");d.remove("report");d.putNull("error");d.put("updated_at",Instant.now().toString());
             store.put("days/"+day+".json",d);return obj("day",day,"revision",expectedRevision+1,"checklist",Checks.audit(dataset),"coverage",Checks.coverage(dataset),"import_warnings",goalieImport.path("warnings"));
         });
     }
-    ObjectNode finish(String day,int sims){
-        if(sims<1000||sims>250000)throw new IllegalArgumentException("sims must be 1000..250000");
+    ObjectNode finish(String day){
+
         return store.locked("day/"+Schedule.day(day),()->{
             ObjectNode d=require(day);if(List.of("PREFILLING","QUEUED","RUNNING").contains(text(d,"state")))return summary(d);
             if(text(d,"state").equals("NO_GAMES"))return summary(d);
             refreshStarted((ObjectNode)d.path("dataset"));
             List<String>errors=Checks.validate(d.path("dataset"));if(!errors.isEmpty())return obj("status","INVALID_INPUT","errors",errors);
             if(!Checks.audit(d.path("dataset")).path("complete").asBoolean())return obj("status","CHECKLIST_INCOMPLETE","checklist",Checks.audit(d.path("dataset")));
-            String job=UUID.randomUUID().toString();d.put("research_complete",true);d.put("last_sims",Engine.SIMULATIONS);d.put("state","QUEUED");d.put("job_id",job);d.put("updated_at",Instant.now().toString());d.putNull("error");store.put("days/"+day+".json",d);
-            try{queue.accept(obj("day",day,"job_id",job,"sims",Engine.SIMULATIONS));}catch(RuntimeException e){d.put("state","ERROR");d.put("error","Could not enqueue calculation; retry finalize_day.");store.put("days/"+day+".json",d);throw e;}
+            d.put("research_complete",true);d.put("state","READY_FOR_ANALYSIS");d.put("updated_at",Instant.now().toString());d.putNull("error");
+            d.remove(List.of("report","last_sims","job_id"));store.put("days/"+day+".json",d);
             return summary(d);
         });
     }
-    void calculate(JsonNode job){
-        if(text(job,"kind").equals("prefill")){prefill(job);return;}
-        String day=text(job,"day");ObjectNode d=store.locked("day/"+Schedule.day(day),()->{ObjectNode x=require(day);if(!text(x,"job_id").equals(text(job,"job_id"))||text(x,"state").equals("COMPLETE")||text(x,"state").equals("INCOMPLETE"))return null;x.put("state","RUNNING");x.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",x);return x;});
-        if(d==null)return;
-        try{
-            ObjectNode report=Engine.run(d.path("dataset"),Engine.SIMULATIONS,1707,false);
-            store.locked("day/"+day,()->{ObjectNode current=require(day);if(!text(current,"job_id").equals(text(job,"job_id")))return null;current.set("report",report);current.put("state",List.of("INVALID_INPUT","CHECKLIST_INCOMPLETE","INSUFFICIENT_DATA").contains(text(report,"status"))?"INCOMPLETE":"COMPLETE");current.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",current);return null;});
-        }catch(RuntimeException e){store.locked("day/"+day,()->{ObjectNode current=require(day);if(text(current,"job_id").equals(text(job,"job_id"))){current.put("state","ERROR");current.put("error","Calculation failed. Retry finalize_day.");current.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",current);}return null;});throw e;}
+    void processImport(JsonNode job){
+        if(text(job,"kind").equals("prefill"))prefill(job);
+        // Old queued prediction jobs are deliberately discarded after migration. No model exists.
     }
-    ObjectNode read(String day){ObjectNode d=require(day);ObjectNode out=summary(d);out.set("checklist",Checks.audit(d.path("dataset")));out.set("report",d.path("report"));out.set("evidence",d.path("dataset").path("evidence"));out.set("games",d.path("dataset").path("games"));return out;}
-    ObjectNode summary(JsonNode d){return obj("day",text(d,"day"),"state",text(d,"state"),"updated_at",text(d,"updated_at"),"revision",d.path("revision"),"game_count",d.path("dataset").path("games").size(),"as_of",d.path("dataset").path("as_of"),"error",d.path("error"),"enrichment",d.path("enrichment"),"odds_import",d.path("odds_import"),"research_complete",d.path("research_complete").asBoolean(),"coverage",Checks.coverage(d.path("dataset")),"final_tips",Tips.view(d,Instant.now()),"result_status",d.path("report").path("status"),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));}
+    ObjectNode read(String day){ObjectNode d=require(day);ObjectNode out=summary(d);out.set("checklist",Checks.audit(d.path("dataset")));out.set("evidence",d.path("dataset").path("evidence"));out.set("games",d.path("dataset").path("games"));return out;}
+    ObjectNode summary(JsonNode input){JsonNode d=migrate(input.deepCopy());return obj("day",text(d,"day"),"state",text(d,"state"),"updated_at",text(d,"updated_at"),"revision",d.path("revision"),"game_count",d.path("dataset").path("games").size(),"as_of",d.path("dataset").path("as_of"),"error",d.path("error"),"enrichment",d.path("enrichment"),"odds_import",d.path("odds_import"),"research_complete",d.path("research_complete").asBoolean(),"coverage",Checks.coverage(d.path("dataset")),"final_tips",Tips.view(d,Instant.now()),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));}
     void eveningTick(Instant now){
         String day=NhlOdds.day(now);ObjectNode existing=store.get("days/"+day+".json");
         if(existing==null){start(day);return;}
@@ -119,11 +131,11 @@ final class Workflow {
         ObjectNode before=require(day);if(List.of("PREFILLING","QUEUED","RUNNING","NO_GAMES").contains(text(before,"state")))return summary(before);
         ObjectNode imported=collector.odds.collect(day,before.path("dataset"));JsonNode data=imported.path("dataset");
         List<String> errors=Checks.validate(data);if(!errors.isEmpty()||!Checks.audit(data).path("issues").isEmpty())throw new IllegalStateException("NHL odds import failed validation: "+errors);
-        boolean resume=before.path("research_complete").asBoolean()||!before.path("report").isNull()&&!before.path("report").isMissingNode()&&Checks.audit(before.path("dataset")).path("complete").asBoolean();
+        boolean resume=before.path("research_complete").asBoolean();
         ObjectNode saved=store.locked("day/"+day,()->{ObjectNode latest=require(day);if(latest.path("revision").asInt()!=before.path("revision").asInt()||!text(latest,"state").equals(text(before,"state")))return null;
             store.put("history/"+day+"/"+latest.path("revision").asInt()+".json",latest);latest.set("dataset",data);latest.set("odds_import",imported.path("odds_import"));latest.put("revision",latest.path("revision").asInt()+1);latest.put("updated_at",Instant.now().toString());latest.put("state","COLLECTING");latest.putNull("report");store.put("days/"+day+".json",latest);return latest;});
         if(saved==null)return summary(require(day));
-        if(resume&&Checks.audit(data).path("complete").asBoolean())return finish(day,Engine.SIMULATIONS);
+        if(resume&&Checks.audit(data).path("complete").asBoolean())return finish(day);
         return summary(saved);
     }
     ArrayNode archive(){ArrayNode a=arr();store.keys("days/").stream().filter(k->k.matches("days/\\d{4}-\\d{2}-\\d{2}\\.json")).sorted(Comparator.reverseOrder()).limit(120).forEach(k->{ObjectNode d=store.get(k);if(d!=null)a.add(summary(d));});return a;}
@@ -137,7 +149,7 @@ final class Workflow {
             if(d.path("revision").asInt()!=args.path("revision").asInt())throw new BusyException();
             ObjectNode tips=Tips.prepare(d,args,now);tips.put("request_signature",signature);
             store.put("history/tips/"+day+"/"+d.path("revision").asInt()+".json",d.path("final_tips").isObject()?(ObjectNode)d.path("final_tips"):obj());
-            d.set("final_tips",tips);d.put("revision",d.path("revision").asInt()+1);d.put("updated_at",now.toString());
+            d.set("final_tips",tips);d.put("state","COMPLETE");d.put("revision",d.path("revision").asInt()+1);d.put("updated_at",now.toString());
             store.put("days/"+day+".json",d);return summary(d);
         });
     }

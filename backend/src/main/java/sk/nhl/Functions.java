@@ -21,7 +21,7 @@ public final class Functions {
         String path=request.getUri().getPath(),method=request.getHttpMethod().name();
         try{
             if(request.getBody().orElse("").length()>2_000_000)return response(request,413,obj("error","Request too large"));
-            if(method.equals("GET")&&path.equals("/health"))return response(request,200,obj("status","ok","version",Mcp.VERSION,"ai_api_calls",false));
+            if(method.equals("GET")&&path.equals("/health"))return response(request,200,obj("status","ok","version",Mcp.VERSION,"ai_api_calls",false,"prediction_model",false));
             if(method.equals("OPTIONS"))return response(request,204,null);
             if(method.equals("GET")&&(path.equals("/.well-known/oauth-protected-resource")||path.equals("/.well-known/oauth-protected-resource/mcp")))return response(request,200,Services.AUTH.resourceMetadata());
             if(method.equals("GET")&&(path.equals("/.well-known/oauth-authorization-server")||path.equals("/.well-known/openid-configuration")))return response(request,200,Services.AUTH.metadata());
@@ -55,8 +55,8 @@ public final class Functions {
     static String header(HttpRequestMessage<?>request,String key){return request.getHeaders().entrySet().stream().filter(e->e.getKey().equalsIgnoreCase(key)).map(Map.Entry::getValue).findFirst().orElse(null);}
     static void requireMethod(String actual,String expected){if(!actual.equals(expected))throw new IllegalArgumentException("Expected "+expected);}
     static HttpResponseMessage response(HttpRequestMessage<?>r,int status,com.fasterxml.jackson.databind.JsonNode body){return r.createResponseBuilder(HttpStatus.valueOf(status)).header("Content-Type","application/json; charset=utf-8").header("Cache-Control","no-store").header("X-Content-Type-Options","nosniff").header("Referrer-Policy","no-referrer").body(body==null?null:body.toString()).build();}
-    @FunctionName("calculate")
-    public void calculate(@QueueTrigger(name="job",queueName="predictions",connection="AzureWebJobsStorage")String job,ExecutionContext context){Services.WORKFLOW.calculate(parse(job));}
+    @FunctionName("importData")
+    public void importData(@QueueTrigger(name="job",queueName="predictions",connection="AzureWebJobsStorage")String job,ExecutionContext context){Services.WORKFLOW.processImport(parse(job));}
     @FunctionName("oddsWatch")
     public void oddsWatch(@TimerTrigger(name="timer",schedule="0 0,30 * * * *")String timer,ExecutionContext context){
         var now=java.time.Instant.now();if(NhlOdds.pollingWindow(now))Services.WORKFLOW.eveningTick(now);
@@ -66,7 +66,7 @@ public final class Functions {
         Services.AUTH.cleanup();
         for(String key:Services.STORE.keys("days/")){
             ObjectNode d=Services.STORE.get(key);if(d==null)continue;
-            if(List.of("PREFILLING","COLLECTING","RUNNING","QUEUED").contains(text(d,"state"))&&Checks.time(text(d,"updated_at")).isBefore(java.time.Instant.now().minusSeconds(7200)))Services.STORE.locked("day/"+text(d,"day"),()->{ObjectNode latest=Services.STORE.get(key);if(latest!=null&&List.of("PREFILLING","COLLECTING","RUNNING","QUEUED").contains(text(latest,"state"))&&Checks.time(text(latest,"updated_at")).isBefore(java.time.Instant.now().minusSeconds(7200))){latest.put("state","ERROR");latest.put("error","Collection or calculation did not finish. Resume the ChatGPT task.");Services.STORE.put(key,latest);}return null;});
+            if(List.of("PREFILLING").contains(text(d,"state"))&&Checks.time(text(d,"updated_at")).isBefore(java.time.Instant.now().minusSeconds(7200)))Services.STORE.locked("day/"+text(d,"day"),()->{ObjectNode latest=Services.STORE.get(key);if(latest!=null&&List.of("PREFILLING").contains(text(latest,"state"))&&Checks.time(text(latest,"updated_at")).isBefore(java.time.Instant.now().minusSeconds(7200))){latest.put("state","ERROR");latest.put("error","Source import did not finish. Resume the ChatGPT task.");Services.STORE.put(key,latest);}return null;});
         }
     }
 }

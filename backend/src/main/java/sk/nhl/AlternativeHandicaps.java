@@ -6,78 +6,34 @@ import java.time.*;
 import java.util.*;
 import static sk.nhl.Json.*;
 
-/** Alternative half-goal handicaps: tilt a score-difference distribution to an observed market pair. */
+/** Interpolate handicap prices only between TWO independent quoted lines. No simulated score distribution. */
 final class AlternativeHandicaps {
-    record Anchor(JsonNode home,JsonNode away,double margin,double probability) {}
-    static Anchor anchor(JsonNode game,Instant cutoff,String basis) {
-        List<Anchor> anchors=new ArrayList<>();
-        for(JsonNode home:game.path("markets")) {
-            double line=number(home,"line");
-            if(!text(home,"kind").equals("handicap")||!text(home,"selection").equals("home")
-                ||!text(home,"score_basis").equals(basis)||Math.abs(line)>5||Math.abs(line)%1!=.5||!AlternativeTotals.fresh(home,cutoff))continue;
-            for(JsonNode away:game.path("markets")) {
-                if(!text(away,"kind").equals("handicap")||!text(away,"selection").equals("away")
-                    ||number(away,"line")!= -line||!text(away,"score_basis").equals(basis)||!AlternativeTotals.fresh(away,cutoff)
-                    ||!text(home,"source.url").equals(text(away,"source.url"))||!text(home,"rules_url").equals(text(away,"rules_url"))
-                    ||!text(home,"source.checked_at").equals(text(away,"source.checked_at")))continue;
-                double h=number(home,"odds"),a=number(away,"odds");
-                if(!Double.isFinite(h)||!Double.isFinite(a)||h<=1||a<=1)continue;
-                double margin=1/h+1/a;if(margin<1||margin>1.3)continue;
-                anchors.add(new Anchor(home,away,margin,(1/h)/margin));
+    record Anchor(JsonNode home,JsonNode away,double line,double logit,double margin) {}
+    static ArrayNode estimate(JsonNode game,Instant now){
+        ArrayNode out=arr();for(String basis:List.of("official_final","regulation")){
+            List<Anchor> anchors=new ArrayList<>();
+            for(JsonNode home:game.path("markets")){
+                if(!text(home,"kind").equals("handicap")||!text(home,"selection").equals("home")||!text(home,"score_basis").equals(basis)||!MarketQuotes.fresh(home,now)||Math.abs(number(home,"line"))%1!=.5)continue;
+                for(JsonNode away:game.path("markets"))if(text(away,"kind").equals("handicap")&&text(away,"selection").equals("away")&&text(away,"score_basis").equals(basis)&&number(away,"line")==-number(home,"line")&&MarketQuotes.fresh(away,now)&&AlternativeTotals.samePublication(home,away)){
+                    double margin=1/number(home,"odds")+1/number(away,"odds"),p=(1/number(home,"odds"))/margin;if(margin<1||margin>1.3||p<=0||p>=1)continue;
+                    anchors.add(new Anchor(home,away,number(home,"line"),Math.log(p/(1-p)),margin));
+                }
             }
-        }
-        anchors.sort(Comparator.comparing((Anchor a)->Checks.time(text(a.home,"source.checked_at"))).reversed()
-            .thenComparingDouble(a->Math.abs(Math.abs(number(a.home,"line"))-1.5)));
-        return anchors.isEmpty()?null:anchors.getFirst();
-    }
-    static SortedMap<Integer,Double> histogram(Engine.Scores scores,String basis) {
-        int[] home=basis.equals("regulation")?scores.rh():scores.fh(),away=basis.equals("regulation")?scores.ra():scores.fa();
-        SortedMap<Integer,Double> result=new TreeMap<>();
-        for(int i=0;i<home.length;i++)result.merge(home[i]-away[i],1.0,Double::sum);
-        return result;
-    }
-    static double probability(Map<Integer,Double> histogram,double tilt,double line) {
-        double max=histogram.keySet().stream().mapToDouble(x->tilt*x).max().orElse(0),win=0,sum=0;
-        for(var e:histogram.entrySet()){double w=e.getValue()*Math.exp(tilt*e.getKey()-max);sum+=w;if(e.getKey()+line>0)win+=w;}
-        return win/sum;
-    }
-    static double fit(Map<Integer,Double> histogram,double line,double probability) {
-        double low=-20,high=20;
-        for(int i=0;i<80;i++){double mid=(low+high)/2;if(probability(histogram,mid,line)<probability)low=mid;else high=mid;}
-        return (low+high)/2;
-    }
-    static ArrayNode estimate(JsonNode game,Engine.Scores base,List<Engine.Scores> scenarios,String asOf) {
-        ArrayNode result=arr();Instant cutoff=Checks.time(asOf);
-        if(!text(game,"status").equals("scheduled")||!Checks.time(text(game,"starts_at")).isAfter(cutoff))return result;
-        for(String basis:List.of("official_final","regulation")) {
-            Anchor a=anchor(game,cutoff,basis);if(a==null)continue;
-            var histogram=histogram(base,basis);double anchorLine=number(a.home,"line");
-            if(probability(histogram,-20,anchorLine)>=a.probability||probability(histogram,20,anchorLine)<=a.probability)continue;
-            double tilt=fit(histogram,anchorLine,a.probability);
-            for(double line=-4.5;line<=4.5;line++)for(String selection:List.of("home","away")) {
-                boolean quoted=false;
-                for(JsonNode m:game.path("markets"))if(text(m,"kind").equals("handicap")&&text(m,"selection").equals(selection)
-                    &&text(m,"score_basis").equals(basis)&&number(m,"line")==line){quoted=true;break;}
-                if(quoted)continue;
-                ObjectNode market=obj("kind","handicap","selection",selection,"team",selection,"line",line,"score_basis",basis);
-                double probability=Engine.settle(market,base)[0],minimum=probability,maximum=probability;
-                for(Engine.Scores scores:scenarios){double p=Engine.settle(market,scores)[0];minimum=Math.min(minimum,p);maximum=Math.max(maximum,p);}
-                double marketProbability=probability(histogram,tilt,selection.equals("home")?line:-line);
-                if(selection.equals("away"))marketProbability=1-marketProbability;
-                double implied=marketProbability*a.margin;Double estimate=implied>0&&implied<1?1/implied:null;
-                result.add(obj("kind","handicap","selection",selection,"team",selection,"line",line,"score_basis",basis,
-                    "odds_type","ESTIMATED","estimated_odds",AlternativeTotals.rounded(estimate),
-                    "market_fair_odds",AlternativeTotals.rounded(AlternativeTotals.fair(marketProbability)),
-                    "p_win",Engine.round(probability,5),"p_win_min",Engine.round(minimum,5),"p_win_max",Engine.round(maximum,5),
-                    "model_fair_odds",AlternativeTotals.rounded(AlternativeTotals.fair(probability)),
-                    "minimum_odds_conservative",AlternativeTotals.rounded(AlternativeTotals.fair(minimum)),
-                    "research_eligible",false,"issues",List.of("ESTIMATED_ODDS_NOT_VERIFIED"),
-                    "method","SCORE_DIFFERENCE_EXPONENTIAL_TILT_TO_NO_VIG_HANDICAP_WITH_CONSTANT_OVERROUND",
-                    "anchor_line",anchorLine,"anchor_home_odds",number(a.home,"odds"),"anchor_away_odds",number(a.away,"odds"),
-                    "anchor_market_ids",List.of(text(a.home,"id"),text(a.away,"id")),"anchor_source_url",text(a.home,"source.url"),
-                    "anchor_checked_at",text(a.home,"source.checked_at"),"anchor_overround",Engine.round(a.margin-1,6)));
+            anchors.sort(Comparator.comparingDouble(Anchor::line));
+            for(double line=-4.5;line<=4.5;line++)for(String selection:List.of("home","away")){
+                if(AlternativeTotals.alreadyQuoted(game,"handicap",selection,basis,line))continue;double homeLine=selection.equals("home")?line:-line;
+                Anchor low=null,high=null;
+                for(Anchor a:anchors)for(Anchor b:anchors)if(a.line<=homeLine&&b.line>=homeLine&&a.line<b.line&&b.logit>a.logit&&AlternativeTotals.samePublication(a.home,b.home)){
+                    if(low==null||b.line-a.line<high.line-low.line){low=a;high=b;}
+                }
+                if(low==null)continue;double weight=(homeLine-low.line)/(high.line-low.line),logit=low.logit+weight*(high.logit-low.logit);
+                double p=1/(1+Math.exp(-logit));if(selection.equals("away"))p=1-p;double implied=p*(low.margin+weight*(high.margin-low.margin));
+                if(implied<=0||implied>=1)continue;double price=MarketQuotes.round(1/implied,5);
+                out.add(obj("id","handicap-approx-"+basis+"-"+selection+"-"+line,"kind","handicap","selection",selection,"team",selection,"line",line,"score_basis",basis,
+                    "price",price,"estimated_odds",price,"odds_type","ESTIMATED","source",low.home.path("source"),"rules_url",low.home.path("rules_url"),"settlement_verified",true,
+                    "method","BOOKMAKER_HANDICAP_LOGIT_INTERPOLATION","assumptions","Interpolated only between two independent complete handicap quote pairs from the same publication; not a game prediction. Verify the real offer.",
+                    "anchor_market_ids",List.of(text(low.home,"id"),text(low.away,"id"),text(high.home,"id"),text(high.away,"id")),"anchor_checked_at",text(low.home,"source.checked_at")));
             }
-        }
-        return result;
+        }return out;
     }
 }

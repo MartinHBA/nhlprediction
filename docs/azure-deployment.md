@@ -40,7 +40,7 @@ Bezplatné limity závisia aj od ostatnej spotreby v subscription.
 
 Microsoft login ani inštalácia pluginu v používateľovom ChatGPT nie sú vykonané
 samotným Azure deploymentom. Plánovaná úloha zatiaľ nie je vytvorená. Azure
-časovač iba čistí expirované OAuth údaje a označuje zaseknuté behy; AI research
+časovač zbiera dáta a kurzy, čistí expirované OAuth údaje a označuje zaseknuté importy; AI research
 spúšťa ChatGPT. Dostupnosť a bezobslužný beh treba potvrdiť v používateľovom účte.
 
 Oficiálne podklady: [vlastný MCP](https://developers.openai.com/api/docs/guides/custom-mcp-server),
@@ -172,15 +172,23 @@ neregistroval. Verejný HTTP endpoint na administrátorský import nevzniká.
   connection string v serverových nastaveniach; frontend ho nepozná.
 - Zápisy do dňa používajú Blob lease a revision. Program, tímy a časy zo začiatku
   dňa nemožno prepísať cez `save_game`. Nové dôkazy nesmú meniť existujúce ID.
-- `finalize_day` odmietne neúplný checklist a odovzdá výpočet fronte `predictions`.
-  Queue-trigger vykoná simulácie. COMPLETE neznamená, že vznikol stávkový kandidát.
-- `get_candidates` sprístupní vypočítané alternatívy a research pre finálnu analýzu.
-  `post_tips` cez rovnaké OAuth uloží kompletné rozhodnutia ChatGPT. Web publikuje
-  tieto rozhodnutia až pri `final_tips.state=PUBLISHED`; zmenené podklady ich
-  označia NEEDS_REVIEW. Samotný timer výber ChatGPT neprepisuje.
+- Od verzie **3.0.0** je backend dátový: nemá predikčný model ani simulácie.
+  Fronta s historickým názvom `predictions` slúži iba na zdrojové importy;
+  `importData` staré výpočtové správy ignoruje. Žiadne nové Azure resources.
+- `finalize_day(day)` odmietne neúplný checklist a synchrónne označí research
+  `READY_FOR_ANALYSIS`. Nemá parameter sims a nič nepočíta ani nequeueuje.
+- `get_analysis` sprístupní úplný dataset, dôkazy, dodatočný research a všetky
+  ceny. `get_candidates` je kompatibilný alias. Backend nepridáva predikované
+  góly, pravdepodobnosti, EV alebo preferencie. Ceny ESTIMATED sú iba trhové
+  aproximácie; handicap vyžaduje dve nezávislé kompletné kotviace hranice.
+- GPT môže presný nový kurz uložiť cez `save_game` s vlastnými evidence_ids,
+  zdrojom a pravidlami; natívne ceny nesmie prepísať. Ďalší doložený kontext
+  patrí do `analysis_context`. `post_tips` ukladá vlastné rozhodnutia GPT
+  pre celý deň. COMPLETE znamená publikované rozhodnutia a musí sa overiť
+  `final_tips.state=PUBLISHED`. Zmena podkladov ich označí NEEDS_REVIEW.
 - Pri začatých zápasoch sa nevytvárajú nové predzápasové trhy. Poctivo nedostupné
-  kritické vstupy vedú k INCOMPLETE / INSUFFICIENT_DATA, nie k vymysleným číslam.
-- Kontrola každých 15 minút označí otvorený beh bez aktualizácie dlhšej než 2 hodiny
+  vstupy ostávajú označené ako nedostupné; GPT posúdi vhodnosť tipu, nevymýšľa čísla.
+- Kontrola každých 15 minút označí zaseknutý import bez aktualizácie dlhšej než 2 hodiny
   ako ERROR. OAuth access token platí hodinu; refresh token sa rotuje a platí 30 dní.
 - Nie je pridaný samostatný platený monitoring. Pri diagnostike použi Functions
   host logy a prehľad stavu na webe. Veľkosť úložiska a náklady sleduj v Azure.
@@ -197,7 +205,7 @@ výsledky. Neznámy `MONEY_LINE_2_WAY_TNB` a chýbajúce ceny sa nedopočítavaj
 
 `odds_import` v dennom API ukazuje skutočný čas HTTP kontroly, čas publikácie,
 deň feedu, počet zápasov a stav WAITING/PARTIAL/READY/ERROR. Pri dobehnutí kurzov
-sa prepočíta uložený dokončený research. Súbežný `save_game` chráni revision;
+sa obnoví dátový snapshot bez predikčného výpočtu. Súbežný `save_game` chráni revision;
 sieťová požiadavka prebieha mimo Blob lease. Nové Azure resources nevznikajú.
 Cloudový ChatGPT research o 20:00 nastaví vlastník podľa
 `docs/chatgpt-scheduled-prompt.md`; prístup jeho úlohy k MCP musí overiť Run now.
@@ -206,7 +214,7 @@ Všetkých 32 oficiálnych log NHL je v `frontend/assets/teams`. Deployment
 frontendu kopíruje aj túto zložku. Pri zlyhaní obrázka UI zobrazí tímový kód.
 
 ```powershell
-mvn -B -f backend/pom.xml verify
+mvn -B -f backend/pom.xml clean verify
 cd frontend
 npm install --ignore-scripts
 npm test
@@ -218,8 +226,13 @@ Jednorazový testovací authorization code vloží priamo správca; tým sa over
 PKCE/token/MCP cesta, **nie interaktívne Microsoft prihlásenie**. Všetky testovacie
 client/code/access/refresh údaje sa po teste odstránia. Nezískava platené AI dáta.
 
-Java projekcie a checklist sa overujú voči uloženým referenčným výsledkom
-v `backend/src/test/resources/reference-report.json`. Rovnaký Java seed je
-reprodukovateľný. Autoritatívna JSON schéma je súčasťou Java backendu
+Testy overujú dátový import, validáciu, overené/odhadované ceny, publikáciu
+GPT bez Java reportu, konflikty snapshotov a migráciu starých výberov.
+Autoritatívna JSON schéma je súčasťou Java backendu
 v `backend/src/main/resources/schema.json`. GitHub Actions overuje Java backend
 a frontend; po pushi do `main` nadväzuje automatické nasadenie do Azure.
+
+Živý izolovaný test `scripts/smoke.ps1 -Day YYYY-MM-DD -AiTips` používa deň
+2099-12-29, publikuje len syntetické NO_BET a potom fixture aj poverenia vyčistí.
+Zdrojový NHL deň iba číta a overí jeho nezmenenosť. Nový plán úlohy používa
+get_analysis a finalize_day bez sims; starý uložený prompt treba v ChatGPT nahradiť.

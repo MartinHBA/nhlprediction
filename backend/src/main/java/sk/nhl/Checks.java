@@ -46,6 +46,7 @@ final class Checks {
         if(!errors.isEmpty())return errors;
         try {
             Instant cutoff=time(text(d,"as_of")); Set<String> ids=new HashSet<>();
+            Map<String,JsonNode> proofs=new HashMap<>();for(JsonNode proof:d.path("evidence"))proofs.put(text(proof,"id"),proof);
             Set<String> expected=new HashSet<>(strings(d.path("expected_game_ids")));
             if(d.path("games").isEmpty() && !expected.isEmpty())errors.add("SCHEDULE_MISMATCH");
             for(JsonNode g:d.path("games")) {
@@ -63,6 +64,8 @@ final class Checks {
                     for(String p:List.of("current","prior"))if(goalie.path("starts_"+p).asInt()>0&&missing(goalie.path("gsax_per60_"+p)))errors.add(id+"/"+side+": goalie starts >0 but GSAx null");
                 }
                 if(!scheduled&&!g.path("markets").isEmpty())errors.add(id+": live/final game has pregame markets");
+                List<JsonNode> sourced=new ArrayList<>();g.path("analysis_context").forEach(sourced::add);g.path("markets").forEach(sourced::add);
+                for(JsonNode entry:sourced)for(String ref:strings(entry.path("evidence_ids"))){JsonNode proof=proofs.get(ref);if(proof==null)errors.add(id+": unknown context/price evidence "+ref);else if(time(text(proof,"checked_at")).isAfter(cutoff.isBefore(start)?cutoff:start))errors.add(id+": context/price evidence violates pregame cutoff");}
                 Set<String> marketIds=new HashSet<>();
                 for(JsonNode m:g.path("markets")) {
                     String k=text(m,"kind"),s=text(m,"selection"),basis=text(m,"score_basis"); JsonNode line=m.path("line");
@@ -92,7 +95,7 @@ final class Checks {
         Instant cutoff=time(text(d,"as_of"));
         for(JsonNode g:d.path("games")) {
             ArrayNode unchecked=arr(),unavailable=arr(),missing=arr(),marketUnchecked=arr(),local=arr();
-            if(!text(g,"status").equals("scheduled")) { games.add(obj("game_id",text(g,"game_id"),"status","SKIPPED_ALREADY_STARTED","unchecked",unchecked,"unavailable",unavailable,"model_missing",missing,"market_categories_unchecked",marketUnchecked,"issues",local,"checked_count",0));continue; }
+            if(!text(g,"status").equals("scheduled")) { games.add(obj("game_id",text(g,"game_id"),"status","SKIPPED_ALREADY_STARTED","unchecked",unchecked,"unavailable",unavailable,"missing_core_fields",missing,"market_categories_unchecked",marketUnchecked,"issues",local,"checked_count",0));continue; }
             Instant start=time(text(g,"starts_at")); Instant limit=cutoff.isBefore(start)?cutoff:start;
             for(String p:PATHS) {
                 JsonNode v=at(g,p),c=g.path("checks").path("fields").path(p);
@@ -109,7 +112,7 @@ final class Checks {
             g.path("checks").path("market_searches").fieldNames().forEachRemaining(k->{if(!SEARCHES.contains(k))local.add(k+": UNKNOWN_MARKET_CATEGORY");});
             for(JsonNode issue:local)issues.add(text(g,"game_id")+": "+issue.asText());
             long fieldUnchecked=strings(unchecked).stream().filter(x->!x.startsWith("market_searches.")).count();
-            games.add(obj("game_id",text(g,"game_id"),"status",missing.isEmpty()&&unchecked.isEmpty()&&local.isEmpty()?"READY_FOR_MODEL":"INCOMPLETE","unchecked",unchecked,"unavailable",unavailable,"model_missing",missing,"market_categories_unchecked",marketUnchecked,"issues",local,"checked_count",PATHS.size()-(int)fieldUnchecked));
+            games.add(obj("game_id",text(g,"game_id"),"status",missing.isEmpty()&&unchecked.isEmpty()&&local.isEmpty()?"CORE_DATA_AVAILABLE":"INCOMPLETE","unchecked",unchecked,"unavailable",unavailable,"missing_core_fields",missing,"market_categories_unchecked",marketUnchecked,"issues",local,"checked_count",PATHS.size()-(int)fieldUnchecked));
         }
         return obj("games",games,"found_total",counts[0],"unavailable_total",counts[1],"unchecked_total",counts[2],"issues",issues,"complete",issues.isEmpty()&&counts[2]==0);
     }
@@ -120,7 +123,7 @@ final class Checks {
             if(!text(g,"status").equals("scheduled"))continue;scheduled++;int f=0,u=0,c=0;
             for(String p:PATHS){JsonNode check=g.path("checks").path("fields").path(p);boolean present=text(check,"status").equals("found")&&!missing(at(g,p));if(present)f++;else if(text(check,"status").equals("unavailable"))u++;if(present&&REQUIRED.contains(p))c++;}
             found+=f;unavailable+=u;total+=PATHS.size();critical+=c;criticalTotal+=REQUIRED.size();if(c==REQUIRED.size())ready++;
-            games.add(obj("game_id",text(g,"game_id"),"field_found",f,"field_total",PATHS.size(),"critical_found",c,"critical_total",REQUIRED.size(),"model_ready",c==REQUIRED.size()));
+            games.add(obj("game_id",text(g,"game_id"),"field_found",f,"field_total",PATHS.size(),"critical_found",c,"critical_total",REQUIRED.size(),"core_complete",c==REQUIRED.size()));
         }
         ObjectNode audit=audit(data);int all=audit.path("found_total").asInt()+audit.path("unavailable_total").asInt()+audit.path("unchecked_total").asInt();
         return obj("field_found",found,"field_unavailable",unavailable,"field_total",total,"field_found_pct",total==0?0.0:100.0*found/total,"critical_found",critical,"critical_total",criticalTotal,"critical_ready_games",ready,"scheduled_games",scheduled,"checklist_closed",all-audit.path("unchecked_total").asInt(),"checklist_total",all,"games",games);

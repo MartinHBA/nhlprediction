@@ -1,4 +1,4 @@
-param([string]$Day,[switch]$Repair)
+param([string]$Day,[switch]$AiTips,[switch]$NativeSave)
 $ErrorActionPreference='Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 if (!$Day) { $Day=[TimeZoneInfo]::ConvertTimeFromUtc([DateTime]::UtcNow,[TimeZoneInfo]::FindSystemTimeZoneById('Eastern Standard Time')).ToString('yyyy-MM-dd') }
@@ -13,7 +13,8 @@ try {
     $env:PUBLIC_BASE_URL=$deployment.functionUrl
     $classpath="backend/target/test-classes;backend/target/classes;$(Get-Content .local/classpath.txt -Raw)"
     $smokeArgs=@($Day)
-    if ($Repair) { $smokeArgs+='--repair' }
+    if ($AiTips) { $smokeArgs+='--ai-tips' }
+    if ($NativeSave) { $smokeArgs+='--native-save' }
     & java -cp $classpath sk.nhl.LiveSmoke @smokeArgs
     if ($LASTEXITCODE -ne 0) { throw 'Live smoke verification failed' }
 } finally { $env:AzureWebJobsStorage=$previousStorage; $env:PUBLIC_BASE_URL=$previousBase }
