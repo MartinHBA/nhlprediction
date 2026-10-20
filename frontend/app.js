@@ -43,9 +43,17 @@ function fieldDetails(game,criticalOnly){
    for(const field of fields){
     const row=el('div','field-row'),heading=el('div','field-heading');row.dataset.fieldPath=field.path;
     const status=field.found?'Získané':field.status==='unavailable'?'Nedostupné':field.status==='found'?'Chýba hodnota':'Nepreverené';
-    heading.append(el('span','field-label',field.label),el('span','field-status '+(field.found?'good':field.status==='unavailable'?'caution':'subtle'),status));
+    const label=el(field.note?'button':'span','field-label',field.label);
+    heading.append(label,el('span','field-status '+(field.found?'good':field.status==='unavailable'?'caution':'subtle'),status));
     row.append(heading,el('p','field-value',fieldValue(field.value)));
-    if(field.note)row.append(el('p','field-note',field.note));
+    if(field.note){
+     const note=el('span','field-tooltip',field.note);note.id=`field-note-${game.game_id}-${section.dataset.section}-${field.path.replaceAll('.','-')}`;note.setAttribute('role','tooltip');
+     row.classList.add('has-note');label.type='button';label.setAttribute('aria-describedby',note.id);
+     label.onfocus=()=>row.classList.remove('note-dismissed');
+     label.onclick=()=>{const open=row.classList.toggle('note-open');row.classList.toggle('note-dismissed',!open);if(!open)label.blur();};
+     row.onmouseleave=()=>row.classList.remove('note-dismissed');
+     row.append(note);
+    }
     block.append(row);
    }
    team.append(block);
@@ -54,6 +62,17 @@ function fieldDetails(game,criticalOnly){
  }
  return section;
 }
+function dismissFieldNotes(except,blur=true){
+ for(const row of document.querySelectorAll('.field-row.note-open,.field-row.has-note:hover,.field-row.has-note:focus-within')){
+  if(except&&row.contains(except))continue;
+  if(row.classList.contains('note-open')||row.matches(':hover')||row.contains(document.activeElement)){
+   row.classList.remove('note-open');row.classList.add('note-dismissed');
+   if(blur&&row.contains(document.activeElement))document.activeElement.blur();
+  }
+ }
+}
+document.addEventListener('pointerdown',event=>dismissFieldNotes(event.target));
+document.addEventListener('keydown',event=>{if(event.key==='Escape')dismissFieldNotes(null,false);});
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const pct=p=>Number.isFinite(p)?`${(p*100).toFixed(1)} %`:'—';
 const dateLabel=day=>new Intl.DateTimeFormat('sk-SK',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(day+'T12:00:00Z'));
