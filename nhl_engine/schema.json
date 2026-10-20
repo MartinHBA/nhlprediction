@@ -1,0 +1,602 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/nhl-engine-v1.8.schema.json",
+  "title": "NHL v1.8 enforced collection checklist",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "as_of",
+    "expected_game_ids",
+    "synthetic_data",
+    "evidence",
+    "games"
+  ],
+  "properties": {
+    "as_of": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "synthetic_data": {
+      "type": "boolean"
+    },
+    "expected_game_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "games": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/game"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "checked_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "checked_at",
+        "status"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://"
+        },
+        "checked_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "enum": [
+            "verified",
+            "unverified",
+            "synthetic"
+          ]
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "games",
+        "xgf_5v5_per60",
+        "xga_5v5_per60",
+        "pp_xgf_per60",
+        "pk_xga_per60",
+        "pp_drawn_per_game",
+        "penalties_taken_per_game",
+        "source",
+        "shots_for_per_game",
+        "shots_against_per_game",
+        "high_danger_for_per60",
+        "high_danger_against_per60",
+        "points_pct"
+      ],
+      "properties": {
+        "games": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 100
+        },
+        "xgf_5v5_per60": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 12
+        },
+        "xga_5v5_per60": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 12
+        },
+        "pp_xgf_per60": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 30
+        },
+        "pk_xga_per60": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 30
+        },
+        "pp_drawn_per_game": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 12
+        },
+        "penalties_taken_per_game": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 12
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "shots_for_per_game": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "shots_against_per_game": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "high_danger_for_per60": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "high_danger_against_per60": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "points_pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "goalie": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "status",
+        "starts_current",
+        "starts_prior",
+        "gsax_per60_current",
+        "gsax_per60_prior",
+        "source"
+      ],
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "probable",
+            "unknown"
+          ]
+        },
+        "starts_current": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "starts_prior": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "gsax_per60_current": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -3,
+          "maximum": 3
+        },
+        "gsax_per60_prior": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -3,
+          "maximum": 3
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      }
+    },
+    "roster": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quantified",
+        "attack_delta_goals",
+        "defense_delta_goals_allowed",
+        "absences",
+        "source",
+        "returns",
+        "scratches",
+        "forward_lines",
+        "defense_pairs",
+        "power_play_units"
+      ],
+      "properties": {
+        "quantified": {
+          "type": "boolean"
+        },
+        "attack_delta_goals": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -2,
+          "maximum": 2
+        },
+        "defense_delta_goals_allowed": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -2,
+          "maximum": 2
+        },
+        "absences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "returns": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "scratches": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "forward_lines": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "defense_pairs": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "power_play_units": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rest_days",
+        "travel_timezones"
+      ],
+      "properties": {
+        "rest_days": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 14
+        },
+        "travel_timezones": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 12
+        }
+      }
+    },
+    "team": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "prior",
+        "current",
+        "goalie",
+        "roster",
+        "context"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prior": {
+          "$ref": "#/$defs/stats"
+        },
+        "current": {
+          "$ref": "#/$defs/stats"
+        },
+        "goalie": {
+          "$ref": "#/$defs/goalie"
+        },
+        "roster": {
+          "$ref": "#/$defs/roster"
+        },
+        "context": {
+          "$ref": "#/$defs/context"
+        }
+      }
+    },
+    "market": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "selection",
+        "line",
+        "odds",
+        "score_basis",
+        "source",
+        "settlement_verified",
+        "rules_url"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "total",
+            "team_total",
+            "handicap",
+            "moneyline",
+            "regulation_1x2",
+            "double_chance"
+          ]
+        },
+        "selection": {
+          "enum": [
+            "over",
+            "under",
+            "home",
+            "away",
+            "draw",
+            "1X",
+            "X2",
+            "12"
+          ]
+        },
+        "line": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -10,
+          "maximum": 15
+        },
+        "team": {
+          "enum": [
+            "home",
+            "away"
+          ]
+        },
+        "odds": {
+          "type": "number",
+          "exclusiveMinimum": 1,
+          "maximum": 100
+        },
+        "score_basis": {
+          "enum": [
+            "regulation",
+            "official_final"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "settlement_verified": {
+          "type": "boolean"
+        },
+        "rules_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        }
+      }
+    },
+    "game": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "game_id",
+        "starts_at",
+        "status",
+        "home",
+        "away",
+        "markets",
+        "checks"
+      ],
+      "properties": {
+        "game_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "starts_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "enum": [
+            "scheduled",
+            "live",
+            "final"
+          ]
+        },
+        "home": {
+          "$ref": "#/$defs/team"
+        },
+        "away": {
+          "$ref": "#/$defs/team"
+        },
+        "markets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/market"
+          }
+        },
+        "checks": {
+          "$ref": "#/$defs/checks"
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "evidence_ids",
+        "note"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "found",
+            "unavailable",
+            "not_checked"
+          ]
+        },
+        "evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fields",
+        "market_searches"
+      ],
+      "properties": {
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/check"
+          }
+        },
+        "market_searches": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/check"
+          }
+        }
+      }
+    }
+  }
+}

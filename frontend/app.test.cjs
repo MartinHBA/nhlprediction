@@ -1,0 +1,129 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {JSDOM}=require('jsdom');
+const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');
+const script=fs.readFileSync(path.join(__dirname,'app.js'),'utf8');
+async function boot(dayResponse,status=200,setup=()=>{}){
+  const dom=new JSDOM(html,{url:'https://nhl.example/?day=2026-10-20',runScripts:'outside-only'});
+  const w=dom.window;
+  w.NHL_CONFIG={apiBase:'https://api.nhl.example'};
+  w.AbortSignal=AbortSignal;
+  w.fetch=async url=>url.endsWith('/api/days')?{ok:true,json:async()=>({days:[]})}:{ok:status===200,status,json:async()=>structuredClone(dayResponse)};
+  setup(w);
+  w.eval(script);
+  await new Promise(resolve=>setTimeout(resolve,15));
+  return dom;
+}
+const fixture=()=>{
+  const dataset=JSON.parse(fs.readFileSync(path.join(__dirname,'../examples/demo_games.json'),'utf8'));
+  const report=JSON.parse(fs.readFileSync(path.join(__dirname,'../examples/demo_report.json'),'utf8'));
+  report.games.forEach(g=>{g.p_home_win=.6;g.p_away_win=.4;});
+  return {day:'2026-10-20',state:'COMPLETE',game_count:3,updated_at:new Date().toISOString(),games:dataset.games,evidence:dataset.evidence,report};
+};
+test('renders available projections with all games and market details',async()=>{const d=await boot(fixture());try{const doc=d.window.document;assert.equal(doc.querySelectorAll('.game-card').length,3);assert.equal(doc.getElementById('metric-projected').textContent,'3');assert.match(doc.getElementById('games').textContent,/60\.0 %/);assert.match(doc.querySelector('table').textContent,/Víťaz vrátane OT/);assert.equal(doc.getElementById('day').value,'2026-10-20');}finally{d.window.close();}});
+test('does not reuse another day when selected date is absent',async()=>{const d=await boot({},404);try{assert.match(d.window.document.getElementById('status-title').textContent,/nebol spracovaný/);assert.equal(d.window.document.querySelectorAll('.game-card').length,0);}finally{d.window.close();}});
+test('clears results and exposes backend failure',async()=>{const d=await boot({},503);try{assert.match(d.window.document.getElementById('status-title').textContent,/nepodarilo/);assert.equal(d.window.document.getElementById('metric-projected').textContent,'—');}finally{d.window.close();}});
+test('empty official schedule is a successful day, not an error',async()=>{const d=await boot({day:'2026-10-20',state:'NO_GAMES',game_count:0,updated_at:new Date().toISOString(),games:[],evidence:[]});try{assert.match(d.window.document.getElementById('games').textContent,/Dnes má ľad voľno/);assert.equal(d.window.document.getElementById('metric-games').textContent,'0');}finally{d.window.close();}});
+test('research text is rendered safely and unsafe source links are omitted',async()=>{const f=fixture();f.games[0].away.name='<img src=x onerror=alert(1)>';f.evidence[0].url='javascript:alert(1)';const d=await boot(f);try{assert.equal(d.window.document.querySelector('.team.away').querySelectorAll('img').length,0);assert.equal(d.window.document.querySelectorAll('a[href^="javascript:"]').length,0);assert.match(d.window.document.getElementById('games').textContent,/<img src=x/);for(const image of d.window.document.querySelectorAll('#games img'))assert.match(image.getAttribute('src'),/^assets\/teams\/[A-Z]{3}\.svg$/);}finally{d.window.close();}});
+test('incomplete state and missing inputs remain visible',async()=>{const f=fixture();f.state='INCOMPLETE';f.report.status='INSUFFICIENT_DATA';delete f.report.games[0].lambda_total;f.report.games[0].missing=['home.current.xgf_5v5_per60'];const d=await boot(f);try{assert.match(d.window.document.getElementById('status-title').textContent,/Neúplné/);assert.match(d.window.document.getElementById('games').textContent,/Chýba 1 kľúčových/);assert.equal(d.window.document.getElementById('metric-projected').textContent,'2');}finally{d.window.close();}});
+test('closed unavailable checks never display as 100 percent available data',async()=>{const f=fixture();f.coverage={field_total:246,field_found:0,field_found_pct:0,critical_found:0,critical_total:96,critical_ready_games:0,scheduled_games:3,checklist_closed:276,checklist_total:276,games:[]};const d=await boot(f);try{const doc=d.window.document;assert.equal(doc.getElementById('metric-checks').textContent,'0 %');assert.match(doc.getElementById('coverage-detail').textContent,/276 \/ 276/);assert.match(doc.getElementById('coverage-detail').textContent,/0 \/ 96/);}finally{d.window.close();}});
+test('prefill state hides old projections and shows source warnings safely',async()=>{const f=fixture();f.state='PREFILLING';f.enrichment={warnings:['<b>Source delayed</b>']};const d=await boot(f);try{const doc=d.window.document;assert.match(doc.getElementById('status-title').textContent,/Načítavam štatistiky/);assert.equal(doc.querySelectorAll('.goal-projection').length,0);assert.equal(doc.querySelectorAll('#import-warning-list b').length,0);assert.match(doc.getElementById('import-warning-list').textContent,/Source delayed/);}finally{d.window.close();}});
+test('all NHL logos are available locally and failed images fall back to team code',async()=>{const f=fixture(),codes=['BOS','COL','MTL','SJS','UTA','SEA'];f.games.forEach((g,i)=>{g.home.name=codes[2*i];g.away.name=codes[2*i+1];});const d=await boot(f);try{const doc=d.window.document,images=doc.querySelectorAll('.team-logo');assert.equal(images.length,6);assert.equal(fs.readdirSync(path.join(__dirname,'assets/teams')).filter(f=>f.endsWith('.svg')).length,32);for(const img of images)assert.ok(fs.existsSync(path.join(__dirname,img.getAttribute('src'))));const img=images[0],parent=img.parentElement;img.dispatchEvent(new d.window.Event('error'));assert.equal(parent.querySelector('img'),null);assert.match(parent.textContent,/^[A-Z]{3}$/);}finally{d.window.close();}});
+test('waiting for fresh NHL odds is distinct from a completed no-bet analysis',async()=>{const f=fixture();f.odds_import={state:'WAITING',covered_games:0,upcoming_games:3,market_count:0,checked_at:new Date().toISOString(),source_updated_at:new Date().toISOString()};const d=await boot(f);try{assert.match(d.window.document.getElementById('status-detail').textContent,/Čakáme na aktuálne kurzy/);assert.match(d.window.document.getElementById('coverage-detail').textContent,/0\/3 zápasov/);assert.match(d.window.document.getElementById('coverage-detail').textContent,/18:00/);}finally{d.window.close();}});
+
+async function pollingPage(){
+ const data=fixture();data.odds_import={state:'WAITING',upcoming_games:3};
+ let scheduled;
+ const dom=await boot(data,200,w=>{
+  Object.defineProperty(w.document,'hidden',{configurable:true,value:false});
+  w.setTimeout=(run,delay)=>{scheduled={run,delay};return 1;};
+  w.clearTimeout=()=>{scheduled=null;};
+ });
+ return {dom,data,next:()=>scheduled};
+}
+
+test('automatic refresh waits five minutes and preserves visible cards while fetching unchanged data',async()=>{
+ const {dom,data,next}=await pollingPage();
+ try{
+  const w=dom.window,doc=w.document,card=doc.querySelector('.game-card'),title=doc.getElementById('status-title').textContent;
+  card.querySelector('details').open=true;
+  let respond;
+  w.fetch=()=>new Promise(resolve=>{respond=resolve;});
+  assert.equal(next().delay,300000);
+  const pending=next().run();
+  assert.equal(doc.querySelector('.game-card'),card);
+  assert.equal(doc.getElementById('status-title').textContent,title);
+  assert.equal(doc.getElementById('refresh').disabled,false);
+  respond({ok:true,json:async()=>structuredClone(data)});
+  await pending;
+  assert.equal(doc.querySelector('.game-card'),card);
+  assert.equal(card.querySelector('details').open,true);
+  assert.equal(next().delay,300000);
+ }finally{dom.window.close();}
+});
+
+test('changed data updates only affected cards and preserves expanded details',async()=>{
+ const {dom,data,next}=await pollingPage();
+ try{
+  const doc=dom.window.document,before=[...doc.querySelectorAll('.game-card')];
+  before[0].querySelector('details').open=true;
+  const changed=structuredClone(data);changed.report.games[0].lambda_away=4.25;changed.enrichment={warnings:['Source delayed']};
+  dom.window.fetch=async()=>({ok:true,json:async()=>changed});
+  await next().run();
+  const after=[...doc.querySelectorAll('.game-card')];
+  assert.notEqual(after[0],before[0]);assert.match(after[0].textContent,/4\.25/);
+  assert.equal(after[0].querySelector('details').open,true);
+  assert.equal(after[1],before[1]);assert.equal(after[2],before[2]);
+  assert.equal(doc.getElementById('import-warnings').hidden,false);
+  dom.window.fetch=async()=>({ok:true,json:async()=>structuredClone(data)});
+  await next().run();
+  assert.equal(doc.getElementById('import-warnings').hidden,true);
+  assert.equal(doc.querySelectorAll('#import-warning-list li').length,0);
+  assert.equal(doc.querySelectorAll('.game-card').length,3);
+ }finally{dom.window.close();}
+});
+
+test('temporary automatic refresh failure keeps the last results and retries later',async()=>{
+ const {dom,next}=await pollingPage();
+ try{
+  const doc=dom.window.document,card=doc.querySelector('.game-card'),title=doc.getElementById('status-title').textContent;
+  dom.window.fetch=async()=>{throw new Error('Offline');};
+  await next().run();
+  assert.equal(doc.querySelector('.game-card'),card);
+  assert.equal(doc.getElementById('status-title').textContent,title);
+  assert.equal(next().delay,300000);
+ }finally{dom.window.close();}
+});
+
+test('automatic refresh skips hidden tabs and resumes on the next visible check',async()=>{
+ const {dom,data,next}=await pollingPage();
+ try{
+  let requests=0;
+  dom.window.fetch=async()=>{requests++;return {ok:true,json:async()=>structuredClone(data)};};
+  Object.defineProperty(dom.window.document,'hidden',{configurable:true,value:true});
+  await next().run();assert.equal(requests,0);assert.equal(next().delay,300000);
+  Object.defineProperty(dom.window.document,'hidden',{configurable:true,value:false});
+  await next().run();assert.equal(requests,1);
+ }finally{dom.window.close();}
+});
+
+test('a pending automatic response cannot overwrite a newly selected day',async()=>{
+ const {dom,data,next}=await pollingPage();
+ try{
+  const w=dom.window,doc=w.document;
+  let respond;
+  w.fetch=()=>new Promise(resolve=>{respond=resolve;});
+  const pending=next().run();
+  w.fetch=async url=>url.endsWith('/api/days')?{ok:true,json:async()=>({days:[]})}:{ok:false,status:404};
+  doc.getElementById('day').value='2026-10-21';
+  doc.getElementById('day').dispatchEvent(new w.Event('change'));
+  await new Promise(resolve=>setTimeout(resolve,15));
+  respond({ok:true,json:async()=>structuredClone(data)});await pending;
+  assert.equal(doc.getElementById('day').value,'2026-10-21');
+  assert.equal(doc.querySelectorAll('.game-card').length,0);
+  assert.match(doc.getElementById('status-title').textContent,/nebol spracovaný/);
+  assert.equal(next(),null);
+ }finally{dom.window.close();}
+});

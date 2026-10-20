@@ -1,0 +1,18 @@
+package sk.nhl;
+
+import com.fasterxml.jackson.databind.node.*;
+import org.junit.jupiter.api.*;
+import java.time.*;
+import java.util.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static sk.nhl.Json.*;
+
+class OAuthTest {
+    MemoryStore store;OAuth auth;String base="https://nhl.example.com";
+    @BeforeEach void init(){store=new MemoryStore();auth=new OAuth(store,base,"tenant","client","secret","owner");}
+    @Test void rejectsForeignCallbacksAndConfidentialClients(){assertEquals(400,auth.register(obj("redirect_uris",List.of("https://evil.example/steal"))).status());assertEquals(400,auth.register(obj("redirect_uris",List.of("https://chatgpt.com/connector_platform_oauth_redirect"),"token_endpoint_auth_method","client_secret_post")).status());assertFalse(OAuth.allowedRedirect("https://chatgpt.com.evil.example/connector_platform_oauth_redirect"));}
+    @Test void registrationAndPkceAreRequired(){var r=auth.register(obj("redirect_uris",List.of("https://chatgpt.com/connector_platform_oauth_redirect")));assertEquals(201,r.status());var q=new HashMap<String,String>();q.put("client_id",text(r.body(),"client_id"));q.put("redirect_uri","https://chatgpt.com/connector_platform_oauth_redirect");assertEquals(400,auth.authorize(q).status());q.putAll(Map.of("response_type","code","code_challenge_method","S256","code_challenge",OAuth.hash(OAuth.random()),"scope",OAuth.SCOPE,"resource",base+"/mcp"));assertEquals(302,auth.authorize(q).status());}
+    @Test void codeSingleUseAndAudienceBoundWithRotatingRefresh(){String code=OAuth.random(),verifier=OAuth.random(),client=OAuth.random();store.put("oauth/codes/"+OAuth.hash(code),obj("client_id",client,"redirect_uri","https://chatgpt.com/connector_platform_oauth_redirect","challenge",OAuth.hash(verifier),"expires",Instant.now().plusSeconds(120).toString()));Map<String,String>q=new HashMap<>(Map.of("grant_type","authorization_code","client_id",client,"code",code,"code_verifier",verifier,"redirect_uri","https://chatgpt.com/connector_platform_oauth_redirect","resource",base+"/mcp"));var token=auth.token(q);assertEquals(200,token.status());assertTrue(auth.authenticated("Bearer "+text(token.body(),"access_token")));assertEquals(400,auth.token(q).status());String refresh=text(token.body(),"refresh_token");var rq=new HashMap<>(Map.of("grant_type","refresh_token","client_id",client,"refresh_token",refresh,"resource",base+"/mcp"));assertEquals(200,auth.token(rq).status());assertEquals(400,auth.token(rq).status());rq.put("resource","https://evil.example/mcp");assertEquals("invalid_target",text(auth.token(rq).body(),"error"));}
+    @Test void wrongVerifierAndExpiredCredentialsFail(){String code=OAuth.random(),client=OAuth.random();store.put("oauth/codes/"+OAuth.hash(code),obj("client_id",client,"redirect_uri","https://chatgpt.com/connector_platform_oauth_redirect","challenge",OAuth.hash(OAuth.random()),"expires",Instant.now().plusSeconds(120).toString()));assertEquals(400,auth.token(Map.of("grant_type","authorization_code","client_id",client,"code",code,"code_verifier",OAuth.random(),"redirect_uri","https://chatgpt.com/connector_platform_oauth_redirect","resource",base+"/mcp")).status());assertFalse(auth.authenticated("Bearer "+OAuth.random()));String access=OAuth.random();store.put("oauth/access/"+OAuth.hash(access),obj("resource",base+"/mcp","scope",OAuth.SCOPE,"expires",Instant.now().minusSeconds(5).toString()));assertFalse(auth.authenticated("Bearer "+access));}
+    @Test void missingResourceAndReplayedLoginStateFail(){assertEquals(400,auth.token(Map.of("grant_type","refresh_token")).status());assertEquals(400,auth.callback(Map.of("state",OAuth.random())).status());assertThrows(IllegalArgumentException.class,()->OAuth.form("state=a&state=b"));}
+}

@@ -1,0 +1,13 @@
+services:
+  nhl-api:
+    build: .
+    image: nhl-prediction-engine:1.9
+    container_name: nhl-prediction-api
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./data:/data

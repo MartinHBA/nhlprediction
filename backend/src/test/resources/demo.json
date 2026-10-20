@@ -1,0 +1,2745 @@
+{
+  "as_of": "2026-10-20T12:00:00Z",
+  "expected_game_ids": [
+    "DEMO-1",
+    "DEMO-2",
+    "DEMO-3"
+  ],
+  "synthetic_data": true,
+  "evidence": [
+    {
+      "id": "demo",
+      "url": "https://example.org/synthetic-not-real-data",
+      "checked_at": "2026-10-20T12:00:00Z"
+    }
+  ],
+  "games": [
+    {
+      "game_id": "DEMO-1",
+      "starts_at": "2026-10-21T01:00:00Z",
+      "status": "scheduled",
+      "home": {
+        "name": "Demo Home 1",
+        "prior": {
+          "games": 82,
+          "xgf_5v5_per60": 3.2,
+          "xga_5v5_per60": 2.5,
+          "pp_xgf_per60": 7.8,
+          "pk_xga_per60": 6.2,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "current": {
+          "games": 5,
+          "xgf_5v5_per60": 3.4000000000000004,
+          "xga_5v5_per60": 2.65,
+          "pp_xgf_per60": 9.3,
+          "pk_xga_per60": 6.2,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "goalie": {
+          "name": "Demo Home 1 DEMO GOALIE",
+          "status": "confirmed",
+          "starts_current": 3,
+          "starts_prior": 30,
+          "gsax_per60_current": 0.4,
+          "gsax_per60_prior": 0.05,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "roster": {
+          "quantified": true,
+          "attack_delta_goals": 0.0,
+          "defense_delta_goals_allowed": 0.0,
+          "absences": [],
+          "returns": [],
+          "scratches": [],
+          "forward_lines": [
+            "DEMO ONLY"
+          ],
+          "defense_pairs": [
+            "DEMO ONLY"
+          ],
+          "power_play_units": [
+            "DEMO ONLY"
+          ],
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "context": {
+          "rest_days": 2,
+          "travel_timezones": 0
+        }
+      },
+      "away": {
+        "name": "Demo Away 1",
+        "prior": {
+          "games": 82,
+          "xgf_5v5_per60": 2.6,
+          "xga_5v5_per60": 3.1,
+          "pp_xgf_per60": 6.9,
+          "pk_xga_per60": 7.7,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "current": {
+          "games": 5,
+          "xgf_5v5_per60": 2.8000000000000003,
+          "xga_5v5_per60": 3.25,
+          "pp_xgf_per60": 8.4,
+          "pk_xga_per60": 7.7,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "goalie": {
+          "name": "Demo Away 1 DEMO GOALIE",
+          "status": "confirmed",
+          "starts_current": 3,
+          "starts_prior": 30,
+          "gsax_per60_current": 0.4,
+          "gsax_per60_prior": 0.05,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "roster": {
+          "quantified": true,
+          "attack_delta_goals": 0.0,
+          "defense_delta_goals_allowed": 0.0,
+          "absences": [],
+          "returns": [],
+          "scratches": [],
+          "forward_lines": [
+            "DEMO ONLY"
+          ],
+          "defense_pairs": [
+            "DEMO ONLY"
+          ],
+          "power_play_units": [
+            "DEMO ONLY"
+          ],
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "context": {
+          "rest_days": 2,
+          "travel_timezones": 0
+        }
+      },
+      "markets": [
+        {
+          "id": "total-over45-0",
+          "kind": "total",
+          "selection": "over",
+          "odds": 1.25,
+          "line": 4.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "total-under75-0",
+          "kind": "total",
+          "selection": "under",
+          "odds": 1.28,
+          "line": 7.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "home-hcp-0",
+          "kind": "handicap",
+          "selection": "home",
+          "odds": 1.27,
+          "line": -0.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          },
+          "team": "home"
+        },
+        {
+          "id": "home-moneyline-0",
+          "kind": "moneyline",
+          "selection": "home",
+          "odds": 1.25,
+          "line": null,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "home-team-over25-0",
+          "kind": "team_total",
+          "selection": "over",
+          "odds": 1.28,
+          "line": 2.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          },
+          "team": "home"
+        },
+        {
+          "id": "home-60min-0",
+          "kind": "regulation_1x2",
+          "selection": "home",
+          "odds": 1.26,
+          "line": null,
+          "score_basis": "regulation",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        }
+      ],
+      "checks": {
+        "fields": {
+          "home.prior.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.name": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.status": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.starts_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.starts_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.gsax_per60_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.gsax_per60_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.quantified": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.attack_delta_goals": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.defense_delta_goals_allowed": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.absences": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.returns": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.scratches": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.forward_lines": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.defense_pairs": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.power_play_units": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.context.rest_days": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.context.travel_timezones": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.name": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.status": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.starts_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.starts_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.gsax_per60_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.gsax_per60_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.quantified": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.attack_delta_goals": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.defense_delta_goals_allowed": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.absences": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.returns": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.scratches": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.forward_lines": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.defense_pairs": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.power_play_units": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.context.rest_days": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.context.travel_timezones": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          }
+        },
+        "market_searches": {
+          "total_over": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "total_under": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "handicap_home": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "handicap_away": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "moneyline_home": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "moneyline_away": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "regulation_1x2": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "double_chance": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "team_total_under": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "team_total_over_other": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          }
+        }
+      }
+    },
+    {
+      "game_id": "DEMO-2",
+      "starts_at": "2026-10-21T02:00:00Z",
+      "status": "scheduled",
+      "home": {
+        "name": "Demo Home 2",
+        "prior": {
+          "games": 82,
+          "xgf_5v5_per60": 3.2,
+          "xga_5v5_per60": 2.5,
+          "pp_xgf_per60": 7.8,
+          "pk_xga_per60": 6.2,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "current": {
+          "games": 5,
+          "xgf_5v5_per60": 3.4000000000000004,
+          "xga_5v5_per60": 2.65,
+          "pp_xgf_per60": 9.3,
+          "pk_xga_per60": 6.2,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "goalie": {
+          "name": "Demo Home 2 DEMO GOALIE",
+          "status": "confirmed",
+          "starts_current": 3,
+          "starts_prior": 30,
+          "gsax_per60_current": 0.4,
+          "gsax_per60_prior": 0.05,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "roster": {
+          "quantified": true,
+          "attack_delta_goals": 0.0,
+          "defense_delta_goals_allowed": 0.0,
+          "absences": [],
+          "returns": [],
+          "scratches": [],
+          "forward_lines": [
+            "DEMO ONLY"
+          ],
+          "defense_pairs": [
+            "DEMO ONLY"
+          ],
+          "power_play_units": [
+            "DEMO ONLY"
+          ],
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "context": {
+          "rest_days": 2,
+          "travel_timezones": 0
+        }
+      },
+      "away": {
+        "name": "Demo Away 2",
+        "prior": {
+          "games": 82,
+          "xgf_5v5_per60": 2.6,
+          "xga_5v5_per60": 3.1,
+          "pp_xgf_per60": 6.9,
+          "pk_xga_per60": 7.7,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "current": {
+          "games": 5,
+          "xgf_5v5_per60": 2.8000000000000003,
+          "xga_5v5_per60": 3.25,
+          "pp_xgf_per60": 8.4,
+          "pk_xga_per60": 7.7,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "goalie": {
+          "name": "Demo Away 2 DEMO GOALIE",
+          "status": "confirmed",
+          "starts_current": 3,
+          "starts_prior": 30,
+          "gsax_per60_current": 0.4,
+          "gsax_per60_prior": 0.05,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "roster": {
+          "quantified": true,
+          "attack_delta_goals": 0.0,
+          "defense_delta_goals_allowed": 0.0,
+          "absences": [],
+          "returns": [],
+          "scratches": [],
+          "forward_lines": [
+            "DEMO ONLY"
+          ],
+          "defense_pairs": [
+            "DEMO ONLY"
+          ],
+          "power_play_units": [
+            "DEMO ONLY"
+          ],
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "context": {
+          "rest_days": 2,
+          "travel_timezones": 0
+        }
+      },
+      "markets": [
+        {
+          "id": "total-over45-1",
+          "kind": "total",
+          "selection": "over",
+          "odds": 1.25,
+          "line": 4.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "total-under75-1",
+          "kind": "total",
+          "selection": "under",
+          "odds": 1.28,
+          "line": 7.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "home-hcp-1",
+          "kind": "handicap",
+          "selection": "home",
+          "odds": 1.27,
+          "line": -0.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          },
+          "team": "home"
+        },
+        {
+          "id": "home-moneyline-1",
+          "kind": "moneyline",
+          "selection": "home",
+          "odds": 1.25,
+          "line": null,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "home-team-over25-1",
+          "kind": "team_total",
+          "selection": "over",
+          "odds": 1.28,
+          "line": 2.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          },
+          "team": "home"
+        },
+        {
+          "id": "home-60min-1",
+          "kind": "regulation_1x2",
+          "selection": "home",
+          "odds": 1.26,
+          "line": null,
+          "score_basis": "regulation",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        }
+      ],
+      "checks": {
+        "fields": {
+          "home.prior.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.name": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.status": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.starts_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.starts_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.gsax_per60_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.gsax_per60_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.quantified": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.attack_delta_goals": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.defense_delta_goals_allowed": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.absences": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.returns": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.scratches": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.forward_lines": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.defense_pairs": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.power_play_units": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.context.rest_days": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.context.travel_timezones": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.name": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.status": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.starts_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.starts_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.gsax_per60_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.gsax_per60_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.quantified": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.attack_delta_goals": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.defense_delta_goals_allowed": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.absences": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.returns": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.scratches": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.forward_lines": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.defense_pairs": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.power_play_units": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.context.rest_days": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.context.travel_timezones": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          }
+        },
+        "market_searches": {
+          "total_over": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "total_under": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "handicap_home": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "handicap_away": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "moneyline_home": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "moneyline_away": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "regulation_1x2": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "double_chance": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "team_total_under": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "team_total_over_other": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          }
+        }
+      }
+    },
+    {
+      "game_id": "DEMO-3",
+      "starts_at": "2026-10-21T03:00:00Z",
+      "status": "scheduled",
+      "home": {
+        "name": "Demo Home 3",
+        "prior": {
+          "games": 82,
+          "xgf_5v5_per60": 3.2,
+          "xga_5v5_per60": 2.5,
+          "pp_xgf_per60": 7.8,
+          "pk_xga_per60": 6.2,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "current": {
+          "games": 5,
+          "xgf_5v5_per60": 3.4000000000000004,
+          "xga_5v5_per60": 2.65,
+          "pp_xgf_per60": 9.3,
+          "pk_xga_per60": 6.2,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "goalie": {
+          "name": "Demo Home 3 DEMO GOALIE",
+          "status": "confirmed",
+          "starts_current": 3,
+          "starts_prior": 30,
+          "gsax_per60_current": 0.4,
+          "gsax_per60_prior": 0.05,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "roster": {
+          "quantified": true,
+          "attack_delta_goals": 0.0,
+          "defense_delta_goals_allowed": 0.0,
+          "absences": [],
+          "returns": [],
+          "scratches": [],
+          "forward_lines": [
+            "DEMO ONLY"
+          ],
+          "defense_pairs": [
+            "DEMO ONLY"
+          ],
+          "power_play_units": [
+            "DEMO ONLY"
+          ],
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "context": {
+          "rest_days": 2,
+          "travel_timezones": 0
+        }
+      },
+      "away": {
+        "name": "Demo Away 3",
+        "prior": {
+          "games": 82,
+          "xgf_5v5_per60": 2.6,
+          "xga_5v5_per60": 3.1,
+          "pp_xgf_per60": 6.9,
+          "pk_xga_per60": 7.7,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "current": {
+          "games": 5,
+          "xgf_5v5_per60": 2.8000000000000003,
+          "xga_5v5_per60": 3.25,
+          "pp_xgf_per60": 8.4,
+          "pk_xga_per60": 7.7,
+          "pp_drawn_per_game": 3.1,
+          "penalties_taken_per_game": 3.2,
+          "shots_for_per_game": 31.0,
+          "shots_against_per_game": 29.0,
+          "high_danger_for_per60": 11.0,
+          "high_danger_against_per60": 9.0,
+          "points_pct": 0.59,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "goalie": {
+          "name": "Demo Away 3 DEMO GOALIE",
+          "status": "confirmed",
+          "starts_current": 3,
+          "starts_prior": 30,
+          "gsax_per60_current": 0.4,
+          "gsax_per60_prior": 0.05,
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "roster": {
+          "quantified": true,
+          "attack_delta_goals": 0.0,
+          "defense_delta_goals_allowed": 0.0,
+          "absences": [],
+          "returns": [],
+          "scratches": [],
+          "forward_lines": [
+            "DEMO ONLY"
+          ],
+          "defense_pairs": [
+            "DEMO ONLY"
+          ],
+          "power_play_units": [
+            "DEMO ONLY"
+          ],
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        "context": {
+          "rest_days": 2,
+          "travel_timezones": 0
+        }
+      },
+      "markets": [
+        {
+          "id": "total-over45-2",
+          "kind": "total",
+          "selection": "over",
+          "odds": 1.25,
+          "line": 4.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "total-under75-2",
+          "kind": "total",
+          "selection": "under",
+          "odds": 1.28,
+          "line": 7.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "home-hcp-2",
+          "kind": "handicap",
+          "selection": "home",
+          "odds": 1.27,
+          "line": -0.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          },
+          "team": "home"
+        },
+        {
+          "id": "home-moneyline-2",
+          "kind": "moneyline",
+          "selection": "home",
+          "odds": 1.25,
+          "line": null,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        },
+        {
+          "id": "home-team-over25-2",
+          "kind": "team_total",
+          "selection": "over",
+          "odds": 1.28,
+          "line": 2.5,
+          "score_basis": "official_final",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          },
+          "team": "home"
+        },
+        {
+          "id": "home-60min-2",
+          "kind": "regulation_1x2",
+          "selection": "home",
+          "odds": 1.26,
+          "line": null,
+          "score_basis": "regulation",
+          "settlement_verified": true,
+          "rules_url": "https://example.org/synthetic-not-real-data",
+          "source": {
+            "url": "https://example.org/synthetic-not-real-data",
+            "checked_at": "2026-10-20T12:00:00Z",
+            "status": "synthetic"
+          }
+        }
+      ],
+      "checks": {
+        "fields": {
+          "home.prior.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.prior.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.current.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.name": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.status": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.starts_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.starts_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.gsax_per60_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.goalie.gsax_per60_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.quantified": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.attack_delta_goals": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.defense_delta_goals_allowed": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.absences": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.returns": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.scratches": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.forward_lines": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.defense_pairs": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.roster.power_play_units": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.context.rest_days": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "home.context.travel_timezones": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.prior.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.games": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.points_pct": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.xgf_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.xga_5v5_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pp_xgf_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pk_xga_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.pp_drawn_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.penalties_taken_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.shots_for_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.shots_against_per_game": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.high_danger_for_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.current.high_danger_against_per60": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.name": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.status": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.starts_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.starts_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.gsax_per60_current": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.goalie.gsax_per60_prior": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.quantified": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.attack_delta_goals": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.defense_delta_goals_allowed": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.absences": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.returns": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.scratches": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.forward_lines": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.defense_pairs": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.roster.power_play_units": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.context.rest_days": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "away.context.travel_timezones": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          }
+        },
+        "market_searches": {
+          "total_over": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "total_under": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "handicap_home": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "handicap_away": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "moneyline_home": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "moneyline_away": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "regulation_1x2": {
+            "status": "found",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": ""
+          },
+          "double_chance": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "team_total_under": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          },
+          "team_total_over_other": {
+            "status": "unavailable",
+            "evidence_ids": [
+              "demo"
+            ],
+            "note": "No demo quotes for this market"
+          }
+        }
+      }
+    }
+  ]
+}

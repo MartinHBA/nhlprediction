@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+outputs/
+.local/
+backend/target/
+backend/local.settings.json
+frontend/config.js
+frontend/node_modules/

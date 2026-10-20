@@ -1,0 +1,97 @@
+{
+  "requested_day": "2026-10-20",
+  "as_of": "2026-10-20T05:58:32.810888Z",
+  "source_url": "https://api-web.nhle.com/v1/schedule/2026-10-20",
+  "expected_game_ids": [
+    "2026020141",
+    "2026020142",
+    "2026020143",
+    "2026020144",
+    "2026020145",
+    "2026020146",
+    "2026020147",
+    "2026020148",
+    "2026020149",
+    "2026020150",
+    "2026020151"
+  ],
+  "games": [
+    {
+      "game_id": "2026020141",
+      "starts_at": "2026-10-20T23:00:00Z",
+      "status": "scheduled",
+      "home_name": "MTL",
+      "away_name": "SJS"
+    },
+    {
+      "game_id": "2026020142",
+      "starts_at": "2026-10-20T23:00:00Z",
+      "status": "scheduled",
+      "home_name": "NJD",
+      "away_name": "COL"
+    },
+    {
+      "game_id": "2026020143",
+      "starts_at": "2026-10-20T23:00:00Z",
+      "status": "scheduled",
+      "home_name": "NYI",
+      "away_name": "ANA"
+    },
+    {
+      "game_id": "2026020144",
+      "starts_at": "2026-10-20T23:00:00Z",
+      "status": "scheduled",
+      "home_name": "WSH",
+      "away_name": "LAK"
+    },
+    {
+      "game_id": "2026020145",
+      "starts_at": "2026-10-20T23:00:00Z",
+      "status": "scheduled",
+      "home_name": "CBJ",
+      "away_name": "TOR"
+    },
+    {
+      "game_id": "2026020146",
+      "starts_at": "2026-10-21T00:00:00Z",
+      "status": "scheduled",
+      "home_name": "STL",
+      "away_name": "WPG"
+    },
+    {
+      "game_id": "2026020147",
+      "starts_at": "2026-10-21T00:00:00Z",
+      "status": "scheduled",
+      "home_name": "DAL",
+      "away_name": "BOS"
+    },
+    {
+      "game_id": "2026020148",
+      "starts_at": "2026-10-21T01:00:00Z",
+      "status": "scheduled",
+      "home_name": "EDM",
+      "away_name": "MIN"
+    },
+    {
+      "game_id": "2026020149",
+      "starts_at": "2026-10-21T01:40:00Z",
+      "status": "scheduled",
+      "home_name": "SEA",
+      "away_name": "DET"
+    },
+    {
+      "game_id": "2026020150",
+      "starts_at": "2026-10-21T02:00:00Z",
+      "status": "scheduled",
+      "home_name": "VAN",
+      "away_name": "CAR"
+    },
+    {
+      "game_id": "2026020151",
+      "starts_at": "2026-10-21T02:30:00Z",
+      "status": "scheduled",
+      "home_name": "VGK",
+      "away_name": "TBL"
+    }
+  ]
+}
