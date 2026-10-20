@@ -63,7 +63,9 @@ zápasy a neprenastavuje Microsoft OAuth tajomstvo či existujúce app settings.
 
 Azure prihlásenie používa `azure/login@v3` a krátkodobý GitHub OIDC token.
 Identita `nhlpredict-github` má federáciu iba pre
-`repo:MartinHBA/nhlprediction:ref:refs/heads/main` a tieto Azure RBAC role:
+`repo:MartinHBA@49184077/nhlprediction@1426535972:ref:refs/heads/main`
+(presný claim overený v tomto repozitári, vrátane nemenných GitHub ID)
+a tieto Azure RBAC role:
 
 | Rola | Rozsah |
 | --- | --- |

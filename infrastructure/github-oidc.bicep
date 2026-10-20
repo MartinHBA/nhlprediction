@@ -3,6 +3,8 @@ targetScope = 'resourceGroup'
 param location string = resourceGroup().location
 param identityName string = 'nhlpredict-github'
 param repository string = 'MartinHBA/nhlprediction'
+param repositoryOwnerId string = '49184077'
+param repositoryId string = '1426535972'
 param branch string = 'main'
 param functionAppName string = 'nhlpredict-txocp2arkmldw'
 param storageAccountName string = 'nhlpredicttxocp2arkmldw'
@@ -31,7 +33,8 @@ resource github 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdent
   name: 'github-main'
   properties: {
     issuer: 'https://token.actions.githubusercontent.com'
-    subject: 'repo:${repository}:ref:refs/heads/${branch}'
+    // GitHub emits immutable owner/repository IDs in this repository's OIDC subject.
+    subject: 'repo:${split(repository, '/')[0]}@${repositoryOwnerId}/${split(repository, '/')[1]}@${repositoryId}:ref:refs/heads/${branch}'
     audiences: ['api://AzureADTokenExchange']
   }
 }
