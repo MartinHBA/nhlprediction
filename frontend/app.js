@@ -7,6 +7,8 @@ const teamNames={ANA:'Ducks',BOS:'Bruins',BUF:'Sabres',CAR:'Hurricanes',CBJ:'Blu
 const teamLocations={ANA:'ANAHEIM',BOS:'BOSTON',BUF:'BUFFALO',CAR:'CAROLINA',CBJ:'COLUMBUS',CGY:'CALGARY',CHI:'CHICAGO',COL:'COLORADO',DAL:'DALLAS',DET:'DETROIT',EDM:'EDMONTON',FLA:'FLORIDA',LAK:'LOS ANGELES',MIN:'MINNESOTA',MTL:'MONTRÉAL',NJD:'NEW JERSEY',NSH:'NASHVILLE',NYI:'NEW YORK',NYR:'NEW YORK',OTT:'OTTAWA',PHI:'PHILADELPHIA',PIT:'PITTSBURGH',SEA:'SEATTLE',SJS:'SAN JOSE',STL:'ST. LOUIS',TBL:'TAMPA BAY',TOR:'TORONTO',UTA:'UTAH',VAN:'VANCOUVER',VGK:'VEGAS',WPG:'WINNIPEG',WSH:'WASHINGTON'};
 let current=null,serial=0,poll;
 const POLL_INTERVAL=5*60*1000;
+const MIN_PICK_ODDS=1.20,MAX_PICK_ODDS=1.35;
+function currentRecommendation(result){const m=result?.recommendation,price=m?.odds_type==='ESTIMATED'?m?.estimated_odds:m?.odds;return typeof price==='number'&&Number.isFinite(price)&&price>=MIN_PICK_ODDS&&price<=MAX_PICK_ODDS?m:null;}
 const statFields={games:'Odohrané zápasy',points_pct:'Bodová úspešnosť (%)',xgf_5v5_per60:'xG za 60 min · 5 na 5',xga_5v5_per60:'xG súpera za 60 min · 5 na 5',pp_xgf_per60:'xG za 60 min · presilovka',pk_xga_per60:'xG súpera za 60 min · oslabenie',pp_drawn_per_game:'Vynútené tresty na zápas',penalties_taken_per_game:'Tresty na zápas',shots_for_per_game:'Strely na zápas',shots_against_per_game:'Strely súpera na zápas',high_danger_for_per60:'Veľké šance za 60 min',high_danger_against_per60:'Veľké šance súpera za 60 min'};
 const fieldGroups={prior:{label:'Minulá sezóna',fields:statFields},current:{label:'Aktuálna sezóna',fields:statFields},goalie:{label:'Brankár',fields:{name:'Meno',status:'Potvrdenie brankára',starts_current:'Štarty · aktuálna sezóna',starts_prior:'Štarty · minulá sezóna',gsax_per60_current:'GSAx za 60 min · aktuálna sezóna',gsax_per60_prior:'GSAx za 60 min · minulá sezóna'}},roster:{label:'Zostava',fields:{quantified:'Vyčíslený vplyv zostavy',attack_delta_goals:'Vplyv na strelené góly',defense_delta_goals_allowed:'Vplyv na inkasované góly',absences:'Absencie',returns:'Návraty',scratches:'Vynechaní hráči',forward_lines:'Útočné formácie',defense_pairs:'Obranné dvojice',power_play_units:'Presilovkové jednotky'}},context:{label:'Oddych a cestovanie',fields:{rest_days:'Dni oddychu',travel_timezones:'Prekonané časové pásma'}}};
 const criticalStats=new Set(['games','xgf_5v5_per60','xga_5v5_per60','pp_xgf_per60','pk_xga_per60','pp_drawn_per_game','penalties_taken_per_game']);
@@ -119,8 +121,8 @@ function render(data){const report=data.state==='PREFILLING'?null:data.report,ch
  else if(data.state==='ERROR'){type='error';detail=data.error||'Úloha nebola dokončená.';}
  else if(data.state==='INCOMPLETE'){type='warn';detail=resultLabels[report?.status]||'Niektoré zápasy nemajú dostatok overených vstupov.';}
  else{detail='Priebežné údaje. Hotové predikcie sa zobrazia po dokončení celej kontroly.';type='warn';}
- const preliminary=(report?.games||[]).filter(g=>g.recommendation?.recommendation_status==='PRELIMINARY').length;
- if(data.state==='COMPLETE'&&preliminary){detail=(report?.status==='NO_BET'?'Bez potvrdeného kandidáta. ':'')+`Predbežné tipy do 1,30: ${preliminary}. Odhad ceny a kvalita podkladov sú uvedené pri tipe.`;}
+ const preliminary=(report?.games||[]).filter(g=>currentRecommendation(g)?.recommendation_status==='PRELIMINARY').length;
+ if(data.state==='COMPLETE'&&preliminary){detail=(report?.status==='NO_BET'?'Bez potvrdeného kandidáta. ':'')+`Predbežné tipy v pásme 1,20–1,35: ${preliminary}. Odhad ceny a kvalita podkladov sú uvedené pri tipe.`;}
  const odds=data.odds_import;if(odds){const available=odds.covered_games||0,total=odds.upcoming_games||0;if(['WAITING','ERROR'].includes(odds.state)&&total){detail+=' Čakáme na aktuálne kurzy NHL; modelové projekcie môžu byť dostupné.';type='warn';}else if(odds.state==='PARTIAL'){detail+=` Kurzy sú dostupné pre ${available}/${total} nadchádzajúcich zápasov.`;type='warn';}}
  if(stale){type='warn';detail+=' Posledná aktualizácia je staršia než 18 hodín.';}
  banner(title,detail,type,'Aktualizované '+timeLabel(data.updated_at));
@@ -146,8 +148,8 @@ function render(data){const report=data.state==='PREFILLING'?null:data.report,ch
  if(report?.ticket){$('ticket').hidden=false;$('ticket').replaceChildren(el('p','eyebrow','KANDIDÁT / VYŽADUJE KONTROLU'),el('h2','',`${report.ticket.legs.length} výbery · kombinovaný kurz ${report.ticket.odds}`),el('p','',report.ticket.legs.map(l=>`${l.matchup}: ${marketName(l)}`).join(' · ')),el('p','','Scenáre používajú zjednodušené predpoklady. Kandidát nie je pokyn na uzatvorenie stávky.'));}
 }
 function recommendationBlock(result,game){
- const m=result.recommendation,box=el('div','recommendation');
- if(!m){box.append(el('p','subtle',Object.hasOwn(result,'recommendation')?'Bez odporúčania do kurzu 1,30.':'Výber tipu sa ešte nevypočítal.'));return box;}
+ const m=currentRecommendation(result),box=el('div','recommendation');
+ if(!m){box.append(el('p','subtle',Object.hasOwn(result,'recommendation')?'Bez odporúčania v pásme 1,20–1,35.':'Výber tipu sa ešte nevypočítal.'));return box;}
  const estimated=m.odds_type==='ESTIMATED',preliminary=m.recommendation_status==='PRELIMINARY';
  box.append(el('p','eyebrow',preliminary?'PREDBEŽNÝ TIP':'TIP NA KONTROLU'));
  const selection={...m};if(m.kind==='handicap'){selection.selection=game[m.selection]?.name||m.selection;selection.team=null;}if(m.kind==='moneyline'||m.kind==='regulation_1x2')selection.selection=game[m.selection]?.name||m.selection;
@@ -170,7 +172,7 @@ function recommendationBlock(result,game){
  const minimum=m.minimum_odds_conservative??((m.scenario_ev_min+1)/m.odds);
  if(m.robust_edge===false)box.append(el('p','subtle','Výhoda nepotvrdená v konzervatívnom scenári.'));
  else if(Number.isFinite(minimum)){
-  const threshold=el('p','subtle',`Zmysel má pri skutočnom kurze od ${((Math.floor(minimum*100+1e-9)+1)/100).toLocaleString('sk-SK',{minimumFractionDigits:2,maximumFractionDigits:2})} do 1,30.`);
+  const threshold=el('p','subtle',`Zmysel má pri skutočnom kurze od ${Math.max(MIN_PICK_ODDS,(Math.floor(minimum*100+1e-9)+1)/100).toLocaleString('sk-SK',{minimumFractionDigits:2,maximumFractionDigits:2})} do 1,35.`);
   threshold.title='Hranica pre kladné EV aj v najhoršom simulovanom scenári. Pri odhade ceny nie je výhodnosť potvrdená.';box.append(threshold);
  }
  if(estimated)box.append(el('small','subtle','Pred použitím overiť ponuku a skutočný kurz.'));
@@ -189,7 +191,7 @@ function card(game,result,audit,data){const article=el('article','game-card'),he
  if(audit){detail.append(el('p','subtle',`Preverené polia: ${audit.checked_count}/82 · Nedostupné polia a trhy: ${audit.unavailable.length} · Nepreverené položky: ${audit.unchecked.length}`));const issues=[...(audit.issues||[]),...(audit.model_missing||[]).map(p=>'Chýba: '+p),...(audit.unchecked||[]).map(p=>'Nepreverené: '+p)];if(issues.length){const list=el('ul','issue-list');issues.forEach(x=>list.append(el('li','',x)));detail.append(list);}}
  article.append(detail);return article;
 }
-function marketName(m){const kinds={total:'Góly spolu',team_total:'Tímové góly',handicap:'Handicap',moneyline:'Víťaz vrátane OT',regulation_1x2:'Výsledok 60 min',double_chance:'Dvojtip 60 min'};const sides={home:'domáci',away:'hostia',draw:'remíza',over:'nad',under:'pod'};return `${kinds[m.kind]||m.kind} · ${sides[m.selection]||m.selection}${m.line!==null?' '+m.line:''}${m.team?' ('+(sides[m.team]||m.team)+')':''}`;}
+function marketName(m){const kinds={total:'Góly spolu',team_total:'Tímové góly',handicap:'Handicap',moneyline:'Víťaz vrátane OT',regulation_1x2:'Výsledok 60 min',double_chance:'Dvojtip 60 min'};const sides={home:'domáci',away:'hostia',draw:'remíza',over:'nad',under:'pod'};return `${kinds[m.kind]||m.kind} · ${sides[m.selection]||m.selection}${m.line!==null?' '+(m.kind==='handicap'&&m.line>0?'+':'')+m.line:''}${m.team?' ('+(sides[m.team]||m.team)+')':''}`;}
 async function loadArchive(){try{const data=await get('/api/days');$('archive').replaceChildren();if(!data.days.length){$('archive').append(el('p','subtle','Prvý spracovaný deň sa objaví tu.'));return;}for(const day of data.days){const row=el('div','archive-row'),link=el('a','',dateLabel(day.day));link.href='?day='+day.day;link.addEventListener('click',event=>{event.preventDefault();$('day').value=day.day;select();});row.append(link,el('small','',`${day.game_count} zápasov · ${states[day.state]||day.state}`));$('archive').append(row);}}catch{$('archive').replaceChildren(el('p','subtle','Archív je dočasne nedostupný.'));}}
 function select(){if(!/^\d{4}-\d{2}-\d{2}$/.test($('day').value))return;history.replaceState(null,'','?day='+$('day').value);load();loadArchive();}
 function move(delta){const date=new Date($('day').value+'T12:00:00Z');date.setUTCDate(date.getUTCDate()+delta);$('day').value=date.toISOString().slice(0,10);select();}

@@ -158,7 +158,7 @@ Odhady nevstupujú do skutočných `markets`, počítadiel pokrytia ani tiketu a
 (`alternative_market_count`) a vybraný tip, aby odpoveď nenarástla o stovky
 nepoužitých variantov. `report.games[].recommendation` vyberá najviac jeden tip na zápas:
 porovnáva aktuálne overené skutočné kurzy (víťaz, 1/X/2, handicap, góly) a dopočítané
-alternatívy pri kurze > 1 a ≤ 1,30 a kladnom EV základného modelu. Z nich vyberá
+alternatívy pri kurze od 1,20 do 1,35 vrátane a kladnom EV základného modelu. Z nich vyberá
 najvyššie konzervatívne EV. Ak výhoda v konzervatívnom scenári zmizne, výber
 ostáva iba predbežným modelovým tipom s nízkou confidence a explicitnou poznámkou;
 `robust_edge=false`. Prísny filter kladného konzervatívneho EV pre skutočný tiket
@@ -170,7 +170,7 @@ výhodnosť vyžaduje skutočnú ponuku a splnené pôvodné dátové filtre.
 `confidence` je kvalita podkladov (`LOW`/`MODERATE`), nie kalibrovaná úspešnosť.
 Na webe sa zobrazuje iba vybraný tip, jeho kurz/odhad, P(model), confidence a
 minimálny potrebný skutočný kurz; zoznam trhov sa nezobrazuje. Dôvody confidence
-sú v hover vysvetlivke. Bez výhodného výberu je „Bez odporúčania do kurzu 1,30“.
+sú v hover vysvetlivke. Bez výhodného výberu je „Bez odporúčania v pásme 1,20–1,35“.
 Bez aktuálnej overenej dvojice kurzov alebo pri začatom zápase sa negenerujú.
 Podklad k marži: https://support.pinnacle.bet/hc/en-us/articles/44854189442065-What-is-a-betting-margin
 

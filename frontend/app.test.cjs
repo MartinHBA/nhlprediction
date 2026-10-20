@@ -32,19 +32,26 @@ test('shows just one indicative recommendation with its probability and honest c
   const doc=d.window.document,tip=doc.querySelector('.recommendation');assert.match(tip.textContent,/PREDBEŽNÝ TIP/);assert.match(tip.textContent,/pod 8,5/);assert.match(tip.textContent,/≈1,25/);assert.match(tip.textContent,/94\.0 %/);assert.match(tip.textContent,/Confidence: nízka/);
   assert.match(tip.querySelector('.recommendation-confidence').title,/Nie sú potvrdení obaja brankári/);
   assert.equal(doc.querySelectorAll('.recommendation h3').length,1);assert.equal(doc.querySelectorAll('table').length,0);assert.equal(tip.closest('details'),null);
-  assert.match(doc.getElementById('status-detail').textContent,/Bez potvrdeného kandidáta/);assert.match(doc.getElementById('status-detail').textContent,/Predbežné tipy do 1,30: 1/);assert.equal(doc.getElementById('ticket').hidden,true);
-  assert.match(doc.querySelectorAll('.recommendation')[1].textContent,/Bez odporúčania do kurzu 1,30/);
+  assert.match(doc.getElementById('status-detail').textContent,/Bez potvrdeného kandidáta/);assert.match(doc.getElementById('status-detail').textContent,/Predbežné tipy v pásme 1,20–1,35: 1/);assert.equal(doc.getElementById('ticket').hidden,true);
+  assert.match(doc.querySelectorAll('.recommendation')[1].textContent,/Bez odporúčania v pásme 1,20–1,35/);
  }finally{d.window.close();}
 });
 
 test('actual quote is displayed without an approximation sign and research text remains safe',async()=>{
  const f=fixture();f.report.games[0].recommendation={kind:'handicap',selection:'away',team:'away',line:2.5,score_basis:'official_final',odds_type:'QUOTED',odds:1.28,p_win:.9,scenario_ev_min:.05,minimum_odds_conservative:1.2,recommendation_status:'REVIEW_REQUIRED',confidence:'MODERATE',confidence_reasons:[]};
- const d=await boot(f);try{const tip=d.window.document.querySelector('.recommendation');assert.match(tip.textContent,/TIP NA KONTROLU/);assert.match(tip.textContent,/Kurz 1,28/);assert.doesNotMatch(tip.textContent,/≈/);assert.match(tip.querySelector('h3').textContent,new RegExp(f.games[0].away.name));assert.match(tip.textContent,/od 1,21 do 1,30/);}finally{d.window.close();}
+ const d=await boot(f);try{const tip=d.window.document.querySelector('.recommendation');assert.match(tip.textContent,/TIP NA KONTROLU/);assert.match(tip.textContent,/Kurz 1,28/);assert.match(tip.querySelector('h3').textContent,/\+2,5/);assert.doesNotMatch(tip.textContent,/≈/);assert.match(tip.querySelector('h3').textContent,new RegExp(f.games[0].away.name));assert.match(tip.textContent,/od 1,21 do 1,35/);}finally{d.window.close();}
 });
 
 test('non-robust value is explicitly preliminary and never displays an impossible minimum quote',async()=>{
  const f=fixture();f.report.games[0].recommendation={kind:'total',selection:'under',line:8.5,odds_type:'ESTIMATED',estimated_odds:1.25,p_win:.9,minimum_odds_conservative:1.45,robust_edge:false,recommendation_status:'PRELIMINARY',confidence:'LOW',confidence_reasons:['SCENARIO_EDGE_NOT_ROBUST']};
- const d=await boot(f);try{const tip=d.window.document.querySelector('.recommendation');assert.match(tip.textContent,/Výhoda nepotvrdená v konzervatívnom scenári/);assert.doesNotMatch(tip.textContent,/od 1,46 do 1,30/);assert.match(tip.querySelector('.recommendation-confidence').title,/stráca/);}finally{d.window.close();}
+ const d=await boot(f);try{const tip=d.window.document.querySelector('.recommendation');assert.match(tip.textContent,/Výhoda nepotvrdená v konzervatívnom scenári/);assert.doesNotMatch(tip.textContent,/od 1,46 do 1,35/);assert.match(tip.querySelector('.recommendation-confidence').title,/stráca/);}finally{d.window.close();}
+});
+
+test('hides stale recommendations outside the inclusive 1.20 to 1.35 price band',async()=>{
+ for(const price of [1.04,1.19999,1.20,1.35,1.35001]){
+  const f=fixture();f.report.games[0].recommendation={kind:'total',selection:'under',line:8.5,odds_type:'ESTIMATED',estimated_odds:price,p_win:.95,robust_edge:false,recommendation_status:'PRELIMINARY',confidence:'LOW',confidence_reasons:[]};
+  const d=await boot(f);try{const doc=d.window.document,inside=price>=1.20&&price<=1.35;assert.equal(doc.querySelectorAll('.recommendation h3').length,inside?1:0,'price='+price);if(!inside)assert.doesNotMatch(doc.getElementById('status-detail').textContent,/Predbežné tipy/);}finally{d.window.close();}
+ }
 });
 test('does not reuse another day when selected date is absent',async()=>{const d=await boot({},404);try{assert.match(d.window.document.getElementById('status-title').textContent,/nebol spracovaný/);assert.equal(d.window.document.querySelectorAll('.game-card').length,0);}finally{d.window.close();}});
 test('clears results and exposes backend failure',async()=>{const d=await boot({},503);try{assert.match(d.window.document.getElementById('status-title').textContent,/nepodarilo/);assert.equal(d.window.document.getElementById('metric-projected').textContent,'—');}finally{d.window.close();}});

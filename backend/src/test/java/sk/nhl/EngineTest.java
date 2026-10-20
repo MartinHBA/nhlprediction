@@ -45,5 +45,14 @@ class EngineTest {
         assertEquals(34,result.path("alternative_market_count").asInt());assertEquals(4,result.path("markets").size());
         assertFalse(result.has("estimated_totals"));assertFalse(result.has("estimated_handicaps"));assertTrue(result.has("recommendation"));
     }
+    @Test void realMarketFiltersShareTheRecommendationPriceBand(){
+        ObjectNode g=(ObjectNode)data.path("games").get(0),quote=(ObjectNode)g.path("markets").get(0);
+        for(double price:new double[]{1.19,1.20,1.35,1.36}){
+            quote.put("odds",price);var result=Engine.evaluate(g,text(data,"as_of"),1000,42);
+            var issues=strings(result.path("markets").get(0).path("issues"));
+            assertEquals(price<1.20,issues.contains("BELOW_PREFERRED_SINGLE_ODDS_FLOOR"));
+            assertEquals(price>1.35,issues.contains("ABOVE_PREFERRED_SINGLE_ODDS_CAP"));
+        }
+    }
 }
 

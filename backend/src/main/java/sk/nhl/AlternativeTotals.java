@@ -73,7 +73,7 @@ final class AlternativeTotals {
                     "odds_type","ESTIMATED","estimated_odds",rounded(estimate),"market_fair_odds",rounded(fair(marketProbability)),
                     "p_win",Engine.round(probability,5),"p_win_min",Engine.round(minimum,5),"p_win_max",Engine.round(maximum,5),
                     "model_fair_odds",rounded(fair(probability)),"minimum_odds_conservative",rounded(fair(minimum)),
-                    "near_preferred_odds",estimate!=null&&estimate>=1.10&&estimate<=1.35,
+                    "near_preferred_odds",estimate!=null&&Recommendations.inRange(estimate),
                     "research_eligible",false,"issues",List.of("ESTIMATED_ODDS_NOT_VERIFIED"),
                     "method","POISSON_FIT_TO_NO_VIG_TOTAL_WITH_CONSTANT_OVERROUND",
                     "anchor_line",number(a.over,"line"),"anchor_over_odds",number(a.over,"odds"),"anchor_under_odds",number(a.under,"odds"),

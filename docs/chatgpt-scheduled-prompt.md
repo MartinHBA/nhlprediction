@@ -77,6 +77,7 @@ NHL Observatory cez start_day, save_game a finalize_day.
    s aktuálnymi kurzami, podstatné chýbajúce údaje a web_url z odpovede.
    Rozlišuj dokončený výpočet, NO_BET a čakanie na aktuálny NHL feed.
    Ak report.games obsahuje recommendation, odlíš predbežné modelové tipy
+   v pásme kurzov 1,20–1,35 vrátane
    (PRELIMINARY) od potvrdených kandidátov. Kurz ESTIMATED je aproximovaný,
    confidence vyjadruje kvalitu podkladov a robust_edge=false znamená, že
    výhoda v konzervatívnom scenári zmizne. Predbežný tip nemení NO_BET

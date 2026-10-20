@@ -18,7 +18,7 @@ class RecommendationsTest {
         assertTrue(Engine.combo(arr().add(obj("game_id","x","status","scheduled","markets",arr(),"recommendation",choice))).path("legs").isEmpty());
     }
     @Test void noValueOrPriceAboveCapGivesNoRecommendation(){
-        var estimates=arr().add(estimate("total",1.31,.99,.99)).add(estimate("handicap",1.25,.79,.7));
+        var estimates=arr().add(estimate("total",1.36,.99,.99)).add(estimate("handicap",1.25,.79,.7));
         assertNull(Recommendations.select(game,arr(),estimates,obj("warnings",arr()),"2026-10-20T18:00:00Z"));
     }
     @Test void confidenceDoesNotPretendToBeCalibratedWinProbability(){
@@ -44,5 +44,14 @@ class RecommendationsTest {
         assertNotNull(choice);assertEquals("QUOTED",text(choice,"odds_type"));assertEquals("PRELIMINARY",text(choice,"recommendation_status"));assertFalse(choice.path("research_eligible").asBoolean());
         actual.set("issues",arr().add("UNVERIFIED_ODDS"));assertNull(Recommendations.select(game,arr().add(actual),arr(),obj("warnings",arr()),"2026-10-20T18:00:00Z"));
         actual.set("issues",arr().add("SUSPENDED_TEAM_OVER_2_5"));assertNull(Recommendations.select(game,arr().add(actual),arr(),obj("warnings",arr()),"2026-10-20T18:00:00Z"));
+    }
+    @Test void appliesInclusive120To135BandToBothActualAndEstimatedPrices(){
+        for(double price:new double[]{1.04,1.19999,1.20,1.25,1.35,1.35001,2.0}){
+            boolean expected=price>=1.20&&price<=1.35;
+            var actual=obj("kind","moneyline","selection","home","odds",price,"p_win",.99,"ev",.99*price-1,"scenario_ev_min",.98*price-1,"research_eligible",true);
+            var quoted=Recommendations.select(game,arr().add(actual),arr(),obj("warnings",arr()),"2026-10-20T18:00:00Z");
+            var indicative=Recommendations.select(game,arr(),arr().add(estimate("handicap",price,.99,.98)),obj("warnings",arr()),"2026-10-20T18:00:00Z");
+            assertEquals(expected,quoted!=null,"actual price="+price);assertEquals(expected,indicative!=null,"estimated price="+price);
+        }
     }
 }
