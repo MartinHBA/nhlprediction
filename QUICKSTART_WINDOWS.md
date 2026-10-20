@@ -20,7 +20,11 @@ bezobslužných zápisov treba overiť v konkrétnom účte.
 
 ## Zmena a opakované nasadenie
 
-Potrebuješ Azure CLI, Java 21 a Maven:
+Commit a push do `main` spustí GitHub workflow **CI/CD**: Java a frontend testy,
+zostavenie balíkov, nasadenie do Azure a overenie backendu aj webu. Pri zlyhaní
+testov sa deploy nespustí. Pull requesty iba testujú.
+
+Na ručné nasadenie mimo pipeline potrebuješ Azure CLI, Java 21 a Maven:
 
 ```powershell
 cd C:\git\nhlprediction

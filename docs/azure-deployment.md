@@ -13,6 +13,7 @@ Projekt `C:\git\ainoviny` slúžil iba ako čítaná referencia. Nebol upravovan
 | MCP | https://nhlpredict-txocp2arkmldw.azurewebsites.net/mcp |
 | Health | https://nhlpredict-txocp2arkmldw.azurewebsites.net/health |
 | Microsoft app registration | `NHL Prediction MCP` |
+| GitHub deployment identity | `nhlpredict-github` (user-assigned managed identity) |
 
 Nie je nasadený Azure OpenAI, platený AI model, Bing Grounding, databáza ani
 stále bežiaci Premium plán. ChatGPT vykonáva research v pripojenom chate v rámci
@@ -46,7 +47,47 @@ Oficiálne podklady: [vlastný MCP](https://developers.openai.com/api/docs/guide
 [OAuth](https://developers.openai.com/plugins/build/auth),
 [naplánované úlohy](https://learn.chatgpt.com/docs/automations).
 
-## Opakovaný deployment
+## CI/CD z GitHubu
+
+Workflow `.github/workflows/ci-cd.yml` sa spúšťa pri pushi do `main`, pull requeste
+alebo manuálne cez Actions → CI/CD → Run workflow. Každý beh má dva build joby:
+Java 21 + Maven a Node 22 + frontend testy. Otestovaný Functions ZIP a statické
+súbory vrátane všetkých log sa uchovajú ako artefakty sedem dní.
+
+Po úspechu oboch jobov sa z `main` automaticky vykoná deploy. Pull requesty
+deployment nespúšťajú. Behy rovnakej vetvy sú serializované, takže starší build
+nemôže prepísať novší deployment. Najprv sa nasadí Functions ZIP a overí `/health`,
+potom statický web a jeho `release.json` s presným SHA commitu. Výsledok aj odkazy
+sú v súhrne GitHub Actions. Workflow nevykonáva NHL research ani nemení uložené
+zápasy a neprenastavuje Microsoft OAuth tajomstvo či existujúce app settings.
+
+Azure prihlásenie používa `azure/login@v3` a krátkodobý GitHub OIDC token.
+Identita `nhlpredict-github` má federáciu iba pre
+`repo:MartinHBA/nhlprediction:ref:refs/heads/main` a tieto Azure RBAC role:
+
+| Rola | Rozsah |
+| --- | --- |
+| Website Contributor | iba Function App `nhlpredict-txocp2arkmldw` |
+| Storage Blob Data Contributor | iba statický kontajner `$web` |
+
+Konfigurácia identity a rolí je v samostatnej šablóne
+`infrastructure/github-oidc.bicep`. Tá nemení nastavenia existujúcej aplikácie.
+Prípadné opakované vytvorenie konfigurácie vykoná správca s Azure oprávneniami:
+
+```powershell
+az deployment group create --resource-group nhlprediction --name nhl-github-oidc --template-file infrastructure/github-oidc.bicep
+```
+
+Verejné `clientId`, `tenantId` a `subscriptionId` sú nastavené priamo vo workflow.
+Po vytvorení inej identity aktualizuj `AZURE_CLIENT_ID` podľa výstupu šablóny.
+Nie sú to prihlasovacie tajomstvá. Publish profile, Azure client secret ani storage
+connection string sa do GitHubu neukladajú. Existujúce vlastníkovo Microsoft
+prihlásenie pre ChatGPT MCP zostáva samostatné.
+
+Podklady: [GitHub OIDC pre Azure](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-azure),
+[Azure Functions deployment](https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-github-actions).
+
+## Ručný deployment cez Azure CLI
 
 Potrebné: Azure CLI s prihlásením, Java 21, Maven, PowerShell. Node nie je potrebný
 na zostavenie webu; frontend je obyčajné HTML/CSS/JS.
@@ -175,4 +216,4 @@ Java projekcie a checklist sa overujú voči uloženým referenčným výsledkom
 v `backend/src/test/resources/reference-report.json`. Rovnaký Java seed je
 reprodukovateľný. Autoritatívna JSON schéma je súčasťou Java backendu
 v `backend/src/main/resources/schema.json`. GitHub Actions overuje Java backend
-a frontend; nasadenie prebieha samostatne cez Azure CLI.
+a frontend; po pushi do `main` nadväzuje automatické nasadenie do Azure.

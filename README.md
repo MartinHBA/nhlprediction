@@ -171,7 +171,13 @@ mvn -B -f backend/pom.xml verify
 
 Autoritatívna JSON schéma je v `backend/src/main/resources/schema.json`.
 GitHub Actions po pushi alebo pull requeste overí Java backend a frontend.
-Do Azure sa nasadzuje samostatne cez Azure CLI.
+Push do `main` po úspešných testoch automaticky nasadí oba otestované balíky
+do Azure. Pull requesty iba testujú. Workflow **CI/CD** možno spustiť aj ručne
+cez **Actions → CI/CD → Run workflow** na `main`.
+
+Nasadenie používa GitHub OIDC a identitu `nhlpredict-github`; do GitHubu sa
+neukladá Azure heslo, publish profile ani storage key. Stav backendu a publikovaný
+web sa overia na konci pipeline. `release.json` na webe uvádza nasadený commit.
 
 Frontend nepotrebuje build. Jeho DOM testy používajú Node 22:
 
@@ -181,7 +187,7 @@ npm install --ignore-scripts
 npm test
 ```
 
-Kompletné opakované nasadenie po `az login`:
+Ručné nasadenie mimo CI/CD po `az login`:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/deploy.ps1
