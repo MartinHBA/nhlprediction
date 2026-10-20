@@ -35,7 +35,7 @@ class EngineTest {
         ((ObjectNode)g.path("home").path("roster")).put("attack_delta_goals",30);
         result=Engine.evaluate(g,text(data,"as_of"),1000,42);
         for(var market:result.path("markets"))assertTrue(strings(market.path("issues")).contains("LAMBDA_OUT_OF_RANGE"));
-        assertTrue(result.path("recommendation").isNull());
+        assertTrue(result.path("model_preference").isNull());
     }
     @Test void alternativeCalculationsOnlyExposeCountAndSingleSelection(){
         ObjectNode g=(ObjectNode)data.path("games").get(0);
@@ -43,7 +43,7 @@ class EngineTest {
             .add(AlternativeMarketsTest.quote("handicap","home",-1.5,2.5)).add(AlternativeMarketsTest.quote("handicap","away",1.5,1.6)));
         var result=Engine.evaluate(g,AlternativeMarketsTest.AS_OF,10000,42);
         assertEquals(34,result.path("alternative_market_count").asInt());assertEquals(4,result.path("markets").size());
-        assertFalse(result.has("estimated_totals"));assertFalse(result.has("estimated_handicaps"));assertTrue(result.has("recommendation"));
+        assertFalse(result.has("estimated_totals"));assertFalse(result.has("estimated_handicaps"));assertTrue(result.has("model_preference"));
     }
     @Test void realMarketFiltersShareTheRecommendationPriceBand(){
         ObjectNode g=(ObjectNode)data.path("games").get(0),quote=(ObjectNode)g.path("markets").get(0);

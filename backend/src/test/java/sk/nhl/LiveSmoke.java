@@ -50,6 +50,40 @@ public final class LiveSmoke {
         }finally{if(created)store.take(key);}
         require(store.get(key)==null,"Temporary native save fixture cleanup");
     }
+    static JsonNode tool(String name,JsonNode args,String access)throws Exception{
+        JsonNode result=rpc("tools/call",obj("name",name,"arguments",args),access);
+        require(!result.path("isError").asBoolean(),"Tool failed: "+name+" "+result.path("content"));
+        return parse(result.path("content").get(0).path("text").asText());
+    }
+    static void verifyAiTips(Store store,String sourceDay,String access)throws Exception{
+        String day="2099-12-29",key="days/"+day+".json",history="history/tips/"+day+"/";
+        require(store.get(key)==null&&store.keys(history).isEmpty(),"AI test fixture already exists; refusing to overwrite");
+        ObjectNode original=store.get("days/"+sourceDay+".json");require(original!=null,"Source day missing");
+        ObjectNode data=original.path("dataset").deepCopy();ObjectNode game=data.path("games").get(0).deepCopy();
+        game.put("status","scheduled").put("starts_at","2099-12-30T00:00:00Z");String id=text(game,"game_id");
+        data.put("synthetic_data",true).put("as_of",Instant.now().toString());data.set("games",arr().add(game));data.set("expected_game_ids",arr().add(id));
+        ObjectNode report=Engine.run(data,1000,1707,false);require(report.path("checklist").path("complete").asBoolean(),"Source research incomplete");
+        ObjectNode fixture=obj("day",day,"state","COMPLETE","revision",0,"research_complete",true,"dataset",data,"report",report,"updated_at",Instant.now().toString());
+        boolean created=false;
+        try{
+            store.create(key,fixture);created=true;
+            JsonNode snapshot=tool("get_candidates",obj("day",day,"game_id",id),access);require(text(snapshot,"state").equals("READY"),"AI snapshot ready");
+            ObjectNode decision=obj("game_id",id,"decision","NO_BET","candidate_id",null,"confidence","LOW",
+                "rationale","Deployment verification on synthetic data; no real betting selection is published.",
+                "comparison","No candidate is selected because this is an isolated synthetic deployment test.","risks",List.of("Synthetic test fixture; not a real recommendation."),"evidence_ids",arr());
+            ObjectNode args=obj("day",day,"revision",snapshot.path("revision"),"analysis_id",text(snapshot,"analysis_id"),"decisions",arr().add(decision));
+            ObjectNode stale=args.deepCopy();stale.put("analysis_id","stale-snapshot");JsonNode rejected=rpc("tools/call",obj("name","post_tips","arguments",stale),access);
+            require(rejected.path("isError").asBoolean(),"Stale snapshot must be rejected");
+            JsonNode published=tool("post_tips",args,access);require(text(published,"final_tips.state").equals("PUBLISHED"),"AI publication");
+            ObjectNode before=store.get(key);tool("post_tips",args,access);require(before.equals(store.get(key)),"AI post retry must be idempotent");
+            JsonNode publicDay=parse(request("/api/days/"+day,null,null).body());require(text(publicDay,"final_tips.state").equals("PUBLISHED"),"Public API includes AI decisions");
+            ((ArrayNode)before.path("dataset").path("games").get(0).path("home").path("roster").path("absences")).add("ISOLATED_SMOKE_TEST_CHANGE");store.put(key,before);
+            publicDay=parse(request("/api/days/"+day,null,null).body());require(text(publicDay,"final_tips.state").equals("NEEDS_REVIEW"),"Changed research invalidates AI decision");
+            require(original.equals(store.get("days/"+sourceDay+".json")),"Source day must remain untouched");
+            System.out.println(obj("ai_tips","passed","checks",7,"source_day_modified",false,"temporary_test_day",day,"published_real_tips",0));
+        }finally{if(created){store.take(key);for(String h:store.keys(history))store.take(h);}}
+        require(store.get(key)==null&&store.keys(history).isEmpty(),"AI test fixture cleanup");
+    }
     public static void main(String[]args)throws Exception{
         base=System.getenv("PUBLIC_BASE_URL");String day=args.length>0?Schedule.day(args[0]):LocalDate.now(ZoneId.of("America/New_York")).toString();boolean repair=Arrays.asList(args).contains("--repair");Store store=Store.cloud();
         require(request("/health",null,null).statusCode()==200,"health");
@@ -63,8 +97,9 @@ public final class LiveSmoke {
             var token=request("/oauth/token",OAuth.encode(grant),null);require(token.statusCode()==200,"PKCE token exchange: "+token.statusCode());JsonNode t=parse(token.body());access=text(t,"access_token");refresh=text(t,"refresh_token");
             require(request("/oauth/token",OAuth.encode(grant),null).statusCode()==400,"Authorization code replay rejected");
             if(Arrays.asList(args).contains("--native-save")){verifyNativeSave(store,day,access);return;}
+            if(Arrays.asList(args).contains("--ai-tips")){verifyAiTips(store,day,access);return;}
             require(text(rpc("initialize",obj("protocolVersion","2025-06-18","capabilities",obj(),"clientInfo",obj("name","deployment-smoke","version","1")),access),"serverInfo.name").equals("nhl-prediction"),"MCP initialization");
-            require(rpc("tools/list",obj(),access).path("tools").size()==8,"Tool count");
+            require(rpc("tools/list",obj(),access).path("tools").size()==10,"Tool count");
             JsonNode instructions=rpc("tools/call",obj("name","get_instructions","arguments",obj()),access);require(!instructions.path("isError").asBoolean(),"instructions");
             var priorResponse=request("/api/days/"+day,null,null);JsonNode prior=priorResponse.statusCode()==200?parse(priorResponse.body()):obj();
             JsonNode start=rpc("tools/call",obj("name","start_day","arguments",obj("day",day)),access);require(!start.path("isError").asBoolean(),"Official schedule: "+start);

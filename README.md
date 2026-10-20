@@ -17,7 +17,8 @@ pri priamom zbere z Azure vracal HTTP 403; nové zdroje sú opísané nižšie.
 18:00 Europe/Bratislava → Azure: program, štatistiky, prvá kontrola kurzov
 18:30, 19:00, ... 05:30 → Azure: kontrola NHL kurzov každých 30 minút
 20:00 → tvoja ChatGPT Cloud úloha: MCP, zostavy/brankári/research, save_game
-  → check_day + finalize_day → Java simulácie → web
+  → check_day + finalize_day → Java simulácie → get_candidates
+  → finálne zhodnotenie ChatGPT → post_tips → web
   → ak kurzy prídu neskôr, Azure obnoví výpočet dokončeného researchu
 ```
 
@@ -31,7 +32,8 @@ vlastník. OpenAI API kľúč ani Microsoft client secret sa do ChatGPT nezadáv
 Potom v chate s pluginom napíš:
 
 > Použi NHL Observatory. Načítaj pokyny, spracuj celý dnešný NHL program podľa
-> checklistu, ulož výsledky a dokonči výpočet na webe.
+> checklistu, dokonči výpočet, zhodnoť kandidátov cez get_candidates a publikuj
+> finálne rozhodnutia cez post_tips. Over final_tips.state=PUBLISHED.
 
 Na pravidelný večerný beh je pripravené
 [zadanie pre naplánovanú úlohu](docs/chatgpt-scheduled-prompt.md).
@@ -44,7 +46,7 @@ potvrdenia zápisov a dostupnosť nástrojov v tvojej plánovanej úlohe.
 - Java 21 Function App na Windows Consumption; HTTP/MCP, queue worker a údržba.
 - Jedno Standard LRS úložisko pre súkromné pracovné dáta, frontu a statický web.
 - OAuth s Microsoft prihlásením, PKCE, jednorazovými kódmi a rotáciou refresh tokenov.
-- Verejný web s dennými zápasmi, modelovými gólmi, pravdepodobnosťami, trhmi,
+- Verejný web s dennými zápasmi, modelovými gólmi, pravdepodobnosťami, výbermi ChatGPT,
   rozbaliteľnými kontrolami údajov, časom aktualizácie a archívom. Stavy neúplného alebo zlyhaného zberu
   sa zobrazujú otvorene. Vybraný dátum sa nenahrádza staršími výsledkami.
 
@@ -64,6 +66,8 @@ majú vlastné náklady.
 | `check_day` | Všetky nepreverené polia, trhy a chyby dôkazov |
 | `finalize_day` | Povinné kontroly a zaradenie simulácie do fronty |
 | `get_results` | Stav výpočtu, výsledky a odkaz na web |
+| `get_candidates` | Finálny research a všetky kandidátske typy v pásme 1,20–1,35; snapshot pre rozhodnutie AI |
+| `post_tips` | Atomické uloženie TIP/NO_BET pre každý zápas, zdôvodnenia, porovnania, dôkazov a confidence |
 
 Program používa kalendárny deň NHL **America/New_York**. Web zobrazuje časy
 v **Europe/Bratislava**. Kontroly zdrojov sa ukladajú v UTC.
@@ -153,25 +157,41 @@ sa rozdelenie rozdielu skóre zo simulácií exponenciálne
 nakloní tak, aby zodpovedalo pravdepodobnosti aktuálnej dvojice handicapov po
 odstránení marže. Z tvaru tohto rozdelenia a rovnakej marže sa odhadnú iné hranice.
 Ide o dodatočný predpoklad ceny, nie o nezávislú validáciu modelu.
-Odhady nevstupujú do skutočných `markets`, počítadiel pokrytia ani tiketu a nemenia
-`NO_BET`. Do reportu a MCP sa posiela iba počet dopočítaných alternatív
-(`alternative_market_count`) a vybraný tip, aby odpoveď nenarástla o stovky
-nepoužitých variantov. `report.games[].recommendation` vyberá najviac jeden tip na zápas:
-porovnáva aktuálne overené skutočné kurzy (víťaz, 1/X/2, handicap, góly) a dopočítané
-alternatívy pri kurze od 1,20 do 1,35 vrátane a kladnom EV základného modelu. Z nich vyberá
-najvyššie konzervatívne EV. Ak výhoda v konzervatívnom scenári zmizne, výber
-ostáva iba predbežným modelovým tipom s nízkou confidence a explicitnou poznámkou;
-`robust_edge=false`. Prísny filter kladného konzervatívneho EV pre skutočný tiket
-ostáva zachovaný.
-Odhadovaný tip alebo tip s neistými brankármi/zostavou ostáva `PRELIMINARY`
-aj pri kladnom odhadovanom EV. Neplatné alebo neaktuálne kurzy, neoverené vstupy,
-pozastavené trhy a neúplný checklist sa na odporúčanie nepoužijú. Potvrdená
-výhodnosť vyžaduje skutočnú ponuku a splnené pôvodné dátové filtre.
-`confidence` je kvalita podkladov (`LOW`/`MODERATE`), nie kalibrovaná úspešnosť.
-Na webe sa zobrazuje iba vybraný tip, jeho kurz/odhad, P(model), confidence a
-minimálny potrebný skutočný kurz; zoznam trhov sa nezobrazuje. Dôvody confidence
-sú v hover vysvetlivke. Bez výhodného výberu je „Bez odporúčania v pásme 1,20–1,35“.
-Bez aktuálnej overenej dvojice kurzov alebo pri začatom zápase sa negenerujú.
+Odhady nevstupujú do skutočných `markets` ani počítadiel pokrytia. Java pripravuje
+`report.games[].candidates`: všetky možnosti v pásme **1,20–1,35 vrátane**,
+vrátane možností so záporným modelovým EV. Každá má stabilné `candidate_id`,
+modelové pravdepodobnosti/EV, informáciu o aproximácii a `selectable` s dôvodmi
+prípadného blokovania. `model_preference` ostáva iba mechanickým poradím modelu.
+
+Finálny výber robí ChatGPT v tom istom rune po zbere dát a výpočte. Cez
+`get_candidates(day, game_id)` načíta porovnanie a uložený research, vyhodnotí
+víťaza, 1/X/2, handicap aj over/under a cez `post_tips` zapíše **pre každý zápas**
+jedno rozhodnutie TIP alebo NO_BET. Odovzdá `analysis_id`, aktuálnu `revision`,
+`candidate_id` (pri NO_BET null), confidence, rationale, comparison, risks a
+platné evidence_ids. Kurzy a pravdepodobnosti neposiela; backend ich preberá
+z existujúceho kandidáta. Neoverené/neaktuálne kurzy, pozastavené trhy a neúplný
+checklist nemožno publikovať ako TIP. Pri modelovom nesúhlase alebo neistých
+podkladoch backend obmedzí confidence na LOW a vyžaduje pomenované riziká.
+Odhad kurzu sám osebe dovoľuje najviac MODERATE; nejde o kalibrovanú úspešnosť.
+
+Výbery sú uložené mimo Java reportu v `final_tips`. Stav COMPLETE označuje iba
+výpočet, `final_tips.state=PUBLISHED` dokončenú analýzu AI (aj keď sú všetky
+rozhodnutia NO_BET). Web čaká na túto publikáciu; nezobrazuje mechanický výber
+ako rozhodnutie ChatGPT. Pri tipe sú kurz/odhad, P(model), confidence a rozbaliteľné
+zdôvodnenie s porovnaním alternatív a rizikami. Zoznam trhov sa nezobrazuje.
+
+Snapshot je viazaný na skutočný obsah dát a politiku modelu. Zmena ceny, brankára,
+zostavy alebo zostarnutie podkladov označí uložený výber `NEEDS_REVIEW`; automatický
+prepočet ho neprepíše. Nezmenený poll ani obnovenie časových pečiatok s rovnakými
+hodnotami výber samo nezneplatní. Začatý zápas má uzavretý predzápasový výber.
+Konfliktný snapshot/revision sa odmietne a rovnaký opakovaný post je idempotentný.
+Staršie výbery majú súkromnú históriu v `history/tips/`.
+
+Po deployi obnov metadata pripojenia NHL Observatory cez **Plugins → Refresh**,
+aby ChatGPT videl `get_candidates` a `post_tips`, a použi aktuálny prompt z
+`docs/chatgpt-scheduled-prompt.md`. Azure nemení uložený prompt ChatGPT úlohy.
+Oficiálny postup: https://developers.openai.com/plugins/deploy/connect-chatgpt#refresh-metadata
+
 Podklad k marži: https://support.pinnacle.bet/hc/en-us/articles/44854189442065-What-is-a-betting-margin
 
 Web obsahuje oficiálne SVG logá všetkých 32 tímov v `frontend/assets/teams`;

@@ -121,8 +121,12 @@ function render(data){const report=data.state==='PREFILLING'?null:data.report,ch
  else if(data.state==='ERROR'){type='error';detail=data.error||'Úloha nebola dokončená.';}
  else if(data.state==='INCOMPLETE'){type='warn';detail=resultLabels[report?.status]||'Niektoré zápasy nemajú dostatok overených vstupov.';}
  else{detail='Priebežné údaje. Hotové predikcie sa zobrazia po dokončení celej kontroly.';type='warn';}
- const preliminary=(report?.games||[]).filter(g=>currentRecommendation(g)?.recommendation_status==='PRELIMINARY').length;
- if(data.state==='COMPLETE'&&preliminary){detail=(report?.status==='NO_BET'?'Bez potvrdeného kandidáta. ':'')+`Predbežné tipy v pásme 1,20–1,35: ${preliminary}. Odhad ceny a kvalita podkladov sú uvedené pri tipe.`;}
+ const final=data.final_tips;
+ if(['COMPLETE','INCOMPLETE'].includes(data.state)){
+  if(final?.state==='PUBLISHED'){title='Analýza ChatGPT uložená';detail=`Výbery v pásme 1,20–1,35: ${final.tip_count||0} · Bez tipu: ${final.no_bet_count||0}.`;type='';}
+  else if(final?.state==='NEEDS_REVIEW'){title='Výbery čakajú na nové overenie';detail='Podklady sa zmenili. Uložené výbery ChatGPT vyžadujú nové zhodnotenie.';type='warn';}
+  else{title='Čaká na finálnu analýzu ChatGPT';detail='Modelový výpočet je hotový. ChatGPT ešte neuložil finálne výbery.';type='neutral';}
+ }
  const odds=data.odds_import;if(odds){const available=odds.covered_games||0,total=odds.upcoming_games||0;if(['WAITING','ERROR'].includes(odds.state)&&total){detail+=' Čakáme na aktuálne kurzy NHL; modelové projekcie môžu byť dostupné.';type='warn';}else if(odds.state==='PARTIAL'){detail+=` Kurzy sú dostupné pre ${available}/${total} nadchádzajúcich zápasov.`;type='warn';}}
  if(stale){type='warn';detail+=' Posledná aktualizácia je staršia než 18 hodín.';}
  banner(title,detail,type,'Aktualizované '+timeLabel(data.updated_at));
@@ -145,20 +149,26 @@ function render(data){const report=data.state==='PREFILLING'?null:data.report,ch
   if(at!==cards[i])$('games').insertBefore(cards[i],at||null);
  }
  while($('games').children.length>cards.length)$('games').lastElementChild.remove();
- if(report?.ticket){$('ticket').hidden=false;$('ticket').replaceChildren(el('p','eyebrow','KANDIDÁT / VYŽADUJE KONTROLU'),el('h2','',`${report.ticket.legs.length} výbery · kombinovaný kurz ${report.ticket.odds}`),el('p','',report.ticket.legs.map(l=>`${l.matchup}: ${marketName(l)}`).join(' · ')),el('p','','Scenáre používajú zjednodušené predpoklady. Kandidát nie je pokyn na uzatvorenie stávky.'));}
+
 }
-function recommendationBlock(result,game){
- const m=currentRecommendation(result),box=el('div','recommendation');
- if(!m){box.append(el('p','subtle',Object.hasOwn(result,'recommendation')?'Bez odporúčania v pásme 1,20–1,35.':'Výber tipu sa ešte nevypočítal.'));return box;}
+function recommendationBlock(final,game){
+ const box=el('div','recommendation');
+ if(!final){box.append(el('p','subtle','Čaká na finálny výber ChatGPT.'));return box;}
+ if(final.state==='STARTED'){box.append(el('p','subtle','Zápas už začal. Predzápasový výber je uzavretý.'));return box;}
+ const needsReview=final.state==='NEEDS_REVIEW';
+ if(needsReview){box.classList.add('needs-review');box.append(el('p','caution','Podklady sa zmenili – výber vyžaduje nové overenie.'));}
+ if(final.decision==='NO_BET'){box.append(el('p','eyebrow',needsReview?'BEZ TIPU / NA NOVÉ OVERENIE':'CHATGPT · BEZ TIPU'),el('p','subtle',final.rationale));return box;}
+ const m=currentRecommendation({recommendation:final.candidate});
+ if(!m){box.append(el('p','subtle','Bez aktuálneho výberu v pásme 1,20–1,35.'));return box;}
  const estimated=m.odds_type==='ESTIMATED',preliminary=m.recommendation_status==='PRELIMINARY';
- box.append(el('p','eyebrow',preliminary?'PREDBEŽNÝ TIP':'TIP NA KONTROLU'));
+ box.append(el('p','eyebrow',needsReview?'VÝBER CHATGPT / NA NOVÉ OVERENIE':preliminary?'PREDBEŽNÝ TIP CHATGPT':'VÝBER CHATGPT'));
  const selection={...m};if(m.kind==='handicap'){selection.selection=game[m.selection]?.name||m.selection;selection.team=null;}if(m.kind==='moneyline'||m.kind==='regulation_1x2')selection.selection=game[m.selection]?.name||m.selection;
  const name=marketName(selection).replace(/(\d)\.(\d)/g,'$1,$2');box.append(el('h3','',name));
  const facts=el('div','recommendation-facts'),price=estimated?m.estimated_odds:m.odds;
  const odds=el('span','',`${estimated?'Odhad kurzu ≈':'Kurz '}${price.toLocaleString('sk-SK',{minimumFractionDigits:2,maximumFractionDigits:2})}`);
  odds.title=estimated?'Približná cena odvodená z aktuálnych trhov, nie overená ponuka bookmakera.':'Skutočný kurz z aktuálneho feedu.';
  const probability=el('span','',`P(model) ${pct(m.p_win)}`);probability.title='Odhad pravdepodobnosti nášho nekalibrovaného modelu; nie zaručená úspešnosť.';
- const quality={LOW:'nízka',MODERATE:'stredná'},confidence=el('span','recommendation-confidence',`Confidence: ${quality[m.confidence]||'neurčená'}`);
+ const quality={LOW:'nízka',MODERATE:'stredná',HIGH:'vysoká'},confidence=el('span','recommendation-confidence',`Confidence: ${quality[m.confidence]||'neurčená'}`);
  const reasons=m.confidence_reasons||[],notes=[];
  if(estimated)notes.push('Kurz je iba aproximovaný.');
  if(reasons.some(x=>x.includes('GOALIE_NOT_CONFIRMED')))notes.push('Nie sú potvrdení obaja brankári.');
@@ -166,6 +176,7 @@ function recommendationBlock(result,game){
  if(reasons.some(x=>x.includes('LINEUP')))notes.push('Vplyv zostavy nie je vyčíslený.');
  if(reasons.some(x=>x.includes('HISTORY')))notes.push('Krátka história brankára.');
  if(reasons.includes('FINAL_LINEUP_WINDOW_NOT_REACHED'))notes.push('Do zápasu zostáva viac než 8 hodín.');
+ if(reasons.includes('MODEL_DISAGREES_WITH_AI_SELECTION'))notes.push('Java model tomuto výberu nepripisuje kladné EV; ide o odlišné zhodnotenie ChatGPT.');
  if(reasons.includes('SCENARIO_EDGE_NOT_ROBUST'))notes.push('Výhoda základného modelu sa v konzervatívnom scenári stráca.');
  confidence.title='Kvalita podkladov, nie percentuálna úspešnosť. '+notes.join(' ');confidence.tabIndex=0;
  facts.append(odds,probability,confidence);box.append(facts);
@@ -176,6 +187,9 @@ function recommendationBlock(result,game){
   threshold.title='Hranica pre kladné EV aj v najhoršom simulovanom scenári. Pri odhade ceny nie je výhodnosť potvrdená.';box.append(threshold);
  }
  if(estimated)box.append(el('small','subtle','Pred použitím overiť ponuku a skutočný kurz.'));
+ if(m.model_positive_ev===false)box.append(el('p','caution','Model tomuto výberu nepripisuje výhodu.'));
+ const analysis=el('details','tip-analysis');analysis.dataset.section='tip-analysis';analysis.append(el('summary','','Zdôvodnenie ChatGPT'),el('p','subtle',final.rationale),el('p','subtle',final.comparison));
+ if(final.risks?.length){const risks=el('ul','issue-list');final.risks.forEach(risk=>risks.append(el('li','',risk)));analysis.append(risks);}box.append(analysis);
  return box;
 }
 function card(game,result,audit,data){const article=el('article','game-card'),head=el('div','game-head');article.dataset.gameId=String(game.game_id);head.append(el('span','',timeLabel(game.starts_at)+' · SEČ/SELČ'));const ready=result?.lambda_total!==undefined;head.append(el('span','badge '+(ready?'':game.status==='scheduled'?'warn':'muted'),ready?'PROJEKCIA':game.status==='scheduled'?'ČAKÁ NA DÁTA':game.status==='final'?'UKONČENÉ':'ZAČATÉ'));article.append(head);
@@ -183,7 +197,7 @@ function card(game,result,audit,data){const article=el('article','game-card'),he
  if(ready){const goals=el('div','goal-projection');goals.append(el('strong','',result.lambda_away.toFixed(2)),el('span','','MODELOVÉ GÓLY'),el('strong','',result.lambda_home.toFixed(2)));article.append(goals);const labels=el('div','prob-labels'),away=el('span','',game.away.name+' '),home=el('span','',game.home.name+' ');away.append(el('strong','',pct(result.p_away_win)));home.append(el('strong','',pct(result.p_home_win)));labels.append(away,home);const bar=el('div','prob-bar'),a=el('span','away'),h=el('span','home');a.style.width=(result.p_away_win*100)+'%';h.style.width=(result.p_home_win*100)+'%';bar.append(a,h);article.append(labels,bar);}
  else article.append(el('p','game-note',result?.skipped==='ALREADY_STARTED_OR_FINAL'?'Zápas už začal. Novú predzápasovú projekciu nevytvárame.':result?.missing?.length?`Chýba ${result.missing.length} kľúčových modelových vstupov.`:'Research ešte nie je dokončený. Chýbajúce hodnoty ostávajú prázdne.'));
  const meta=el('div','game-meta');const confirmed=['home','away'].filter(s=>game[s].goalie.status==='confirmed').length;const available=data.coverage?.games?.find(g=>g.game_id===game.game_id);meta.append(el('span','',`Brankári ${confirmed}/2 potvrdení`),el('span','',ready?`${result.simulations.toLocaleString('sk-SK')} simulácií`:available?`${available.field_found}/${available.field_total} dostupných polí`:'Údaje sa zbierajú'));article.append(meta);
- if(ready&&game.status==='scheduled')article.append(recommendationBlock(result,game));
+ if(game.status==='scheduled')article.append(recommendationBlock(data.final_tips?.games?.find(g=>g.game_id===String(game.game_id)),game));
  const detail=el('details','game-detail'),summary=el('summary','','Kontroly a trhy');detail.dataset.section='game';detail.append(summary);
  const roster=el('p','subtle',`${game.away.name}: ${game.away.goalie.name||'neznámy'} (${game.away.goalie.status}) · ${game.home.name}: ${game.home.goalie.name||'neznámy'} (${game.home.goalie.status})`);detail.append(roster);
  detail.append(fieldDetails(game,true),fieldDetails(game,false));

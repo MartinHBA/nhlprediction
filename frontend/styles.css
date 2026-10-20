@@ -20,6 +20,9 @@
 .recommendation-confidence{text-decoration:underline dotted;text-underline-offset:4px}
 .recommendation>.subtle{margin:8px 0 0;font-size:11px}
 .recommendation>small{display:block;margin-top:6px;font-size:10px}
+.recommendation.needs-review{border-left-color:var(--amber);background:#332c2244}
+.tip-analysis{margin-top:12px}
+.tip-analysis summary{font-size:11px}
 .field-details{padding-left:12px;border-left:2px solid var(--line);border-top:0}
 .field-details>summary{font-size:12px;font-weight:600;gap:12px}
 .field-details>.subtle{font-size:11px;margin:10px 0}

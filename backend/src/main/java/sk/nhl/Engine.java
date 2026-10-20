@@ -6,6 +6,7 @@ import java.util.*;
 import static sk.nhl.Json.*;
 
 final class Engine {
+    static final String VERSION="2.2.0-java";
     static final int SIMULATIONS=1000;
     record Scores(int[] rh,int[] ra,int[] fh,int[] fa) {}
     record Projection(double home,double away,ObjectNode details) {}
@@ -100,7 +101,8 @@ final class Engine {
         ArrayNode estimates=AlternativeTotals.estimate(g,sim,scenarios,asOf);
         ArrayNode handicapEstimates=AlternativeHandicaps.estimate(g,sim,scenarios,asOf),allEstimates=estimates.deepCopy();allEstimates.addAll(handicapEstimates);
         ObjectNode recommendation=Recommendations.select(g,markets,allEstimates,p.details,asOf);
-        return obj("game_id",text(g,"game_id"),"matchup",text(g,"away.name")+" @ "+text(g,"home.name"),"starts_at",text(g,"starts_at"),"status",text(g,"status"),"lambda_home",round(p.home,4),"lambda_away",round(p.away,4),"lambda_total",round(p.home+p.away,4),"projection_details",p.details,"goalies_confirmed",confirmed,"lineups_quantified",quantified,"p_home_win",round((double)hw/n,5),"p_away_win",round((double)(n-hw)/n,5),"p_regulation_home",round((double)regHome/n,5),"p_regulation_draw",round((double)draw/n,5),"markets",markets,"alternative_market_count",allEstimates.size(),"recommendation",recommendation,"simulations",n);
+        ArrayNode candidates=Candidates.build(g,markets,allEstimates,p.details);
+        return obj("game_id",text(g,"game_id"),"matchup",text(g,"away.name")+" @ "+text(g,"home.name"),"starts_at",text(g,"starts_at"),"status",text(g,"status"),"lambda_home",round(p.home,4),"lambda_away",round(p.away,4),"lambda_total",round(p.home+p.away,4),"projection_details",p.details,"goalies_confirmed",confirmed,"lineups_quantified",quantified,"p_home_win",round((double)hw/n,5),"p_away_win",round((double)(n-hw)/n,5),"p_regulation_home",round((double)regHome/n,5),"p_regulation_draw",round((double)draw/n,5),"markets",markets,"alternative_market_count",allEstimates.size(),"model_preference",recommendation,"candidates",candidates,"simulations",n);
     }
     record Combo(List<JsonNode>legs,double odds,double prob){double rank(){return odds*prob-1-.008*Math.max(0,legs.size()-1);}}
     static ObjectNode combo(JsonNode games){
@@ -132,12 +134,15 @@ final class Engine {
                     if(!text(rep,"status").equals("READY_FOR_MODEL")){((ArrayNode)m.path("issues")).add("CHECKLIST_INCOMPLETE");((ObjectNode)m).put("research_eligible",false);}
                     marketCount++;if(m.path("research_eligible").asBoolean())eligible++;if(strings(m.path("issues")).contains("SUSPENDED_TEAM_OVER_2_5"))blocked++;
                 }
-                if(!text(rep,"status").equals("READY_FOR_MODEL"))result.putNull("recommendation");
+                if(!text(rep,"status").equals("READY_FOR_MODEL")){
+                    result.putNull("model_preference");
+                    for(JsonNode c:result.path("candidates")){((ObjectNode)c).put("selectable",false);((ArrayNode)c.path("blocking_reasons")).add("CHECKLIST_INCOMPLETE");}
+                }
             }
             results.add(result);
         }
         boolean complete=checks.path("complete").asBoolean();ObjectNode combo=complete?combo(results):obj("legs",arr(),"odds",null,"conservative_joint_ev",null);
         String status=!complete?"CHECKLIST_INCOMPLETE":missing?"INSUFFICIENT_DATA":d.path("synthetic_data").asBoolean()?"SYNTHETIC_DEMO_ONLY":!combo.path("legs").isEmpty()?"CANDIDATE_REVIEW_REQUIRED":"NO_BET";
-        return obj("engine_version","2.1.2-java","as_of",text(d,"as_of"),"status",status,"model_note","Heuristic uncalibrated baseline; probabilities are provisional estimates.","checklist",checks,"audit",obj("scheduled_game_count",d.path("expected_game_ids").size(),"processed_game_count",results.size(),"confirmed_goalie_count",confirmed,"unconfirmed_goalie_count",unconfirmed,"market_count",marketCount,"research_eligible_market_count",eligible,"blocked_team_over_2_5",blocked),"games",results,"ticket",status.equals("CANDIDATE_REVIEW_REQUIRED")?combo:null,"candidate_preview_not_validated",research?combo:null);
+        return obj("engine_version",VERSION,"as_of",text(d,"as_of"),"status",status,"model_note","Heuristic uncalibrated baseline; probabilities are provisional estimates.","checklist",checks,"audit",obj("scheduled_game_count",d.path("expected_game_ids").size(),"processed_game_count",results.size(),"confirmed_goalie_count",confirmed,"unconfirmed_goalie_count",unconfirmed,"market_count",marketCount,"research_eligible_market_count",eligible,"blocked_team_over_2_5",blocked),"games",results,"ticket",status.equals("CANDIDATE_REVIEW_REQUIRED")?combo:null,"candidate_preview_not_validated",research?combo:null);
     }
 }

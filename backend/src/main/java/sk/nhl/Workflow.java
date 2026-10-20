@@ -107,7 +107,7 @@ final class Workflow {
         }catch(RuntimeException e){store.locked("day/"+day,()->{ObjectNode current=require(day);if(text(current,"job_id").equals(text(job,"job_id"))){current.put("state","ERROR");current.put("error","Calculation failed. Retry finalize_day.");current.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",current);}return null;});throw e;}
     }
     ObjectNode read(String day){ObjectNode d=require(day);ObjectNode out=summary(d);out.set("checklist",Checks.audit(d.path("dataset")));out.set("report",d.path("report"));out.set("evidence",d.path("dataset").path("evidence"));out.set("games",d.path("dataset").path("games"));return out;}
-    ObjectNode summary(JsonNode d){return obj("day",text(d,"day"),"state",text(d,"state"),"updated_at",text(d,"updated_at"),"revision",d.path("revision"),"game_count",d.path("dataset").path("games").size(),"as_of",d.path("dataset").path("as_of"),"error",d.path("error"),"enrichment",d.path("enrichment"),"odds_import",d.path("odds_import"),"research_complete",d.path("research_complete").asBoolean(),"coverage",Checks.coverage(d.path("dataset")),"result_status",d.path("report").path("status"),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));}
+    ObjectNode summary(JsonNode d){return obj("day",text(d,"day"),"state",text(d,"state"),"updated_at",text(d,"updated_at"),"revision",d.path("revision"),"game_count",d.path("dataset").path("games").size(),"as_of",d.path("dataset").path("as_of"),"error",d.path("error"),"enrichment",d.path("enrichment"),"odds_import",d.path("odds_import"),"research_complete",d.path("research_complete").asBoolean(),"coverage",Checks.coverage(d.path("dataset")),"final_tips",Tips.view(d,Instant.now()),"result_status",d.path("report").path("status"),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));}
     void eveningTick(Instant now){
         String day=NhlOdds.day(now);ObjectNode existing=store.get("days/"+day+".json");
         if(existing==null){start(day);return;}
@@ -127,5 +127,19 @@ final class Workflow {
         return summary(saved);
     }
     ArrayNode archive(){ArrayNode a=arr();store.keys("days/").stream().filter(k->k.matches("days/\\d{4}-\\d{2}-\\d{2}\\.json")).sorted(Comparator.reverseOrder()).limit(120).forEach(k->{ObjectNode d=store.get(k);if(d!=null)a.add(summary(d));});return a;}
+    ObjectNode candidates(String day,String gameId){return Tips.candidates(require(day),gameId,Instant.now());}
+    ObjectNode postTips(String day,JsonNode args){
+        Tips.validateInput(args);
+        return store.locked("day/"+Schedule.day(day),()->{
+            ObjectNode d=require(day);Instant now=Instant.now();String signature=Tips.requestSignature(args);
+            if(text(d,"final_tips.request_signature").equals(signature)&&text(d,"final_tips.analysis_id").equals(Tips.analysisId(d,now))
+                &&text(Tips.view(d,now),"state").equals("PUBLISHED"))return summary(d);
+            if(d.path("revision").asInt()!=args.path("revision").asInt())throw new BusyException();
+            ObjectNode tips=Tips.prepare(d,args,now);tips.put("request_signature",signature);
+            store.put("history/tips/"+day+"/"+d.path("revision").asInt()+".json",d.path("final_tips").isObject()?(ObjectNode)d.path("final_tips"):obj());
+            d.set("final_tips",tips);d.put("revision",d.path("revision").asInt()+1);d.put("updated_at",now.toString());
+            store.put("days/"+day+".json",d);return summary(d);
+        });
+    }
     static void refreshStarted(ObjectNode dataset){Instant now=Instant.now();dataset.put("as_of",now.toString());for(JsonNode g:dataset.path("games"))if(text(g,"status").equals("scheduled")&&!Checks.time(text(g,"starts_at")).isAfter(now)){((ObjectNode)g).put("status","live");((ObjectNode)g).set("markets",arr());}}
 }

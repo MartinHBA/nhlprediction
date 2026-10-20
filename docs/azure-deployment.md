@@ -174,6 +174,10 @@ neregistroval. Verejný HTTP endpoint na administrátorský import nevzniká.
   dňa nemožno prepísať cez `save_game`. Nové dôkazy nesmú meniť existujúce ID.
 - `finalize_day` odmietne neúplný checklist a odovzdá výpočet fronte `predictions`.
   Queue-trigger vykoná simulácie. COMPLETE neznamená, že vznikol stávkový kandidát.
+- `get_candidates` sprístupní vypočítané alternatívy a research pre finálnu analýzu.
+  `post_tips` cez rovnaké OAuth uloží kompletné rozhodnutia ChatGPT. Web publikuje
+  tieto rozhodnutia až pri `final_tips.state=PUBLISHED`; zmenené podklady ich
+  označia NEEDS_REVIEW. Samotný timer výber ChatGPT neprepisuje.
 - Pri začatých zápasoch sa nevytvárajú nové predzápasové trhy. Poctivo nedostupné
   kritické vstupy vedú k INCOMPLETE / INSUFFICIENT_DATA, nie k vymysleným číslam.
 - Kontrola každých 15 minút označí otvorený beh bez aktualizácie dlhšej než 2 hodiny
