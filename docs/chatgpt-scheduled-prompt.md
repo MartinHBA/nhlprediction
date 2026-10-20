@@ -66,7 +66,7 @@ NHL Observatory cez start_day, save_game a finalize_day.
    označ live/final a odstráň ich predzápasové markets.
 
 7. Zavolaj check_day a oprav všetky validačné/evidence chyby a not_checked.
-   Potom zavolaj finalize_day so sims=100000. Dokonči research aj pri
+   Potom zavolaj finalize_day so sims=1000. Dokonči research aj pri
    odds_import=WAITING alebo PARTIAL; chýbajúce kurzy nevymýšľaj a nečakaj
    na ne celé hodiny. Azure ich od 18:00 každých 30 minút kontroluje a po ich
    príchode obnoví výpočet z uloženého dokončeného researchu.

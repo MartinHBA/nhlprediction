@@ -54,5 +54,9 @@ class EngineTest {
             assertEquals(price>1.35,issues.contains("ABOVE_PREFERRED_SINGLE_ODDS_CAP"));
         }
     }
+    @Test void largerLegacyRequestsAreLimitedTo1000SimulationsPerGame(){
+        var result=Engine.run(data,100000,42,false);
+        for(var game:result.path("games"))assertEquals(1000,game.path("simulations").asInt());
+    }
 }
 

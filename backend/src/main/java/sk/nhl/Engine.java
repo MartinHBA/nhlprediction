@@ -6,6 +6,7 @@ import java.util.*;
 import static sk.nhl.Json.*;
 
 final class Engine {
+    static final int SIMULATIONS=1000;
     record Scores(int[] rh,int[] ra,int[] fh,int[] fa) {}
     record Projection(double home,double away,ObjectNode details) {}
     static double round(double x,int digits) {double p=Math.pow(10,digits);return Math.round(x*p)/p;}
@@ -72,7 +73,7 @@ final class Engine {
             for(String group:List.of("prior","current","goalie","roster"))sources&=text(g,s+"."+group+".source.status").equals("verified");
         }
         double f=quantified?.12:.18;List<Scores> scenarios=new ArrayList<>();int index=1;
-        for(double[]factor:List.of(new double[]{1-f,1-f},new double[]{1+f,1+f},new double[]{1-f,1+f},new double[]{1+f,1-f}))scenarios.add(simulate(p.home*factor[0],p.away*factor[1],Math.max(10000,n/3),seed+index++));
+        for(double[]factor:List.of(new double[]{1-f,1-f},new double[]{1+f,1+f},new double[]{1-f,1+f},new double[]{1+f,1-f}))scenarios.add(simulate(p.home*factor[0],p.away*factor[1],SIMULATIONS,seed+index++));
         ArrayNode markets=arr();
         for(JsonNode m:g.path("markets")){
             double[]prob=settle(m,sim);double value=ev(prob,number(m,"odds")),min=value,max=value;
@@ -116,6 +117,7 @@ final class Engine {
     }
     static ObjectNode run(JsonNode d,int n,long seed,boolean research){
         if(n<1000||n>250000)throw new IllegalArgumentException("sims must be 1000..250000");
+        n=SIMULATIONS; // Accept legacy requests but enforce the user's fixed production budget.
         var errors=Checks.validate(d);if(!errors.isEmpty())return obj("status","INVALID_INPUT","errors",errors,"games",arr(),"ticket",null);
         ObjectNode checks=Checks.audit(d);ArrayNode results=arr();int i=0,confirmed=0,unconfirmed=0,marketCount=0,eligible=0,blocked=0;boolean missing=false;
         for(JsonNode g:d.path("games")){
@@ -136,6 +138,6 @@ final class Engine {
         }
         boolean complete=checks.path("complete").asBoolean();ObjectNode combo=complete?combo(results):obj("legs",arr(),"odds",null,"conservative_joint_ev",null);
         String status=!complete?"CHECKLIST_INCOMPLETE":missing?"INSUFFICIENT_DATA":d.path("synthetic_data").asBoolean()?"SYNTHETIC_DEMO_ONLY":!combo.path("legs").isEmpty()?"CANDIDATE_REVIEW_REQUIRED":"NO_BET";
-        return obj("engine_version","2.1.1-java","as_of",text(d,"as_of"),"status",status,"model_note","Heuristic uncalibrated baseline; probabilities are provisional estimates.","checklist",checks,"audit",obj("scheduled_game_count",d.path("expected_game_ids").size(),"processed_game_count",results.size(),"confirmed_goalie_count",confirmed,"unconfirmed_goalie_count",unconfirmed,"market_count",marketCount,"research_eligible_market_count",eligible,"blocked_team_over_2_5",blocked),"games",results,"ticket",status.equals("CANDIDATE_REVIEW_REQUIRED")?combo:null,"candidate_preview_not_validated",research?combo:null);
+        return obj("engine_version","2.1.2-java","as_of",text(d,"as_of"),"status",status,"model_note","Heuristic uncalibrated baseline; probabilities are provisional estimates.","checklist",checks,"audit",obj("scheduled_game_count",d.path("expected_game_ids").size(),"processed_game_count",results.size(),"confirmed_goalie_count",confirmed,"unconfirmed_goalie_count",unconfirmed,"market_count",marketCount,"research_eligible_market_count",eligible,"blocked_team_over_2_5",blocked),"games",results,"ticket",status.equals("CANDIDATE_REVIEW_REQUIRED")?combo:null,"candidate_preview_not_validated",research?combo:null);
     }
 }

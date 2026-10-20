@@ -92,8 +92,8 @@ final class Workflow {
             refreshStarted((ObjectNode)d.path("dataset"));
             List<String>errors=Checks.validate(d.path("dataset"));if(!errors.isEmpty())return obj("status","INVALID_INPUT","errors",errors);
             if(!Checks.audit(d.path("dataset")).path("complete").asBoolean())return obj("status","CHECKLIST_INCOMPLETE","checklist",Checks.audit(d.path("dataset")));
-            String job=UUID.randomUUID().toString();d.put("research_complete",true);d.put("last_sims",sims);d.put("state","QUEUED");d.put("job_id",job);d.put("updated_at",Instant.now().toString());d.putNull("error");store.put("days/"+day+".json",d);
-            try{queue.accept(obj("day",day,"job_id",job,"sims",sims));}catch(RuntimeException e){d.put("state","ERROR");d.put("error","Could not enqueue calculation; retry finalize_day.");store.put("days/"+day+".json",d);throw e;}
+            String job=UUID.randomUUID().toString();d.put("research_complete",true);d.put("last_sims",Engine.SIMULATIONS);d.put("state","QUEUED");d.put("job_id",job);d.put("updated_at",Instant.now().toString());d.putNull("error");store.put("days/"+day+".json",d);
+            try{queue.accept(obj("day",day,"job_id",job,"sims",Engine.SIMULATIONS));}catch(RuntimeException e){d.put("state","ERROR");d.put("error","Could not enqueue calculation; retry finalize_day.");store.put("days/"+day+".json",d);throw e;}
             return summary(d);
         });
     }
@@ -102,7 +102,7 @@ final class Workflow {
         String day=text(job,"day");ObjectNode d=store.locked("day/"+Schedule.day(day),()->{ObjectNode x=require(day);if(!text(x,"job_id").equals(text(job,"job_id"))||text(x,"state").equals("COMPLETE")||text(x,"state").equals("INCOMPLETE"))return null;x.put("state","RUNNING");x.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",x);return x;});
         if(d==null)return;
         try{
-            ObjectNode report=Engine.run(d.path("dataset"),job.path("sims").asInt(10000),1707,false);
+            ObjectNode report=Engine.run(d.path("dataset"),Engine.SIMULATIONS,1707,false);
             store.locked("day/"+day,()->{ObjectNode current=require(day);if(!text(current,"job_id").equals(text(job,"job_id")))return null;current.set("report",report);current.put("state",List.of("INVALID_INPUT","CHECKLIST_INCOMPLETE","INSUFFICIENT_DATA").contains(text(report,"status"))?"INCOMPLETE":"COMPLETE");current.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",current);return null;});
         }catch(RuntimeException e){store.locked("day/"+day,()->{ObjectNode current=require(day);if(text(current,"job_id").equals(text(job,"job_id"))){current.put("state","ERROR");current.put("error","Calculation failed. Retry finalize_day.");current.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",current);}return null;});throw e;}
     }
@@ -123,7 +123,7 @@ final class Workflow {
         ObjectNode saved=store.locked("day/"+day,()->{ObjectNode latest=require(day);if(latest.path("revision").asInt()!=before.path("revision").asInt()||!text(latest,"state").equals(text(before,"state")))return null;
             store.put("history/"+day+"/"+latest.path("revision").asInt()+".json",latest);latest.set("dataset",data);latest.set("odds_import",imported.path("odds_import"));latest.put("revision",latest.path("revision").asInt()+1);latest.put("updated_at",Instant.now().toString());latest.put("state","COLLECTING");latest.putNull("report");store.put("days/"+day+".json",latest);return latest;});
         if(saved==null)return summary(require(day));
-        if(resume&&Checks.audit(data).path("complete").asBoolean())return finish(day,before.path("last_sims").asInt(100000));
+        if(resume&&Checks.audit(data).path("complete").asBoolean())return finish(day,Engine.SIMULATIONS);
         return summary(saved);
     }
     ArrayNode archive(){ArrayNode a=arr();store.keys("days/").stream().filter(k->k.matches("days/\\d{4}-\\d{2}-\\d{2}\\.json")).sorted(Comparator.reverseOrder()).limit(120).forEach(k->{ObjectNode d=store.get(k);if(d!=null)a.add(summary(d));});return a;}

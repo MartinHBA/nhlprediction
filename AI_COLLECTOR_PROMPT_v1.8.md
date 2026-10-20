@@ -40,7 +40,7 @@ Ak sa objaví `not_checked`, najprv daný parameter vyhľadaj. Ak bol poctivo h�
 
 ## Formát výsledku
 
-Po uložení všetkých zápasov a úspešnom `check_day` zavolaj `finalize_day` so `sims=100000`. Cez `get_results` s niekoľkosekundovými odstupmi počkaj na `COMPLETE`, `INCOMPLETE`, `ERROR` alebo `NO_GAMES`; samotné `QUEUED` nestačí.
+Po uložení všetkých zápasov a úspešnom `check_day` zavolaj `finalize_day` so `sims=1000`. Cez `get_results` s niekoľkosekundovými odstupmi počkaj na `COMPLETE`, `INCOMPLETE`, `ERROR` alebo `NO_GAMES`; samotné `QUEUED` nestačí.
 
 Uveď stručnú správu o kontrole: NHL dátum, počet zápasov, počet nájdených/nedostupných/nepreverených polí, počty overených brankárov, dostupnosť aktuálnych kurzov, výsledný stav a `web_url`. Pri čakaní na kurzy dokonči zostávajúci research podľa aktuálnych MCP pokynov. Azure môže po doplnení kurzov zopakovať Java výpočet.
 

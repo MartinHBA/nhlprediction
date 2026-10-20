@@ -198,6 +198,9 @@ Zachované sú kontroly aktuálnosti, pravidiel vyhodnotenia aj výber najviac
 jedného trhu na zápas. **Tímový over 2,5 je pozastavený.**
 
 Model je heuristický a historicky nekalibrovaný. Predikcia nie je dôkaz úspešnosti.
+Produkčný výpočet používa **1 000 simulácií na zápas** a 1 000 pre každý
+citlivostný scenár. Rovnaký limit platí pre MCP aj automatické obnovenie po
+importe kurzov. Staršie požiadavky so `sims=100000` sa prijmú, ale znížia na 1 000.
 `NO_BET` je normálny výsledok. Výpočty nezačínajú vymýšľať údaje, keď zdroj chýba.
 Java beh je s rovnakým seedom reprodukovateľný. Projekcie a checklist sa
 overujú aj voči uloženým referenčným výsledkom.
