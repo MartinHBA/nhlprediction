@@ -104,8 +104,20 @@ test('hides any saved selection outside the inclusive 1.20 to 1.35 price band',a
 });
 
 test('all NO_BET decisions still finish AI analysis successfully',async()=>{
- const f=fixture();publish(f,0,null,{decision:'NO_BET'});f.final_tips.tip_count=0;f.final_tips.no_bet_count=3;
- const d=await boot(f);try{assert.match(d.window.document.getElementById('status-title').textContent,/Analýza uložená/);assert.equal(d.window.document.querySelectorAll('.recommendation h3').length,0);assert.match(d.window.document.getElementById('status-detail').textContent,/Bez tipu: 3/);}finally{d.window.close();}
+ const reason='Brankár nie je potvrdený. Zostava je neúplná.';
+ const f=fixture();publish(f,0,null,{decision:'NO_BET',rationale:'**NO_BET**: '+reason,comparison:reason+' Handicap nemá dostatočnú oporu.',risks:['Brankár nie je potvrdený.','Neskoré zmeny zostavy môžu ovplyvniť zápas.']});f.final_tips.tip_count=0;f.final_tips.no_bet_count=3;
+ const d=await boot(f);try{
+  const doc=d.window.document,tip=doc.querySelector('.recommendation');
+  assert.match(doc.getElementById('status-title').textContent,/Analýza uložená/);assert.equal(doc.querySelectorAll('.recommendation h3').length,0);assert.match(doc.getElementById('status-detail').textContent,/Bez tipu: 3/);
+  assert.equal(tip.querySelector(':scope > .subtle').textContent,reason);
+  expand(tip);const detail=tip.querySelector('.tip-analysis');
+  assert.doesNotMatch(detail.textContent,/Brankár nie je potvrdený|Zostava je neúplná|NO_BET/);
+  assert.match(detail.textContent,/Handicap nemá dostatočnú oporu/);assert.match(detail.textContent,/Neskoré zmeny zostavy/);
+  assert.equal(doc.querySelectorAll('.recommendation')[1].querySelector('.tip-analysis'),null);
+  assert.equal(f.final_tips.games[0].rationale,'**NO_BET**: '+reason);
+  assert.equal(doc.querySelector('.brand-logo').getAttribute('src'),'assets/brand/nhl-analyzer-online.png');
+  assert.ok(fs.existsSync(path.join(__dirname,doc.querySelector('.brand-logo').getAttribute('src'))));
+ }finally{d.window.close();}
 });
 test('does not reuse another day when selected date is absent',async()=>{const d=await boot({},404);try{assert.match(d.window.document.getElementById('status-title').textContent,/nebol spracovaný/);assert.equal(d.window.document.querySelectorAll('.game-card').length,0);}finally{d.window.close();}});
 test('clears results and exposes backend failure',async()=>{const d=await boot({},503);try{assert.match(d.window.document.getElementById('status-title').textContent,/nepodarilo/);assert.equal(d.window.document.getElementById('metric-reviewed').textContent,'—');}finally{d.window.close();}});

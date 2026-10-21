@@ -178,6 +178,15 @@ function render(data){const coverage=data.coverage,stale=Date.now()-Date.parse(d
  while($('games').children.length>cards.length)$('games').lastElementChild.remove();
 
 }
+function noBetCopy(value){return String(value??'').replace(/^\s*[*`]*NO[_\s-]*BET\b[*`]*\s*(?:[:;,.–—-]\s*)?/iu,'').trim();}
+function detailCopy(final){
+ const noBet=final.decision==='NO_BET',clean=value=>noBet?noBetCopy(value):String(value??'').trim();
+ const split=value=>clean(value).split(/(?<=[.!?])\s+|\n+/u).map(s=>s.trim()).filter(Boolean);
+ const key=value=>value.normalize('NFKC').toLocaleLowerCase('sk').replace(/\s+/gu,' ').replace(/[.!?]+$/u,'').trim();
+ const seen=new Set(noBet?split(final.rationale).map(key):[]);
+ const fresh=value=>split(value).filter(sentence=>{const k=key(sentence);if(seen.has(k))return false;seen.add(k);return true;}).join(' ');
+ return {paragraphs:[noBet?'':fresh(final.rationale),fresh(final.comparison)].filter(Boolean),risks:(final.risks||[]).map(fresh).filter(Boolean)};
+}
 function recommendationBlock(final,game,data){
  const box=el('div','recommendation');
  if(!final){box.append(el('p','subtle','Čaká na finálny výber.'));return box;}
@@ -185,7 +194,7 @@ function recommendationBlock(final,game,data){
  const outcome=final.settlement?.state,labels={WIN:'SPRÁVNY TIP',LOSS:'NESPRÁVNY TIP',PUSH:'NA HRANICI · PUSH',UNAVAILABLE:'VÝSLEDOK SA NEDÁ URČIŤ'};
  if(final.decision==='TIP'&&labels[outcome]){box.classList.add('outcome-'+outcome.toLowerCase());box.append(el('p','settlement '+outcome.toLowerCase(),labels[outcome]));}
  if(needsReview){box.classList.add('needs-review');box.append(el('p','caution','Podklady sa zmenili – výber vyžaduje nové overenie.'));}
- if(final.decision==='NO_BET'){box.append(el('p','eyebrow',needsReview?'BEZ TIPU / NA NOVÉ OVERENIE':'BEZ TIPU'),el('p','subtle',final.rationale));}
+ if(final.decision==='NO_BET'){box.append(el('p','eyebrow',needsReview?'BEZ TIPU / NA NOVÉ OVERENIE':'BEZ TIPU'));const text=noBetCopy(final.rationale);if(text)box.append(el('p','subtle',text));}
  else{
   const m=currentRecommendation({recommendation:final.candidate});
   if(!m){box.append(el('p','subtle','Bez aktuálneho výberu v pásme 1,20–1,35.'));return box;}
@@ -200,10 +209,12 @@ function recommendationBlock(final,game,data){
   confidence.title='Kvalita analytických podkladov a záveru, nie vypočítaná pravdepodobnosť alebo garantovaná úspešnosť.';
   facts.append(odds,confidence);box.append(facts);
  }
- const analysis=data.details_loaded===false?pendingDetails('Zdôvodnenie','tip-analysis','tip-analysis',data):disclosure('Zdôvodnenie','tip-analysis','tip-analysis',section=>{
-  section.append(el('p','subtle',final.rationale),el('p','subtle',final.comparison));
-  if(final.risks?.length){const risks=el('ul','issue-list');final.risks.forEach(risk=>risks.append(el('li','',risk)));section.append(risks);}
- });box.append(analysis);return box;
+ const copy=detailCopy(final);
+ if(data.details_loaded===false)box.append(pendingDetails('Zdôvodnenie','tip-analysis','tip-analysis',data));
+ else if(copy.paragraphs.length||copy.risks.length)box.append(disclosure('Zdôvodnenie','tip-analysis','tip-analysis',section=>{
+  copy.paragraphs.forEach(text=>section.append(el('p','subtle',text)));
+  if(copy.risks.length){const risks=el('ul','issue-list');copy.risks.forEach(risk=>risks.append(el('li','',risk)));section.append(risks);}
+ }));return box;
 }
 function card(game,data){
  const article=el('article','game-card'),head=el('div','game-head');article.dataset.gameId=String(game.game_id);head.append(el('span','',timeLabel(game.starts_at)+' · SEČ/SELČ'));

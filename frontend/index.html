@@ -6,12 +6,13 @@
   <link rel="canonical" href="https://www.nhlanalyzer.online/">
   <meta name="color-scheme" content="dark">
   <title>NHL Analyzer Online — Denné predikcie</title>
-  <link rel="stylesheet" href="styles.css?v=3.3.0">
-  <script src="config.js" defer></script><script src="app.js?v=3.3.0" defer></script>
+  <link rel="icon" type="image/png" href="assets/brand/nhl-analyzer-online.png">
+  <link rel="stylesheet" href="styles.css?v=3.3.1">
+  <script src="config.js" defer></script><script src="app.js?v=3.3.1" defer></script>
 </head>
 <body>
   <div class="app-shell">
-    <header class="topbar"><a class="brand" href="./" aria-label="NHL Analyzer Online domov"><span class="brand-mark">N<span>↗</span></span><span>NHL <strong>ANALYZER</strong><small>ONLINE</small></span></a><span class="top-label"><i></i> DÁTA PRED ZÁPASOM</span></header>
+    <header class="topbar"><a class="brand" href="./" aria-label="NHL Analyzer Online domov"><img class="brand-logo" src="assets/brand/nhl-analyzer-online.png" width="72" height="72" alt="" decoding="async"><span>NHL <strong>ANALYZER</strong><small>ONLINE</small></span></a><span class="top-label"><i></i> DÁTA PRED ZÁPASOM</span></header>
     <main>
       <section class="intro"><div><p class="eyebrow">DENNÝ PREHĽAD / NHL</p><h1>Večer začína<br><span>dobrými dátami.</span></h1><p class="lede">Program, analytické dáta a tipy na zápasy.<br>Všetky zápasy. Každý zdroj. Na jednom mieste.</p></div><div class="date-panel"><label for="day">HRACÍ DEŇ NHL</label><div class="date-controls"><button id="prev" class="icon-button" aria-label="Predchádzajúci deň">←</button><input type="date" id="day" aria-label="Hrací deň NHL"><button id="next" class="icon-button" aria-label="Nasledujúci deň">→</button></div><p>Dátum podľa kalendára NHL · New York</p><button id="refresh" class="refresh-button">↻ Obnoviť údaje</button></div></section>
       <section id="status" class="status-banner" role="status" aria-live="polite"><span class="status-dot"></span><div><strong id="status-title">Načítavam prehľad</strong><p id="status-detail">Pripájam sa k dennej analýze.</p></div><span id="status-time"></span></section>
