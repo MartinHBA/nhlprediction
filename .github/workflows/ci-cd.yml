@@ -18,8 +18,8 @@ env:
   AZURE_RESOURCE_GROUP: nhlprediction
   AZURE_FUNCTION_APP: nhlpredict-txocp2arkmldw
   AZURE_FUNCTION_URL: https://nhlpredict-txocp2arkmldw.azurewebsites.net
-  AZURE_STORAGE_ACCOUNT: nhlpredicttxocp2arkmldw
-  AZURE_WEBSITE_URL: https://nhlpredicttxocp2arkmldw.z6.web.core.windows.net
+  AZURE_STATIC_WEB_APP: nhl-analyzer-online
+  AZURE_WEBSITE_URL: https://www.nhlanalyzer.online
   # Public deployment identifiers; authentication uses short-lived GitHub OIDC tokens.
   AZURE_CLIENT_ID: ddc6d4d2-c777-4da8-8bcd-59f3ce8860f7
   AZURE_TENANT_ID: fe33f81a-58ed-4a30-9541-906c437a9708
@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/website"
-          cp frontend/index.html frontend/app.js frontend/styles.css "$RUNNER_TEMP/website/"
+          cp frontend/index.html frontend/app.js frontend/styles.css frontend/staticwebapp.config.json "$RUNNER_TEMP/website/"
           cp -R frontend/assets "$RUNNER_TEMP/website/assets"
           printf 'window.NHL_CONFIG = { apiBase: "%s" };\n' "$AZURE_FUNCTION_URL" > "$RUNNER_TEMP/website/config.js"
           printf '{"commit":"%s","run_id":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > "$RUNNER_TEMP/website/release.json"
@@ -131,25 +131,41 @@ jobs:
           done
           echo 'Backend health check failed.' >&2
           exit 1
-      - name: Publish static website
+      - name: Read Static Web Apps deployment credentials
+        id: static-site
         shell: bash
         run: |
-          az storage blob upload-batch \
-            --account-name "$AZURE_STORAGE_ACCOUNT" --auth-mode login \
-            --destination '$web' --source deployment/website \
-            --overwrite true --content-cache-control no-cache \
-            --no-progress --only-show-errors --output none
+          token=$(az staticwebapp secrets list --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_STATIC_WEB_APP" --query properties.apiKey --output tsv --only-show-errors)
+          test -n "$token"
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+          hostname=$(az staticwebapp show --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_STATIC_WEB_APP" --query defaultHostname --output tsv --only-show-errors)
+          echo "website_url=https://$hostname" >> "$GITHUB_OUTPUT"
+      - name: Publish Azure Static Web App
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.static-site.outputs.token }}
+          action: upload
+          app_location: deployment/website
+          api_location: ''
+          output_location: ''
+          skip_app_build: true
+          skip_api_build: true
+          production_branch: main
       - name: Verify published website
         shell: bash
+        env:
+          DEPLOYED_WEBSITE_URL: ${{ steps.static-site.outputs.website_url }}
         run: |
           curl --fail --silent --show-error --retry 5 --retry-delay 5 --max-time 30 \
-            "$AZURE_WEBSITE_URL/release.json?commit=$GITHUB_SHA" -o release.json
+            "$DEPLOYED_WEBSITE_URL/release.json?commit=$GITHUB_SHA" -o release.json
           node -e 'const r=require("./release.json");if(r.commit!==process.env.GITHUB_SHA)throw new Error("Published website does not match this commit")'
-          curl --fail --silent --show-error --max-time 30 "$AZURE_WEBSITE_URL/" -o live-index.html
+          curl --fail --silent --show-error --max-time 30 "$DEPLOYED_WEBSITE_URL/" -o live-index.html
           cmp deployment/website/index.html live-index.html
           {
             echo '### Azure deployment completed'
             echo "Commit: $GITHUB_SHA"
             echo "Website: $AZURE_WEBSITE_URL"
+            echo "Azure hostname: $DEPLOYED_WEBSITE_URL"
             echo "Backend: $AZURE_FUNCTION_URL/health"
           } >> "$GITHUB_STEP_SUMMARY"

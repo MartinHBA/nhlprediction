@@ -1,7 +1,9 @@
-# Windows — NHL Observatory
+# Windows — NHL Analyzer Online
 
 Web je už v Azure:
-https://nhlpredicttxocp2arkmldw.z6.web.core.windows.net
+https://www.nhlanalyzer.online
+
+Azure adresa: https://orange-mud-0c78ff503.1.azurestaticapps.net
 
 Výsledky otvoríš priamo v prehliadači.
 
@@ -15,7 +17,8 @@ Výsledky otvoríš priamo v prehliadači.
    [pripraveného zadania](docs/chatgpt-scheduled-prompt.md).
 
 Na účet ChatGPT sa už nevkladá `games.json` ručne. MCP ukladá dáta po zápasoch
-a Java backend počíta výsledky. Dostupnosť pluginov, webového researchu a
+a backend pripravuje dáta a vyhodnocuje uložené tipy podľa výsledkov zápasov.
+Dostupnosť pluginov, webového researchu a
 bezobslužných zápisov treba overiť v konkrétnom účte.
 
 ## Zmena a opakované nasadenie
@@ -24,7 +27,7 @@ Commit a push do `main` spustí GitHub workflow **CI/CD**: Java a frontend testy
 zostavenie balíkov, nasadenie do Azure a overenie backendu aj webu. Pri zlyhaní
 testov sa deploy nespustí. Pull requesty iba testujú.
 
-Na ručné nasadenie mimo pipeline potrebuješ Azure CLI, Java 21 a Maven:
+Na ručné nasadenie mimo pipeline potrebuješ Azure CLI, Java 21, Maven a Node 22:
 
 ```powershell
 cd C:\git\nhlprediction

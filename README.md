@@ -1,11 +1,15 @@
-# NHL Observatory — Azure dáta + predikčná analýza GPT
+# NHL Analyzer Online
 
 Azure Java backend pripravuje analytické dáta a kurzy. ChatGPT cez MCP doplní
 research, porovná možnosti podľa stratégie a uloží vlastný finálny výber.
 **Backend nemá predikčný model, simulácie, očakávané skóre, pravdepodobnosti,
 EV ani automatický výber tipov. Nevolá platené LLM API.**
 
-**Web:** https://nhlpredicttxocp2arkmldw.z6.web.core.windows.net
+**Web:** https://www.nhlanalyzer.online
+
+**Azure Static Web Apps / Free:** https://orange-mud-0c78ff503.1.azurestaticapps.net
+Frontend je resource `nhl-analyzer-online`; Java Functions sú samostatné API.
+Doména webu používa DNS CNAME a spravovaný HTTPS certifikát.
 
 **MCP:** https://nhlpredict-txocp2arkmldw.azurewebsites.net/mcp
 

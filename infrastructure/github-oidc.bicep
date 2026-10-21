@@ -7,21 +7,10 @@ param repositoryOwnerId string = '49184077'
 param repositoryId string = '1426535972'
 param branch string = 'main'
 param functionAppName string = 'nhlpredict-txocp2arkmldw'
-param storageAccountName string = 'nhlpredicttxocp2arkmldw'
+param staticAppName string = 'nhl-analyzer-online'
 
 resource app 'Microsoft.Web/sites@2023-12-01' existing = {
   name: functionAppName
-}
-resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
-  name: storageAccountName
-}
-resource blobs 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' existing = {
-  parent: storage
-  name: 'default'
-}
-resource website 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' existing = {
-  parent: blobs
-  name: '$web'
 }
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -49,18 +38,18 @@ resource deployFunctions 'Microsoft.Authorization/roleAssignments@2022-04-01' = 
     principalType: 'ServicePrincipal'
   }
 }
-var blobContributor = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
-resource publishWebsite 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(website.id, identity.id, blobContributor)
-  scope: website
-  properties: {
-    roleDefinitionId: blobContributor
-    principalId: identity.properties.principalId
-    principalType: 'ServicePrincipal'
+module website 'static-web.bicep' = {
+  name: 'nhl-static-web'
+  params: {
+    staticAppName: staticAppName
+    location: location
+    deploymentIdentityName: identityName
   }
+  dependsOn: [identity]
 }
 
 output clientId string = identity.properties.clientId
 output tenantId string = subscription().tenantId
 output subscriptionId string = subscription().subscriptionId
 output identityResourceId string = identity.id
+output websiteUrl string = website.outputs.websiteUrl

@@ -8,6 +8,8 @@ if ($existing -ne 'Succeeded') {
     & az deployment group create --resource-group $ResourceGroup --name nhl-infrastructure --template-file infrastructure/main.bicep --parameters "location=$Location" --output none
     if ($LASTEXITCODE -ne 0) { throw 'Infrastructure deployment failed' }
 }
+& az deployment group create --resource-group $ResourceGroup --name nhl-static-web --template-file infrastructure/static-web.bicep --parameters "location=$Location" --output none
+if ($LASTEXITCODE -ne 0) { throw 'Static Web App provisioning failed' }
 $app=& az deployment group show --resource-group $ResourceGroup --name nhl-infrastructure --query properties.outputs.functionAppName.value -o tsv
 if ($LASTEXITCODE -ne 0) { throw 'Cannot read Function App name' }
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/package-backend.ps1 -FunctionAppName $app

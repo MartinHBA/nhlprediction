@@ -2,15 +2,16 @@
 <html lang="sk">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Denný NHL research a finálne analytické výbery.">
+  <meta name="description" content="NHL Analyzer Online – denný NHL research a finálne analytické výbery.">
+  <link rel="canonical" href="https://www.nhlanalyzer.online/">
   <meta name="color-scheme" content="dark">
-  <title>NHL Observatory — Denné predikcie</title>
-  <link rel="stylesheet" href="styles.css?v=3.2.0">
-  <script src="config.js" defer></script><script src="app.js?v=3.2.0" defer></script>
+  <title>NHL Analyzer Online — Denné predikcie</title>
+  <link rel="stylesheet" href="styles.css?v=3.3.0">
+  <script src="config.js" defer></script><script src="app.js?v=3.3.0" defer></script>
 </head>
 <body>
   <div class="app-shell">
-    <header class="topbar"><a class="brand" href="./" aria-label="NHL Observatory domov"><span class="brand-mark">N<span>↗</span></span><span>NHL <strong>OBSERVATORY</strong><small>RESEARCH & ANALÝZA</small></span></a><span class="top-label"><i></i> DÁTA PRED ZÁPASOM</span></header>
+    <header class="topbar"><a class="brand" href="./" aria-label="NHL Analyzer Online domov"><span class="brand-mark">N<span>↗</span></span><span>NHL <strong>ANALYZER</strong><small>ONLINE</small></span></a><span class="top-label"><i></i> DÁTA PRED ZÁPASOM</span></header>
     <main>
       <section class="intro"><div><p class="eyebrow">DENNÝ PREHĽAD / NHL</p><h1>Večer začína<br><span>dobrými dátami.</span></h1><p class="lede">Program, analytické dáta a tipy na zápasy.<br>Všetky zápasy. Každý zdroj. Na jednom mieste.</p></div><div class="date-panel"><label for="day">HRACÍ DEŇ NHL</label><div class="date-controls"><button id="prev" class="icon-button" aria-label="Predchádzajúci deň">←</button><input type="date" id="day" aria-label="Hrací deň NHL"><button id="next" class="icon-button" aria-label="Nasledujúci deň">→</button></div><p>Dátum podľa kalendára NHL · New York</p><button id="refresh" class="refresh-button">↻ Obnoviť údaje</button></div></section>
       <section id="status" class="status-banner" role="status" aria-live="polite"><span class="status-dot"></span><div><strong id="status-title">Načítavam prehľad</strong><p id="status-detail">Pripájam sa k dennej analýze.</p></div><span id="status-time"></span></section>
@@ -20,7 +21,7 @@
       <section id="coverage" class="coverage-panel" aria-label="Dostupnosť dát" hidden><p id="coverage-detail"></p><details id="import-warnings" hidden><summary>Upozornenia zo zdrojov</summary><ul id="import-warning-list"></ul></details></section>
       <section class="bottom-grid"><div class="archive-section"><div class="section-heading"><h2>Archív dní</h2><span class="eyebrow">HISTÓRIA</span></div><div id="archive" class="archive-list"><p class="subtle">Načítavam…</p></div></div><aside class="method"><p class="eyebrow">AKO ČÍTAŤ VÝSLEDKY</p><h2>Dáta majú zdroje.<br>Tipy majú dôvody.</h2><p>Štatistiky, research a kurzy tvoria podklady pre finálny výber so zdôvodnením a confidence. Confidence vyjadruje kvalitu podkladov, nie garantovanú úspešnosť.</p><p>„Bez tipu“ je platný výsledok. Odhadovaný kurz nie je overená ponuka. Nepotvrdené zostavy, staré kurzy a neúplné kontroly ostávajú viditeľné.</p><span class="method-rule">Tímový over 2,5 gólu je pozastavený.</span></aside></section>
     </main>
-    <footer><span>NHL OBSERVATORY <span class="footer-slash">/</span> vlastný analytický prehľad<br>Štatistiky xG a GSAx: <a href="https://moneypuck.com/data.htm" target="_blank" rel="noopener noreferrer">MoneyPuck.com</a> · Program a štarty: NHL</span><span>Časy zápasov: <strong>Europe/Bratislava</strong></span></footer>
+    <footer><span>NHL ANALYZER ONLINE <span class="footer-slash">/</span> vlastný analytický prehľad<br>Štatistiky xG a GSAx: <a href="https://moneypuck.com/data.htm" target="_blank" rel="noopener noreferrer">MoneyPuck.com</a> · Program a štarty: NHL</span><span>Časy zápasov: <strong>Europe/Bratislava</strong></span></footer>
   </div>
   <template id="empty-template"><div class="empty"><span class="empty-symbol">◎</span><h3 id="empty-title"></h3><p id="empty-detail"></p></div></template>
 </body>

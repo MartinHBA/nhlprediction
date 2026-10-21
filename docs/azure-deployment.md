@@ -9,7 +9,9 @@ Projekt `C:\git\ainoviny` slúžil iba ako čítaná referencia. Nebol upravovan
 | Function App / Java 21 | `nhlpredict-txocp2arkmldw` |
 | Windows Consumption plán | `nhlpredict-txocp2arkmldw-plan` |
 | Storage / Standard LRS | `nhlpredicttxocp2arkmldw` |
-| Web | https://nhlpredicttxocp2arkmldw.z6.web.core.windows.net |
+| Static Web App / Free | `nhl-analyzer-online` |
+| Web | https://www.nhlanalyzer.online |
+| Azure webová adresa | https://orange-mud-0c78ff503.1.azurestaticapps.net |
 | MCP | https://nhlpredict-txocp2arkmldw.azurewebsites.net/mcp |
 | Health | https://nhlpredict-txocp2arkmldw.azurewebsites.net/health |
 | Microsoft app registration | `NHL Prediction MCP` |
@@ -21,6 +23,10 @@ predplatného a jeho limitov. Azure účtuje bežnú spotrebu Functions, Storage
 Bezplatné limity závisia aj od ostatnej spotreby v subscription.
 
 ## Pripojenie do ChatGPT
+
+Frontend sa od 21. októbra 2026 nasadzuje do Azure Static Web Apps Free ako
+**NHL Analyzer Online**. MCP pripojenie má naďalej názov NHL Observatory;
+jeho adresa, OAuth registrácia a uložené dáta sa migráciou frontendu nemenia.
 
 1. Vo webovom ChatGPT otvor Plugins a **Add custom MCP server**. Ak túto voľbu
    tvoj účet nemá, treba najprv vyriešiť dostupnosť tejto funkcie v účte.
@@ -49,6 +55,24 @@ Oficiálne podklady: [vlastný MCP](https://developers.openai.com/api/docs/guide
 
 ## CI/CD z GitHubu
 
+### Vlastná doména
+
+DNS spravuje Spaceship. Existujúci CNAME `www` treba zmeniť na
+`orange-mud-0c78ff503.1.azurestaticapps.net`, bez protokolu a lomky.
+Host `www.nhlanalyzer.online` sa potom pripojí k `nhl-analyzer-online`:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/complete-domain.ps1
+```
+
+Skript overí CNAME, začne overovanie domény a po stave Ready nastaví backendový
+WEB_URL na vlastnú doménu. Spravovaný HTTPS certifikát vydá a obnovuje Azure.
+Kým DNS/certifikát nie sú pripravené, výsledky odkazujú na funkčnú Azure adresu.
+CORS povoľuje vlastnú doménu aj predvolenú Azure adresu. Doména bez www sa
+nepripája automaticky; registrátor ju môže presmerovať na www.
+
+### Pipeline
+
 Workflow `.github/workflows/ci-cd.yml` sa spúšťa pri pushi do `main`, pull requeste
 alebo manuálne cez Actions → CI/CD → Run workflow. Každý beh má dva build joby:
 Java 21 + Maven a Node 22 + frontend testy. Otestovaný Functions ZIP a statické
@@ -57,7 +81,8 @@ súbory vrátane všetkých log sa uchovajú ako artefakty sedem dní.
 Po úspechu oboch jobov sa z `main` automaticky vykoná deploy. Pull requesty
 deployment nespúšťajú. Behy rovnakej vetvy sú serializované, takže starší build
 nemôže prepísať novší deployment. Najprv sa nasadí Functions ZIP a overí `/health`,
-potom statický web a jeho `release.json` s presným SHA commitu. Výsledok aj odkazy
+potom frontend cez `Azure/static-web-apps-deploy@v1` do Static Web Apps a jeho
+`release.json` s presným SHA commitu. Výsledok aj odkazy
 sú v súhrne GitHub Actions. Workflow nevykonáva NHL research ani nemení uložené
 zápasy a neprenastavuje Microsoft OAuth tajomstvo či existujúce app settings.
 
@@ -70,7 +95,7 @@ a tieto Azure RBAC role:
 | Rola | Rozsah |
 | --- | --- |
 | Website Contributor | iba Function App `nhlpredict-txocp2arkmldw` |
-| Storage Blob Data Contributor | iba statický kontajner `$web` |
+| NHL Analyzer Static Website Deployment Token | iba Static Web App `nhl-analyzer-online`; read a listsecrets |
 
 Konfigurácia identity a rolí je v samostatnej šablóne
 `infrastructure/github-oidc.bicep`. Tá nemení nastavenia existujúcej aplikácie.
@@ -85,14 +110,17 @@ Po vytvorení inej identity aktualizuj `AZURE_CLIENT_ID` podľa výstupu šabló
 Nie sú to prihlasovacie tajomstvá. Publish profile, Azure client secret ani storage
 connection string sa do GitHubu neukladajú. Existujúce vlastníkovo Microsoft
 prihlásenie pre ChatGPT MCP zostáva samostatné.
+SWA deployment token sa načíta až po OIDC prihlásení, zamaskuje v logoch a odovzdá
+deploy akcii. Nie je uložený ako GitHub secret ani v repozitári. Šablóna
+`infrastructure/static-web.bicep` vytvára hosting a jeho úzko vymedzenú rolu.
 
 Podklady: [GitHub OIDC pre Azure](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-azure),
 [Azure Functions deployment](https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-github-actions).
 
 ## Ručný deployment cez Azure CLI
 
-Potrebné: Azure CLI s prihlásením, Java 21, Maven, PowerShell. Node nie je potrebný
-na zostavenie webu; frontend je obyčajné HTML/CSS/JS.
+Potrebné: Azure CLI s prihlásením, Java 21, Maven, PowerShell a Node 22.
+Frontend je obyčajné HTML/CSS/JS; Node spúšťa SWA CLI pri ručnom nasadení.
 
 ```powershell
 cd C:\git\nhlprediction
@@ -101,7 +129,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/deploy.ps1
 ```
 
 Skript zostaví a otestuje backend, zabalí ZIP bez local.settings.json, nasadí
-Functions a nahrá štyri statické súbory. Existujúca Microsoft registrácia a tajomstvo
+Functions a nahrá frontend cez SWA CLI 2.1.0. Existujúca Microsoft registrácia a tajomstvo
 sa zachovajú. Šablóna Bicep sa pri existujúcom úspešnom nasadení automaticky
 neprepisuje: ARM aktualizácia appSettings by mohla odstrániť následnú OAuth konfiguráciu.
 Pri vedomej zmene infraštruktúry spusti `az deployment group create` a následne
