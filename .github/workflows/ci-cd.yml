@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/website"
-          cp frontend/index.html frontend/app.js frontend/styles.css frontend/staticwebapp.config.json "$RUNNER_TEMP/website/"
+          cp frontend/index.html frontend/i18n.js frontend/app.js frontend/styles.css frontend/staticwebapp.config.json "$RUNNER_TEMP/website/"
           cp -R frontend/assets "$RUNNER_TEMP/website/assets"
           printf 'window.NHL_CONFIG = { apiBase: "%s" };\n' "$AZURE_FUNCTION_URL" > "$RUNNER_TEMP/website/config.js"
           printf '{"commit":"%s","run_id":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > "$RUNNER_TEMP/website/release.json"

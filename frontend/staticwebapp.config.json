@@ -2,6 +2,7 @@
   "routes": [
     { "route": "/assets/*", "headers": { "Cache-Control": "public, max-age=86400" } },
     { "route": "/app.js", "headers": { "Cache-Control": "no-cache" } },
+    { "route": "/i18n.js", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/styles.css", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/config.js", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/release.json", "headers": { "Cache-Control": "no-store" } },

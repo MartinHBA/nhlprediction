@@ -182,6 +182,15 @@ Aktuálna sezóna, Minulá sezóna**. Metriky sú vedľa seba za oba tímy;
 skratky tímov sú počas scrollovania v rozbalených štatistikách pripnuté.
 Zdrojové poznámky fungujú na hover/focus/tap; samostatný zoznam URL nie je v karte.
 
+Prepínač vpravo hore ponúka slovenčinu, angličtinu, češtinu, švédčinu, fínčinu
+a nemčinu s lokálnymi SVG vlajkami. Prekladá rozhranie, názvy a vysvetlivky
+metrík, stavy, trhy a dátumy; analytické zdôvodnenia, research a zdrojové
+poznámky zostávajú v pôvodnom znení. Voľba sa uloží v prehliadači a možno ju
+zdieľať cez `?lang=en` (tiež sk/cs/sv/fi/de). Predvolený jazyk je slovenčina.
+Prepnutie nespúšťa zber dát, ďalšie API volania ani nezatvára rozbalené sekcie.
+Časy zostávajú v Europe/Bratislava a porovnávané desatinné štatistiky zachovávajú
+bodku a tri desatinné miesta vo všetkých jazykoch.
+
 Staré publikácie bez uloženého datasetu možno obnoviť z history revízie,
 iba ak jej fingerprint presne sedí s analysis_id pri published_at. Nespárované
 aktuálne štatistiky sa nevydávajú za pôvodné. Owner utility RepairPublishedDay

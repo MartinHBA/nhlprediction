@@ -42,6 +42,25 @@
 .field-label{font-size:12px}
 .field-value{font-size:13px;margin:4px 0 0;white-space:pre-line;font-variant-numeric:tabular-nums}
 .field-value strong{font-weight:750}
+
+h1 .hero-lead{color:var(--text)}
+.intro>div:first-child{min-width:0;flex:1}
+.date-panel{flex-shrink:0}
+.top-controls{display:flex;align-items:center;gap:24px}
+.language-switcher{position:relative;flex-shrink:0;z-index:30}
+.language-toggle{display:flex;align-items:center;gap:9px;min-height:40px;padding:8px 12px;border:1px solid #3b5174;border-radius:8px;background:var(--panel);color:var(--text);font-size:12px;white-space:nowrap}
+.language-toggle:hover,.language-toggle[aria-expanded=true]{background:#20385e;border-color:var(--accent)}
+.language-flag{display:block;width:24px;height:16px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px #ffffff24;flex-shrink:0}
+.language-code{display:none}
+.language-arrow{font-size:16px;line-height:1;color:var(--accent)}
+.language-menu{position:absolute;top:calc(100% + 10px);right:0;width:200px;padding:6px;border:1px solid #3b5174;border-radius:10px;background:#16243b;box-shadow:0 14px 40px #0008}
+.language-menu button{display:flex;align-items:center;gap:11px;width:100%;padding:10px;border:0;border-radius:6px;background:transparent;color:var(--text);font-size:13px;text-align:left}
+.language-menu button:hover,.language-menu button:focus-visible{background:#263e62}
+.language-menu button[aria-pressed=true]{background:#20385e;color:var(--accent)}
+.language-check{margin-left:auto;visibility:hidden}
+.language-menu button[aria-pressed=true] .language-check{visibility:visible}
+@media(max-width:1000px){.top-controls{gap:12px}.top-controls .top-label{display:none}}
+@media(max-width:480px){.language-toggle{gap:7px;padding:8px 9px}.language-name{display:none}.language-code{display:inline}.intro h1{font-size:38px;overflow-wrap:break-word}}
 button.field-label{background:none;border:0;padding:0;color:inherit;text-align:center;line-height:inherit;cursor:help;text-decoration:underline dotted;text-underline-offset:4px}
 .field-tooltip{position:absolute;top:calc(100% - 3px);left:0;right:0;z-index:10;padding:11px 13px;border:1px solid #416394;border-radius:6px;background:#0c172a;box-shadow:0 8px 22px #0006;color:var(--text);font-size:11px;line-height:1.7;white-space:pre-line;max-height:min(280px,50vh);overflow:auto;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .12s,visibility .12s}
 .field-row.has-note:not(.note-dismissed):hover>.field-tooltip{visibility:visible;opacity:1;pointer-events:auto;transition-delay:.5s}

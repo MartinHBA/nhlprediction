@@ -52,7 +52,7 @@ try {
         "window.NHL_CONFIG = { apiBase: '$base' };" | Set-Content -LiteralPath frontend/config.js -Encoding utf8
         $publish=Join-Path (Get-Location) '.local/frontend-publish'
         New-Item -ItemType Directory -Force $publish | Out-Null
-        foreach ($asset in @('index.html','app.js','styles.css','config.js','staticwebapp.config.json')) { Copy-Item -LiteralPath "frontend/$asset" -Destination (Join-Path $publish $asset) -Force }
+        foreach ($asset in @('index.html','i18n.js','app.js','styles.css','config.js','staticwebapp.config.json')) { Copy-Item -LiteralPath "frontend/$asset" -Destination (Join-Path $publish $asset) -Force }
         Copy-Item -LiteralPath 'frontend/assets' -Destination $publish -Recurse -Force
         $env:SWA_CLI_DEPLOYMENT_TOKEN=Invoke-AzJson @('staticwebapp','secrets','list','--resource-group',$ResourceGroup,'--name',$StaticWebAppName,'--query','properties.apiKey')
         & npx --yes '@azure/static-web-apps-cli@2.1.0' deploy $publish --env production --app-name $StaticWebAppName --resource-group $ResourceGroup

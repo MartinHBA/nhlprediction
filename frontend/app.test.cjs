@@ -5,6 +5,7 @@ const path=require('node:path');
 const {JSDOM}=require('jsdom');
 const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');
 const script=fs.readFileSync(path.join(__dirname,'app.js'),'utf8');
+const translations=fs.readFileSync(path.join(__dirname,'i18n.js'),'utf8');
 function expand(root){for(const d of root.querySelectorAll('details')){d.prepare?.();d.open=true;}for(const d of root.querySelectorAll('details')){d.prepare?.();d.open=true;}}
 async function boot(dayResponse,status=200,setup=()=>{}){
   const dom=new JSDOM(html,{url:'https://nhl.example/?day=2026-10-20',runScripts:'outside-only'});
@@ -13,7 +14,7 @@ async function boot(dayResponse,status=200,setup=()=>{}){
   w.AbortSignal=AbortSignal;
   w.fetch=async url=>url.endsWith('/api/days')?{ok:true,json:async()=>({days:[]})}:{ok:status===200,status,json:async()=>structuredClone(dayResponse)};
   setup(w);
-  w.eval(script);
+  w.eval(translations);w.eval(script);
   await new Promise(resolve=>setTimeout(resolve,15));
   return dom;
 }
@@ -334,4 +335,86 @@ test('new GPT publication reloads statistics exactly once after live snapshot si
   const updated=structuredClone(data);updated.publication.published_at='2026-10-20T22:00:00Z';updated.games[0].home.goalie.name='New publication goalie';const requests=[];
   dom.window.fetch=async url=>{requests.push(url);return {ok:true,json:async()=>url.endsWith('/live')?{day:data.day,publication:updated.publication}:updated};};await next().run();assert.equal(requests.length,2);assert.match(requests[0],/\/live$/);expand(dom.window.document);assert.match(dom.window.document.querySelector('.game-card').textContent,/New publication goalie/);
  }finally{dom.window.close();}
+});
+
+test('six languages translate the interface and statistics without reloading data or changing analytical text',async()=>{
+ const f=fixture(),game=f.games[0],reason='Pôvodné zdôvodnenie analýzy zostáva presne zachované.';
+ game.analysis_context=[{topic:'Pôvodný research',summary:'Pôvodný text doplňujúceho researchu.'}];
+ game.away.context.rest_days=0;game.home.context.rest_days=2;
+ for(const side of ['away','home'])game.checks.fields[`${side}.context.rest_days`]={status:'found'};
+ publish(f,0,null,{decision:'NO_BET',rationale:reason});let requests=0;
+ const before=structuredClone(f),d=await boot(f,200,w=>{w.fetch=async url=>{requests++;return {ok:true,json:async()=>structuredClone(url.endsWith('/api/days')?{days:[{day:f.day,game_count:3,state:'COMPLETE'}]}:f)};};});
+ try{
+  const w=d.window,doc=w.document;expand(doc.querySelector('.game-card'));const initialRequests=requests;
+  const cases=[['en','Games and analysis','Goalie','Rest days','NO PICK'],['cs','Zápasy a analýza','Brankář','Dny odpočinku','BEZ TIPU'],['sv','Matcher och analys','Målvakt','Vilodagar','INGET TIPS'],['fi','Ottelut ja analyysi','Maalivahti','Lepopäivät','EI VIHJETTÄ'],['de','Spiele und Analyse','Torhüter','Ruhetage','KEIN TIPP'],['sk','Zápasy a analýza','Brankár','Dni oddychu','BEZ TIPU']];
+  assert.equal(doc.querySelectorAll('[data-language]').length,6);
+  for(const [language,heading,goalie,rest,noPick] of cases){
+   doc.getElementById('language-toggle').click();assert.equal(doc.getElementById('language-menu').hidden,false);
+   doc.querySelector(`[data-language="${language}"]`).click();
+   assert.equal(doc.documentElement.lang,language);assert.equal(w.localStorage.getItem('nhl-language'),language);
+   assert.equal(new URL(w.location.href).searchParams.get('lang'),language);assert.equal(new URL(w.location.href).searchParams.get('day'),f.day);
+   assert.equal(doc.querySelector('.slate h2').textContent,heading);
+   const card=doc.querySelector('.game-card');assert.equal(card.querySelector('[data-section="fields"]').open,true);
+   assert.equal(card.querySelector('[data-section="fields-goalie"]>summary').textContent,goalie);
+   assert.equal(card.querySelector('[data-metric-path="context.rest_days"] .field-label').textContent,rest);
+   assert.equal(card.querySelector('[data-field-path="home.context.rest_days"] strong').textContent,'2');
+   assert.equal(card.querySelector('.recommendation>.eyebrow').textContent,noPick);
+   assert.equal(card.querySelector('.recommendation>.subtle').textContent,reason);
+   assert.match(card.querySelector('[data-section="analysis-context"]').textContent,/Pôvodný text doplňujúceho researchu/);
+   assert.equal(doc.getElementById('language-menu').hidden,true);assert.equal(doc.activeElement,doc.getElementById('language-toggle'));
+   assert.ok(fs.existsSync(path.join(__dirname,doc.querySelector('#language-toggle img').getAttribute('src'))));
+   assert.equal(doc.querySelector('#archive a').search.includes('day=2026-10-20'),true);
+  }
+  assert.equal(requests,initialRequests,'language changes must not fetch API data');assert.deepEqual(f,before);
+  const catalog=w.NHL_I18N.catalog;
+  for(const [source,entry] of Object.entries(catalog))for(const code of Object.keys(w.NHL_I18N.languages)){
+   assert.equal(typeof entry[code],'string',`${code}: ${source}`);assert.ok(entry[code].length);
+   assert.deepEqual([...(entry[code].match(/\{\w+\}/g)||[])].sort(),[...(source.match(/\{\w+\}/g)||[])].sort(),`${code}: ${source}`);
+  }
+  for(const element of doc.querySelectorAll('[data-i18n]'))assert.ok(catalog[element.dataset.i18n],element.dataset.i18n);
+  for(const node of doc.querySelectorAll('.field-label,.field-group>summary'))assert.ok(catalog[node.textContent],node.textContent);
+ }finally{d.window.close();}
+});
+
+test('language preferences survive navigation and explicit links override saved preferences',async()=>{
+ const d=await boot(fixture(),200,w=>{w.localStorage.setItem('nhl-language','de');w.history.replaceState(null,'','?day=2026-10-20&lang=fi');});
+ try{
+  const w=d.window,doc=w.document;assert.equal(doc.documentElement.lang,'fi');
+  doc.getElementById('language-toggle').dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
+  assert.equal(doc.getElementById('language-menu').hidden,false);assert.equal(doc.activeElement.dataset.language,'fi');
+  doc.activeElement.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Home',bubbles:true}));assert.equal(doc.activeElement.dataset.language,'sk');
+  doc.activeElement.dispatchEvent(new w.KeyboardEvent('keydown',{key:'End',bubbles:true}));assert.equal(doc.activeElement.dataset.language,'de');
+  doc.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(doc.getElementById('language-menu').hidden,true);
+  doc.getElementById('language-toggle').click();doc.body.dispatchEvent(new w.Event('pointerdown',{bubbles:true}));assert.equal(doc.getElementById('language-menu').hidden,true);
+  doc.getElementById('next').click();await new Promise(resolve=>setTimeout(resolve,15));assert.equal(new URL(w.location.href).searchParams.get('lang'),'fi');
+ }finally{d.window.close();}
+ const saved=await boot(fixture(),200,w=>w.localStorage.setItem('nhl-language','sv'));
+ try{assert.equal(saved.window.document.documentElement.lang,'sv');}finally{saved.window.close();}
+});
+
+test('language switching also translates missing-day and error screens when storage is blocked',async()=>{
+ for(const status of [404,500]){
+  const d=await boot({},status,w=>{w.history.replaceState(null,'','?day=2026-10-20&lang=en');Object.defineProperty(w,'localStorage',{get(){throw new Error('Storage blocked');}});});
+  try{
+   const w=d.window,doc=w.document;assert.equal(doc.documentElement.lang,'en');
+   assert.equal(doc.getElementById('status-title').textContent,status===404?'This day has not been processed yet':'Backend could not be reached');
+   w.NHL_I18N.setLanguage('de');assert.equal(doc.documentElement.lang,'de');
+   assert.equal(doc.getElementById('status-title').textContent,status===404?'Dieser Tag wurde noch nicht verarbeitet':'Backend konnte nicht erreicht werden');
+   w.NHL_I18N.setLanguage('<script>');assert.equal(doc.documentElement.lang,'de');assert.equal(doc.querySelector('.game-card'),null);
+  }finally{d.window.close();}
+ }
+});
+
+test('published markets, confidence and overtime results follow the selected language',async()=>{
+ const f=fixture();publish(f,0,{kind:'total',selection:'under',line:7.5,score_basis:'official_final',odds_type:'ESTIMATED',estimated_odds:1.25});
+ f.scoreboard={games:[{game_id:String(f.games[0].game_id),status:'final',away_score:4,home_score:3,last_period_type:'OT'}]};
+ const d=await boot(f);try{
+  const w=d.window,doc=w.document;
+  for(const [language,market,score,confidence] of [['en','Total goals · under 7.5','FINAL SCORE · OT','Confidence:'],['cs','Góly celkem · pod 7,5','KONEČNÉ SKÓRE · PP','Důvěra:'],['sv','Totalt antal mål · under 7,5','SLUTRESULTAT · ÖT','Tillförlitlighet:'],['fi','Maalit yhteensä · alle 7,5','LOPPUTULOS · JA','Luottamus:'],['de','Gesamttore · unter 7,5','ENDSTAND · NV','Vertrauen:']]){
+   w.NHL_I18N.setLanguage(language);const card=doc.querySelector('.game-card');
+   assert.equal(card.querySelector('.recommendation h3').textContent,market);assert.equal(card.querySelector('.match-score span').textContent,score);
+   assert.ok(card.querySelector('.recommendation-confidence').textContent.startsWith(confidence));
+   assert.equal(card.querySelector('.match-score strong').textContent,'4');
+  }
+ }finally{d.window.close();}
 });
