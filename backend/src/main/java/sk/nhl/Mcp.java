@@ -6,7 +6,7 @@ import java.util.*;
 import static sk.nhl.Json.*;
 
 final class Mcp {
-    static final String VERSION="3.2.0";
+    static final String VERSION="3.2.1";
     final Workflow workflow;
     static final String INSTRUCTIONS="""
         You are the NHL research agent AND the final prediction analyst. Azure is DATA ONLY: it collects

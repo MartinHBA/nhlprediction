@@ -106,7 +106,8 @@ final class NhlOdds {
         }
         remove.forEach(unique::remove);return new ArrayList<>(unique.values());
     }
-    static boolean pollingWindow(Instant now){LocalTime time=now.atZone(ZoneId.of("Europe/Bratislava")).toLocalTime();int minute=time.getHour()*60+time.getMinute();return minute>=18*60||minute<=8*60;}
+    // Accept a slightly early 18:00 trigger; the half-hour cron schedule is unchanged.
+    static boolean pollingWindow(Instant now){LocalTime time=now.atZone(ZoneId.of("Europe/Bratislava")).toLocalTime();int minute=time.getHour()*60+time.getMinute();return minute>=17*60+45||minute<=8*60;}
     static String pollDay(Instant now){var local=now.atZone(ZoneId.of("Europe/Bratislava"));return (local.toLocalTime().isBefore(LocalTime.of(12,0))?local.toLocalDate().minusDays(1):local.toLocalDate()).toString();}
     static String day(Instant now){return now.atZone(OddsGameMatcher.NHL_ZONE).toLocalDate().toString();}
 }

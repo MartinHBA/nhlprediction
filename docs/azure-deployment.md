@@ -224,8 +224,10 @@ neregistroval. Verejný HTTP endpoint na administrátorský import nevzniká.
 ## Overenie
 
 Od verzie 2.3 je nasadená aj funkcia `oddsWatch`: UTC cron `0 0,30 * * * *`.
-Java vyhodnocuje okno 18:00–08:00 v `Europe/Bratislava`, takže DST sa nerieši
-pevným UTC posunom. Zdroj je verejný NHL/DraftKings feed `partner-game/US/now`.
+Java vyhodnocuje povolené okno 17:45–08:00 v `Europe/Bratislava`, takže DST sa
+nerieši pevným UTC posunom. Predstih 17:45 chráni mierne predčasný trigger
+18:00; cron sa nemení a samostatný beh o 17:45 nevzniká.
+Zdroj je verejný NHL/DraftKings feed `partner-game/US/now`.
 Import odmietne nesprávny NHL deň, publikáciu staršiu než dve hodiny, inú
 orientáciu tímov, nesúhlasný gameId/UTC začiatok a začaté zápasy. Páry over/under
 a handicapov musia mať zodpovedajúce hranice; 1/X/2 musí obsahovať všetky tri

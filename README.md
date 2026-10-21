@@ -110,7 +110,9 @@ Nové overenie má nové evidence ID; existujúci dôkaz sa spätne nemení.
 ## Kurzy a ich aproximácie
 
 `oddsWatch` sa spúšťa každú celú a pol hodinu UTC, časové okno vyhodnocuje
-v **Europe/Bratislava 18:00–08:00** vrátane DST. Založí deň, načíta štatistiky
+v **Europe/Bratislava 17:45–08:00** vrátane DST. Začiatok okna 17:45 je poistka
+pre mierne predčasné vyvolanie termínu 18:00; nový beh o 17:45 nepridáva.
+Založí deň, načíta štatistiky
 alebo obnoví NHL feed. Žiadny predikčný výpočet nespúšťa.
 
 Feed `https://api-web.nhle.com/v1/partner-game/US/now` sa páruje podľa presného
