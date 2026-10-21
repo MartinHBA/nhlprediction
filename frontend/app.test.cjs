@@ -246,6 +246,55 @@ test('statistics have one disclosure in the requested order with sticky team lab
   assert.match(css,/\.field-heading\{[^}]*justify-content:center/);
  }finally{d.window.close();}
 });
+test('statistics emphasize the favorable side using each metric direction, including signed impacts',async()=>{
+ const f=fixture(),game=f.games[0];
+ const cases=[
+  ...['current','prior'].flatMap(group=>[
+   ['points_pct',45,60,'home'],['xgf_5v5_per60',3,2,'away'],['xga_5v5_per60',3,2,'home'],
+   ['pp_xgf_per60',8,6,'away'],['pk_xga_per60',8,6,'home'],['pp_drawn_per_game',4,3,'away'],
+   ['penalties_taken_per_game',4,3,'home'],['shots_for_per_game',32,26,'away'],['shots_against_per_game',32,26,'home'],
+   ['high_danger_for_per60',12,9,'away'],['high_danger_against_per60',12,9,'home']
+  ].map(([key,...values])=>[`${group}.${key}`,...values])),
+  ['goalie.gsax_per60_current',-.4,-.1,'home'],['goalie.gsax_per60_prior',.3,-.2,'away'],
+  ['goalie.save_pct_current',.915,.925,'home'],['goalie.save_pct_prior',.92,.89,'away'],
+  ['roster.attack_delta_goals',-.5,-.2,'home'],['roster.defense_delta_goals_allowed',-.2,.1,'away'],
+  ['context.rest_days',0,2,'home'],['context.travel_timezones',0,2,'away']
+ ];
+ for(const side of ['away','home']){game[side].roster.quantified=true;game.checks.fields[`${side}.roster.quantified`]={status:'found'};}
+ for(const [metric,away,home] of cases)for(const [side,value] of [['away',away],['home',home]]){const [group,key]=metric.split('.');game[side][group][key]=value;game.checks.fields[`${side}.${metric}`]={status:'found'};}
+ const before=structuredClone(f),d=await boot(f);try{
+  const card=d.window.document.querySelector('.game-card');expand(card);
+  for(const [metric,,,preferred] of cases){const row=card.querySelector(`[data-metric-path="${metric}"]`);assert.equal(row.querySelectorAll('.field-value strong').length,1,metric);assert.ok(row.querySelector(`.field-cell.${preferred} strong`),metric);assert.match(row.querySelector('.field-tooltip').textContent,/hodnota je priaznivejšia/);}
+  assert.deepEqual(f,before,'display comparison must not change saved statistics');
+ }finally{d.window.close();}
+});
+
+test('equal, unavailable and non-comparable data never imply a team advantage',async()=>{
+ const f=fixture(),game=f.games[0];
+ const cases=[
+  ['context.rest_days',2,2,'found','found'],
+  ['current.xgf_5v5_per60',2.123451,2.123452,'found','found'],
+  ['current.xga_5v5_per60',2,3,'unavailable','found'],
+  ['goalie.save_pct_current',.9,.92,'found','not_checked'],
+  ['goalie.gsax_per60_current',null,.2,'found','found'],
+  ['prior.xgf_5v5_per60',Infinity,2,'found','found'],
+  ['prior.xga_5v5_per60','2',3,'found','found'],
+  ['current.games',5,10,'found','found'],
+  ['goalie.starts_current',1,6,'found','found'],
+  ['goalie.status','confirmed','probable','found','found'],
+  ['roster.absences',[],['Player A','Player B'],'found','found'],
+  ['roster.quantified',false,true,'found','found'],
+  ['roster.attack_delta_goals',-.4,.2,'found','found']
+ ];
+ for(const [metric,away,home,awayStatus,homeStatus] of cases)for(const [side,value,status] of [['away',away,awayStatus],['home',home,homeStatus]]){const [group,key]=metric.split('.');game[side][group][key]=value;game.checks.fields[`${side}.${metric}`]={status};}
+ const d=await boot(f);try{
+  const card=d.window.document.querySelector('.game-card');expand(card);
+  for(const [metric] of cases)assert.equal(card.querySelector(`[data-metric-path="${metric}"]`).querySelector('.field-value strong'),null,metric);
+  assert.equal(card.querySelector('[data-field-path="away.current.xga_5v5_per60"] .field-value').textContent,'N/A');
+  assert.match(card.querySelector('[data-metric-path="current.games"] .field-tooltip').textContent,/veľkosť vzorky/);
+ }finally{d.window.close();}
+});
+
 test('after publication silent refresh fetches scores only and preserves frozen statistics',async()=>{
  const {dom,data,next}=await pollingPage();try{
   const doc=dom.window.document;data.publication={frozen:true,snapshot_available:true,published_at:'2026-10-20T21:16:00Z'};publish(data,0,null,{decision:'NO_BET'});dom.window.fetch=async()=>({ok:true,json:async()=>structuredClone(data)});await next().run();

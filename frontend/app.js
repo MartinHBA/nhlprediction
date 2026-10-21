@@ -11,6 +11,20 @@ function currentRecommendation(result){const m=result?.recommendation,price=m?.p
 const statFields={games:'Odohrané zápasy',points_pct:'Bodová úspešnosť (%)',xgf_5v5_per60:'xG za 60 min · 5 na 5',xga_5v5_per60:'xG súpera za 60 min · 5 na 5',pp_xgf_per60:'xG za 60 min · presilovka',pk_xga_per60:'xG súpera za 60 min · oslabenie',pp_drawn_per_game:'Vynútené tresty na zápas',penalties_taken_per_game:'Tresty na zápas',shots_for_per_game:'Strely na zápas',shots_against_per_game:'Strely súpera na zápas',high_danger_for_per60:'Veľké šance za 60 min',high_danger_against_per60:'Veľké šance súpera za 60 min'};
 const fieldDefinitions={prior:{label:'Minulá sezóna',fields:statFields},current:{label:'Aktuálna sezóna',fields:statFields},goalie:{label:'Brankár',fields:{name:'Meno',status:'Potvrdenie brankára',starts_current:'Štarty · aktuálna sezóna',starts_prior:'Štarty · minulá sezóna',gsax_per60_current:'GSAx za 60 min · aktuálna sezóna',gsax_per60_prior:'GSAx za 60 min · minulá sezóna',save_pct_current:'SV% · aktuálna sezóna',save_pct_prior:'SV% · minulá sezóna'}},roster:{label:'Zostava',fields:{quantified:'Vyčíslený vplyv zostavy',attack_delta_goals:'Vplyv na strelené góly',defense_delta_goals_allowed:'Vplyv na inkasované góly',absences:'Absencie',returns:'Návraty',scratches:'Vynechaní hráči',forward_lines:'Útočné formácie',defense_pairs:'Obranné dvojice',power_play_units:'Presilovkové jednotky'}},context:{label:'Oddych a cestovanie',fields:{rest_days:'Dni oddychu',travel_timezones:'Prekonané časové pásma'}}};
 const fieldGroups=Object.fromEntries(["goalie","roster","context","current","prior"].map(key=>[key,fieldDefinitions[key]]));
+// Direction describes this individual metric, not an overall team rating.
+const statDirections={games:0,points_pct:1,xgf_5v5_per60:1,xga_5v5_per60:-1,pp_xgf_per60:1,pk_xga_per60:-1,pp_drawn_per_game:1,penalties_taken_per_game:-1,shots_for_per_game:1,shots_against_per_game:-1,high_danger_for_per60:1,high_danger_against_per60:-1};
+const fieldDirections={prior:statDirections,current:statDirections,goalie:{name:0,status:0,starts_current:0,starts_prior:0,gsax_per60_current:1,gsax_per60_prior:1,save_pct_current:1,save_pct_prior:1},roster:{quantified:0,attack_delta_goals:1,defense_delta_goals_allowed:-1,absences:0,returns:0,scratches:0,forward_lines:0,defense_pairs:0,power_play_units:0},context:{rest_days:1,travel_timezones:-1}};
+function fieldComparison(pair,game){
+ const [,group,key]=pair[0].path.split('.'),direction=fieldDirections[group]?.[key]||0;
+ let note=direction>0?'Vyššia hodnota je priaznivejšia.':direction<0?'Nižšia hodnota je priaznivejšia.':'Tento údaj nemá jednoznačne lepšiu vyššiu alebo nižšiu hodnotu.';
+ if(key==='games'||key.startsWith('starts_'))note='Počet zápasov vyjadruje veľkosť vzorky, nie lepšiu výkonnosť.';
+ if(group==='goalie'&&key==='status')note='Potvrdenie vyjadruje istotu štartu, nie kvalitu brankára.';
+ if(group==='roster'&&direction)note+=' Porovnávajú sa iba vyčíslené dopady zostáv oboch tímov.';
+ const comparable=direction&&pair.every(field=>field.found&&typeof field.value==='number'&&Number.isFinite(field.value))&&(group!=='roster'||['away','home'].every(side=>game[side]?.roster?.quantified===true&&game.checks?.fields?.[`${side}.roster.quantified`]?.status==='found'));
+ let preferred=null;
+ if(comparable&&fieldValue(pair[0].value,pair[0].path)!==fieldValue(pair[1].value,pair[1].path))preferred=(pair[0].value-pair[1].value)*direction>0?'away':'home';
+ return {note,preferred};
+}
 function fieldEntries(game){
  const entries=[];
  for(const side of ['away','home'])for(const [group,definition] of Object.entries(fieldGroups))for(const [field,label] of Object.entries(definition.fields)){
@@ -52,12 +66,15 @@ function fieldDetails(game){
   for(const away of fields){
    const home=entries.find(e=>e.path===away.path.replace(/^away\./,'home.')),pair=[away,home];
    const row=el('div','field-row'),heading=el('div','field-heading'),values=el('div','field-values');row.dataset.metricPath=`${group}.${away.path.split('.').at(-1)}`;
-   const explanation=pair.filter(field=>field.note).map(field=>`${game[field.side].name}: ${field.note}`).join('\n\n');
+   const comparison=fieldComparison(pair,game);
+   const explanation=[comparison.note,...pair.filter(field=>field.note).map(field=>`${game[field.side].name}: ${field.note}`)].join('\n\n');
    const label=el(explanation?'button':'span','field-label',away.label);heading.append(label);row.append(heading);
    for(const field of pair){
     const cell=el('div','field-cell '+field.side);
     cell.dataset.fieldPath=field.path;cell.setAttribute('role','group');cell.setAttribute('aria-label',`${game[field.side].name}: ${field.label}`);
-    cell.append(el('p','field-value',field.found?fieldValue(field.value,field.path):'N/A'));values.append(cell);
+    const value=el('p','field-value'),text=field.found?fieldValue(field.value,field.path):'N/A';
+    if(comparison.preferred===field.side){value.append(el('strong','',text));cell.setAttribute('aria-label',`${game[field.side].name}: ${field.label} – priaznivejšia hodnota`);}else value.textContent=text;
+    cell.append(value);values.append(cell);
    }
    row.append(values);
    if(explanation){
