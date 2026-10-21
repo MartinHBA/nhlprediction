@@ -8,18 +8,34 @@ import java.util.function.*;
 import static sk.nhl.Json.*;
 
 final class Workflow {
-    final Store store;final Function<String,ObjectNode> schedule;final Consumer<ObjectNode> queue;final DataCollector collector;
+    final Store store;final Function<String,ObjectNode> schedule;final Consumer<ObjectNode> queue;final DataCollector collector;final GameScores scores;
+    final Map<String,ObjectNode> recoveredSnapshots=new java.util.concurrent.ConcurrentHashMap<>();
     Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue){this(store,schedule,queue,null);}
-    Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue,DataCollector collector){this.store=store;this.schedule=schedule;this.queue=queue;this.collector=collector;}
-    ObjectNode require(String day){ObjectNode d=store.get("days/"+Schedule.day(day)+".json");if(d==null)throw new IllegalArgumentException("Day not found. Call start_day first.");return migrate(d);}
+    Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue,DataCollector collector){this(store,schedule,queue,collector,null);}
+    Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue,DataCollector collector,GameScores scores){this.store=store;this.schedule=schedule;this.queue=queue;this.collector=collector;this.scores=scores;}
+    ObjectNode require(String day){ObjectNode d=store.get("days/"+Schedule.day(day)+".json");if(d==null)throw new IllegalArgumentException("Day not found. Call start_day first.");restoreSnapshot(d);return migrate(d);}
+    void restoreSnapshot(ObjectNode d){
+        if(!Publication.exists(d)||Publication.frozen(d))return;
+        String key=text(d,"day")+"|"+text(d,"final_tips.analysis_id")+"|"+text(d,"final_tips.published_at");ObjectNode cached=recoveredSnapshots.get(key);
+        if(cached==null){Publication.recover(d,store);cached=obj();for(String field:List.of("dataset_snapshot","odds_import_snapshot","enrichment_snapshot","snapshot_recovery"))if(d.path("final_tips").has(field))cached.set(field,d.path("final_tips").path(field).deepCopy());if(recoveredSnapshots.size()>32)recoveredSnapshots.clear();recoveredSnapshots.put(key,cached);}
+        else for(var it=cached.fields();it.hasNext();){var field=it.next();((ObjectNode)d.path("final_tips")).set(field.getKey(),field.getValue().deepCopy());}
+    }
     static ObjectNode migrate(ObjectNode d){
         if(d.hasNonNull("report")||List.of("QUEUED","RUNNING").contains(text(d,"state"))){
             d.put("state",d.path("research_complete").asBoolean()?"READY_FOR_ANALYSIS":"COLLECTING");
         }
-        d.remove(List.of("report","last_sims","job_id"));return d;
+        d.remove(List.of("report","last_sims","job_id"));
+        if(Publication.exists(d)&&!d.path("research_session").path("active").asBoolean())d.put("state","COMPLETE");
+        return d;
     }
     ObjectNode start(String day){
-        Schedule.day(day);ObjectNode existing=store.get("days/"+day+".json");if(existing!=null)return requestPrefill(day);
+        Schedule.day(day);ObjectNode existing=store.get("days/"+day+".json");if(existing!=null){
+            ObjectNode current=require(day);if(!Publication.exists(current))return requestPrefill(day);
+            if(current.path("dataset").path("games").valueStream().noneMatch(g->Checks.time(text(g,"starts_at")).isAfter(Instant.now())))return summary(current);
+            if(!text(current,"state").equals("ERROR")&&current.path("research_session").path("active").asBoolean()&&!Tips.old(text(current,"research_session.started_at"),Instant.now(),7200))return summary(current);
+            store.locked("day/"+day,()->{ObjectNode d=require(day);refreshStarted((ObjectNode)d.path("dataset"));d.set("research_session",obj("active",true,"started_at",Instant.now().toString()));d.put("state","COLLECTING");d.put("research_complete",false);d.put("revision",d.path("revision").asInt()+1);store.put("days/"+day+".json",d);return null;});
+            return requestPrefill(day,true);
+        }
         ObjectNode data=schedule.apply(day);
         store.locked("day/"+day,()->{
             ObjectNode found=store.get("days/"+day+".json");if(found!=null)return summary(found);
@@ -27,14 +43,16 @@ final class Workflow {
             store.create("days/"+day+".json",d);return summary(d);
         });return requestPrefill(day);
     }
-    ObjectNode requestPrefill(String day){
+    ObjectNode requestPrefill(String day){return requestPrefill(day,false);}
+    ObjectNode requestPrefill(String day,boolean force){
         if(collector==null)return summary(require(day));
         return store.locked("day/"+day,()->{
             ObjectNode d=require(day);if(List.of("PREFILLING","QUEUED","RUNNING","NO_GAMES").contains(text(d,"state")))return summary(d);
+            if(Publication.exists(d)&&!force)return summary(d);
             JsonNode previous=d.path("enrichment");
-            if(text(previous,"version").equals(DataCollector.VERSION)&&text(previous,"transport").equals("owner_upload")&&text(previous,"state").equals("DONE")&&Checks.time(text(previous,"updated_at")).isAfter(Instant.now().minusSeconds(21600))&&Checks.coverage(d.path("dataset")).path("critical_found").equals(Checks.coverage(d.path("dataset")).path("critical_total")))return summary(d);
-            if(text(previous,"version").equals(DataCollector.VERSION)&&text(previous,"state").equals("DONE")&&previous.path("warnings").isEmpty())return summary(d);
-            if(previous.hasNonNull("updated_at")&&Checks.time(text(previous,"updated_at")).isAfter(Instant.now().minusSeconds(60)))return summary(d);
+            if(!force&&text(previous,"version").equals(DataCollector.VERSION)&&text(previous,"transport").equals("owner_upload")&&text(previous,"state").equals("DONE")&&Checks.time(text(previous,"updated_at")).isAfter(Instant.now().minusSeconds(21600))&&Checks.coverage(d.path("dataset")).path("critical_found").equals(Checks.coverage(d.path("dataset")).path("critical_total")))return summary(d);
+            if(!force&&text(previous,"version").equals(DataCollector.VERSION)&&text(previous,"state").equals("DONE")&&previous.path("warnings").isEmpty())return summary(d);
+            if(!force&&previous.hasNonNull("updated_at")&&Checks.time(text(previous,"updated_at")).isAfter(Instant.now().minusSeconds(60)))return summary(d);
             String job=UUID.randomUUID().toString();d.put("state","PREFILLING");d.put("updated_at",Instant.now().toString());d.putNull("error");d.set("enrichment",obj("state","QUEUED","version",DataCollector.VERSION,"job_id",job,"updated_at",Instant.now().toString(),"warnings",arr()));store.put("days/"+day+".json",d);
             try{queue.accept(obj("kind","prefill","day",day,"job_id",job));}catch(RuntimeException e){d.put("state","ERROR");((ObjectNode)d.path("enrichment")).put("state","ERROR");d.put("error","Could not enqueue source import. Retry start_day.");store.put("days/"+day+".json",d);throw e;}
             return summary(d);
@@ -118,21 +136,38 @@ final class Workflow {
         if(text(job,"kind").equals("prefill"))prefill(job);
         // Old queued prediction jobs are deliberately discarded after migration. No model exists.
     }
-    ObjectNode read(String day){ObjectNode d=require(day);ObjectNode out=summary(d);out.set("checklist",Checks.audit(d.path("dataset")));out.set("evidence",d.path("dataset").path("evidence"));out.set("games",d.path("dataset").path("games"));return out;}
-    ObjectNode summary(JsonNode input){JsonNode d=migrate(input.deepCopy());return obj("day",text(d,"day"),"state",text(d,"state"),"updated_at",text(d,"updated_at"),"revision",d.path("revision"),"game_count",d.path("dataset").path("games").size(),"as_of",d.path("dataset").path("as_of"),"error",d.path("error"),"enrichment",d.path("enrichment"),"odds_import",d.path("odds_import"),"research_complete",d.path("research_complete").asBoolean(),"coverage",Checks.coverage(d.path("dataset")),"final_tips",Tips.view(d,Instant.now()),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));}
+    ObjectNode read(String day){ObjectNode d=require(day);JsonNode data=Publication.data(d);ObjectNode out=summary(d);out.set("checklist",Checks.audit(data));out.set("evidence",data.path("evidence"));out.set("games",data.path("games"));return out;}
+    ObjectNode readLive(String day){ObjectNode d=require(day);return obj("day",day,"state",d.path("state"),"revision",d.path("revision"),"publication",Publication.info(d),"scoreboard",d.path("scoreboard"),"final_tips",Tips.view(d,Instant.now()));}
+    ObjectNode summary(JsonNode input){
+        ObjectNode d=migrate(input.deepCopy());restoreSnapshot(d);JsonNode data=Publication.data(d);
+        return obj("day",text(d,"day"),"state",text(d,"state"),"updated_at",text(d,"updated_at"),"revision",d.path("revision"),"game_count",data.path("games").size(),"as_of",data.path("as_of"),"error",d.path("error"),
+            "enrichment",Publication.metadata(d,"enrichment"),"odds_import",Publication.metadata(d,"odds_import"),"research_complete",d.path("research_complete").asBoolean(),"coverage",Checks.coverage(data),"publication",Publication.info(d),
+            "scoreboard",d.path("scoreboard"),"final_tips",Tips.view(d,Instant.now()),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));
+    }
     void eveningTick(Instant now){
-        String day=NhlOdds.day(now);ObjectNode existing=store.get("days/"+day+".json");
-        if(existing==null){start(day);return;}
-        if(collector!=null&&!text(existing,"enrichment.version").equals(DataCollector.VERSION)){requestPrefill(day);return;}
-        refreshOdds(day);
+        String day=NhlOdds.pollDay(now);ObjectNode existing=store.get("days/"+day+".json");
+        if(existing==null){start(day);refreshScores(day,now);return;}
+        if(Publication.exists(existing)){refreshScores(day,now);return;}
+        if(collector!=null&&!text(existing,"enrichment.version").equals(DataCollector.VERSION))requestPrefill(day);
+        else refreshOdds(day);
+        refreshScores(day,now);
+    }
+    ObjectNode refreshScores(String day,Instant now){
+        if(scores==null)return summary(require(day));ObjectNode before=require(day),result;
+        try{result=scores.collect(day,before.path("dataset"),before.path("scoreboard"),now);}
+        catch(RuntimeException error){result=before.path("scoreboard").isObject()?before.path("scoreboard").deepCopy():obj("games",arr());result.put("state","ERROR");result.put("last_attempt_at",now.toString());result.put("error",DataCollector.rootMessage(error));}
+        final ObjectNode scoreboard=result;
+        return store.locked("day/"+day,()->{ObjectNode latest=require(day);latest.set("scoreboard",scoreboard);latest.put("scores_updated_at",now.toString());
+            // Scores are outside the analysis revision/snapshot; they cannot conflict with GPT research.
+            store.put("days/"+day+".json",latest);return summary(latest);});
     }
     ObjectNode refreshOdds(String day){
         if(collector==null||collector.odds==null)return summary(require(day));
-        ObjectNode before=require(day);if(List.of("PREFILLING","QUEUED","RUNNING","NO_GAMES").contains(text(before,"state")))return summary(before);
+        ObjectNode before=require(day);if(Publication.exists(before))return summary(before);if(List.of("PREFILLING","QUEUED","RUNNING","NO_GAMES").contains(text(before,"state")))return summary(before);
         ObjectNode imported=collector.odds.collect(day,before.path("dataset"));JsonNode data=imported.path("dataset");
         List<String> errors=Checks.validate(data);if(!errors.isEmpty()||!Checks.audit(data).path("issues").isEmpty())throw new IllegalStateException("NHL odds import failed validation: "+errors);
         boolean resume=before.path("research_complete").asBoolean();
-        ObjectNode saved=store.locked("day/"+day,()->{ObjectNode latest=require(day);if(latest.path("revision").asInt()!=before.path("revision").asInt()||!text(latest,"state").equals(text(before,"state")))return null;
+        ObjectNode saved=store.locked("day/"+day,()->{ObjectNode latest=require(day);if(Publication.exists(latest))return null;if(latest.path("revision").asInt()!=before.path("revision").asInt()||!text(latest,"state").equals(text(before,"state")))return null;
             store.put("history/"+day+"/"+latest.path("revision").asInt()+".json",latest);latest.set("dataset",data);latest.set("odds_import",imported.path("odds_import"));latest.put("revision",latest.path("revision").asInt()+1);latest.put("updated_at",Instant.now().toString());latest.put("state","COLLECTING");latest.putNull("report");store.put("days/"+day+".json",latest);return latest;});
         if(saved==null)return summary(require(day));
         if(resume&&Checks.audit(data).path("complete").asBoolean())return finish(day);
@@ -144,12 +179,12 @@ final class Workflow {
         Tips.validateInput(args);
         return store.locked("day/"+Schedule.day(day),()->{
             ObjectNode d=require(day);Instant now=Instant.now();String signature=Tips.requestSignature(args);
-            if(text(d,"final_tips.request_signature").equals(signature)&&text(d,"final_tips.analysis_id").equals(Tips.analysisId(d,now))
+            if(text(d,"final_tips.request_signature").equals(signature)
                 &&text(Tips.view(d,now),"state").equals("PUBLISHED"))return summary(d);
             if(d.path("revision").asInt()!=args.path("revision").asInt())throw new BusyException();
-            ObjectNode tips=Tips.prepare(d,args,now);tips.put("request_signature",signature);
+            ObjectNode tips=Tips.prepare(d,args,now);tips.put("request_signature",signature);Publication.capture(tips,d);
             store.put("history/tips/"+day+"/"+d.path("revision").asInt()+".json",d.path("final_tips").isObject()?(ObjectNode)d.path("final_tips"):obj());
-            d.set("final_tips",tips);d.put("state","COMPLETE");d.put("revision",d.path("revision").asInt()+1);d.put("updated_at",now.toString());
+            d.set("final_tips",tips);d.set("research_session",obj("active",false));d.put("state","COMPLETE");d.put("revision",d.path("revision").asInt()+1);d.put("updated_at",now.toString());
             store.put("days/"+day+".json",d);return summary(d);
         });
     }

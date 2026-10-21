@@ -65,14 +65,14 @@ class TipsTest {
         ((ObjectNode)day.path("dataset")).put("synthetic_data",true);store.put("days/"+date+".json",day);args.put("analysis_id",Tips.analysisId(day,now));assertThrows(IllegalArgumentException.class,()->workflow.postTips(date,args));
     }
     @Test void allNoBetIsSuccessfulPublication(){var result=workflow.postTips(date,body(false));assertEquals("PUBLISHED",text(result,"final_tips.state"));assertEquals(3,result.path("final_tips").path("no_bet_count").asInt());}
-    @Test void changedDataRequiresReviewButUnchangedTimestampRefreshDoesNot(){
+    @Test void publishedDecisionSurvivesChangedWorkingDataAndNewTimestamps(){
         workflow.postTips(date,body(true));ObjectNode saved=workflow.require(date);JsonNode original=saved.path("final_tips").deepCopy();
         for(JsonNode g:saved.path("dataset").path("games"))for(JsonNode q:g.path("markets"))((ObjectNode)q.path("source")).put("checked_at",now.toString());
         store.put("days/"+date+".json",saved);assertEquals("PUBLISHED",text(workflow.read(date),"final_tips.state"));
         ((ObjectNode)saved.path("dataset").path("games").get(0).path("markets").get(0)).put("odds",1.29);store.put("days/"+date+".json",saved);
-        assertEquals("NEEDS_REVIEW",text(workflow.read(date),"final_tips.state"));assertEquals(original,workflow.require(date).path("final_tips"));
+        assertEquals("PUBLISHED",text(workflow.read(date),"final_tips.state"));assertEquals(original,workflow.require(date).path("final_tips"));
     }
-    @Test void stalePricesAndStartedGamesAreNotCurrent(){workflow.postTips(date,body(true));var saved=workflow.require(date);assertEquals("NEEDS_REVIEW",text(Tips.view(saved,now.plusSeconds(7201)),"state"));((ObjectNode)saved.path("dataset").path("games").get(0)).put("starts_at",now.minusSeconds(1).toString());assertEquals("STARTED",text(Tips.view(saved,now).path("games").get(0),"state"));}
+    @Test void publishedTipsSurviveAgingAndStartedGames(){workflow.postTips(date,body(true));var saved=workflow.require(date);assertEquals("PUBLISHED",text(Tips.view(saved,now.plusSeconds(7201)),"state"));((ObjectNode)saved.path("dataset").path("games").get(0)).put("starts_at",now.minusSeconds(1).toString());assertEquals("CURRENT",text(Tips.view(saved,now).path("games").get(0),"state"));}
     @Test void incompleteResearchBlocksPublicationButNeverBlocksReadingData(){day.put("research_complete",false);store.put("days/"+date+".json",day);assertEquals("READY",text(workflow.candidates(date,""),"state"));assertThrows(IllegalArgumentException.class,()->workflow.postTips(date,body(false)));}
     @Test void newMcpDataFlowRejectsLegacySimulationParameter(){
         Mcp mcp=new Mcp(workflow);var response=mcp.call("get_analysis",obj("day",date));assertFalse(response.path("isError").asBoolean());
@@ -81,7 +81,7 @@ class TipsTest {
     }
     @Test void migratedPredictionsAreNeverExposedAsDataOrCurrentTips(){
         workflow.postTips(date,body(true));var old=workflow.require(date);((ObjectNode)old.path("final_tips")).remove("policy_version");old.set("report",obj("games",arr().add(obj("lambda_total",5,"p_win",.9))));store.put("days/"+date+".json",old);
-        var result=workflow.read(date);assertFalse(result.has("report"));assertEquals("NEEDS_REVIEW",text(result,"final_tips.state"));assertTrue(result.path("final_tips").path("games").get(0).path("candidate").isNull());
+        var result=workflow.read(date);assertFalse(result.has("report"));assertEquals("PUBLISHED",text(result,"final_tips.state"));assertFalse(result.path("final_tips").path("games").get(0).path("candidate").has("p_win"));
     }
     @Test void canSaveSourcedContextAndExactQuoteThenChooseIt(){
         // The NHL feed can honestly report this category unavailable before GPT finds another offer.

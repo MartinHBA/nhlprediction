@@ -66,7 +66,7 @@ final class NhlOdds {
             }
         }
         data.put("as_of",now.toString());String status=upcoming==0?"NO_UPCOMING_GAMES":covered==upcoming?"READY":covered>0?"PARTIAL":fetched?"WAITING":"ERROR";
-        ObjectNode meta=obj("state",status,"url",URL,"bookmaker","DraftKings","checked_at",now.toString(),"source_updated_at",text(feed,"lastUpdatedUTC"),"source_day",text(feed,"currentOddsDate"),"requested_day",day,"upcoming_games",upcoming,"covered_games",covered,"market_count",marketCount,"reason",reason,"warnings",warnings,"poll_timezone","Europe/Bratislava","poll_interval_minutes",30,"poll_from","18:00","poll_until","06:00");
+        ObjectNode meta=obj("state",status,"url",URL,"bookmaker","DraftKings","checked_at",now.toString(),"source_updated_at",text(feed,"lastUpdatedUTC"),"source_day",text(feed,"currentOddsDate"),"requested_day",day,"upcoming_games",upcoming,"covered_games",covered,"market_count",marketCount,"reason",reason,"warnings",warnings,"poll_timezone","Europe/Bratislava","poll_interval_minutes",30,"poll_from","18:00","poll_until","08:00");
         return obj("dataset",data,"odds_import",meta);
     }
     static double decimal(double american){
@@ -106,6 +106,7 @@ final class NhlOdds {
         }
         remove.forEach(unique::remove);return new ArrayList<>(unique.values());
     }
-    static boolean pollingWindow(Instant now){int hour=now.atZone(ZoneId.of("Europe/Bratislava")).getHour();return hour>=18||hour<6;}
+    static boolean pollingWindow(Instant now){LocalTime time=now.atZone(ZoneId.of("Europe/Bratislava")).toLocalTime();int minute=time.getHour()*60+time.getMinute();return minute>=18*60||minute<=8*60;}
+    static String pollDay(Instant now){var local=now.atZone(ZoneId.of("Europe/Bratislava"));return (local.toLocalTime().isBefore(LocalTime.of(12,0))?local.toLocalDate().minusDays(1):local.toLocalDate()).toString();}
     static String day(Instant now){return now.atZone(OddsGameMatcher.NHL_ZONE).toLocalDate().toString();}
 }

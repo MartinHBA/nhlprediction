@@ -12,7 +12,7 @@ public final class Functions {
     static final class Services {
         static final Store STORE=Store.cloud();
         static final QueueClient QUEUE=new QueueClientBuilder().connectionString(System.getenv("AzureWebJobsStorage")).queueName("predictions").messageEncoding(QueueMessageEncoding.BASE64).buildClient();
-        static final Workflow WORKFLOW=new Workflow(STORE,Schedule::fetch,j->QUEUE.sendMessage(j.toString()),new DataCollector(STORE));
+        static final Workflow WORKFLOW=new Workflow(STORE,Schedule::fetch,j->QUEUE.sendMessage(j.toString()),new DataCollector(STORE),new GameScores());
         static final OAuth AUTH=new OAuth(STORE);
         static final Mcp MCP=new Mcp(WORKFLOW);
     }
@@ -44,6 +44,10 @@ public final class Functions {
                 ObjectNode result=Services.MCP.handle(input);return response(request,result==null?202:200,result);
             }
             if(method.equals("GET")&&path.equals("/api/days"))return response(request,200,obj("days",Services.WORKFLOW.archive()));
+            if(method.equals("GET")&&path.matches("/api/days/\\d{4}-\\d{2}-\\d{2}/live")){
+                String day=path.substring(10,20);if(Services.STORE.get("days/"+day+".json")==null)return response(request,404,obj("error","Day has not been collected yet"));
+                return response(request,200,Services.WORKFLOW.readLive(day));
+            }
             if(method.equals("GET")&&path.matches("/api/days/\\d{4}-\\d{2}-\\d{2}")){
                 String day=path.substring(10);if(Services.STORE.get("days/"+day+".json")==null)return response(request,404,obj("error","Day has not been collected yet","day",day));
                 return response(request,200,Services.WORKFLOW.read(day));

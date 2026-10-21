@@ -196,7 +196,7 @@ neregistroval. Verejný HTTP endpoint na administrátorský import nevzniká.
 ## Overenie
 
 Od verzie 2.3 je nasadená aj funkcia `oddsWatch`: UTC cron `0 0,30 * * * *`.
-Java vyhodnocuje okno 18:00–05:30 v `Europe/Bratislava`, takže DST sa nerieši
+Java vyhodnocuje okno 18:00–08:00 v `Europe/Bratislava`, takže DST sa nerieši
 pevným UTC posunom. Zdroj je verejný NHL/DraftKings feed `partner-game/US/now`.
 Import odmietne nesprávny NHL deň, publikáciu staršiu než dve hodiny, inú
 orientáciu tímov, nesúhlasný gameId/UTC začiatok a začaté zápasy. Páry over/under
@@ -236,3 +236,18 @@ a frontend; po pushi do `main` nadväzuje automatické nasadenie do Azure.
 2099-12-29, publikuje len syntetické NO_BET a potom fixture aj poverenia vyčistí.
 Zdrojový NHL deň iba číta a overí jeho nezmenenosť. Nový plán úlohy používa
 get_analysis a finalize_day bez sims; starý uložený prompt treba v ChatGPT nahradiť.
+
+## Publikácie a výsledky od 3.1
+
+Po post_tips zostáva dataset_snapshot pri publikácii nemenný. Automatický timer
+na publikovaný deň už neobnovuje štatistiky/kurzy. Sťahuje iba NHL /v1/score/{day}
+a ukladá scoreboard bez zmeny analytickej revision. Okno končí vrátane 08:00
+Europe/Bratislava a ráno cieli na predošlý hrací deň. /api/days/{day}/live vracia
+iba stav publikácie, skóre a výsledky tipov. Vyhodnotenie používa presnú hranicu
+a score_basis, rozlišuje OT/SO a 60 minút; neznámy výsledok nesmie byť LOSS/WIN.
+
+Nový MCP start_day otvorí ad-hoc pracovný import; existujúci verejný snapshot
+zostáva až do ďalšieho post_tips. Už začaté zápasy si zachovajú skorší TIP.
+Historické podklady obnovuje RepairPublishedDay iba pri presnej zhode fingerprintu
+s publication analysis_id v čase publikácie. --apply vytvorí súkromnú zálohu,
+uloží snapshot a skóre a overí nezmenenosť rozhodnutí GPT.

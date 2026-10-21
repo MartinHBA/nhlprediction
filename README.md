@@ -13,7 +13,7 @@ EV ani automatický výber tipov. Nevolá platené LLM API.**
 
 ```text
 18:00 Europe/Bratislava → Azure: program, štatistiky, prvá kontrola kurzov
-18:30, 19:00, ... 05:30 → Azure: kontrola NHL kurzov každých 30 minút
+18:30, 19:00, ... 08:00 → Azure: kurzy pred publikáciou, potom už iba skóre
 20:00 → ChatGPT Cloud úloha: MCP dáta + webový research
   → save_game: zostavy, brankári, kontext, prípadne presné nové kurzy
   → check_day + finalize_day: iba validácia a uzavretie researchu
@@ -30,7 +30,7 @@ Pripoj NHL Observatory ako vlastný MCP server s vyššie uvedenou URL a OAuth.
 Prihlás sa Microsoft účtom vlastníka Azure aplikácie. OpenAI API kľúč ani
 Microsoft client secret sa do ChatGPT nezadávajú.
 
-Po aktualizácii na **3.0.0** obnov nástroje pripojenia a over `get_analysis`.
+Po aktualizácii na **3.1.0** obnov nástroje pripojenia a over `get_analysis`.
 Použi [denný prompt so stratégiou](docs/chatgpt-scheduled-prompt.md); do úlohy
 vlož iba jeho blok `text`. Azure deployment uložený prompt úlohy nemení.
 Najprv over skutočný skúšobný beh s prístupom k MCP, researchu a zápisom.
@@ -101,7 +101,7 @@ Nové overenie má nové evidence ID; existujúci dôkaz sa spätne nemení.
 ## Kurzy a ich aproximácie
 
 `oddsWatch` sa spúšťa každú celú a pol hodinu UTC, časové okno vyhodnocuje
-v **Europe/Bratislava 18:00–05:30** vrátane DST. Založí deň, načíta štatistiky
+v **Europe/Bratislava 18:00–08:00** vrátane DST. Založí deň, načíta štatistiky
 alebo obnoví NHL feed. Žiadny predikčný výpočet nespúšťa.
 
 Feed `https://api-web.nhle.com/v1/partner-game/US/now` sa páruje podľa presného
@@ -137,18 +137,41 @@ alebo NO_BET na zápas a cez `post_tips` publikuje celý deň. Odovzdá aktuáln
 risks a evidence_ids. Backend iba validuje a uloží; nevytvára protitip ani EV.
 Confidence je analytické hodnotenie GPT, nie vypočítaná úspešnosť.
 
-Zmena ceny, brankára, zostavy, kontextu alebo zostarnutie údajov označí uložený
-výber `NEEDS_REVIEW`. Nové rozhodnutie musí urobiť GPT. Nezmenený poll ani
-obnovená časová pečiatka pri rovnakých hodnotách výber automaticky nezneplatnia.
-Snímka/revision chráni pred konfliktom; identický opakovaný post je idempotentný.
-Staré modelové reporty sa nevracajú cez API; staré výbery vyžadujú nové posúdenie.
+Pri post_tips sa uloží nemenný dataset aj kurzy a dôkazy použité GPT. Timer
+potom pre tento deň nenačítava štatistiky ani kurzy, iba oficiálne skóre cez
+NHL score feed. Stav a skóre sú mimo analytickej revision, takže nekolidujú
+s researchom. Kontroly bežia do 08:00 Europe/Bratislava vrátane tohto behu.
+Ráno sa sleduje predchádzajúci hrací deň aj po polnoci v New Yorku.
 
-Web zobrazuje tímy, čas, dostupnosť dát, potvrdenie brankárov a finálny TIP/NO_BET,
-kurz/odhad, confidence a rozbaliteľné zdôvodnenie, porovnanie a riziká. Žiadne
-modelové góly, pravdepodobnosti, EV či počítadlá simulácií. Oficiálne logá všetkých
-32 tímov sú v `frontend/assets/teams`. Metriky možno porovnať vľavo/vpravo podľa
-tímov; poznámky sú na hover/focus/tap. Zoznam zdrojových odkazov nie je v karte.
-Web sa potichu obnovuje každých päť minút, skryté karty preskočí a zachová detaily.
+Nový MCP start_day výslovne otvorí ad-hoc obnovu ešte nezačatých zápasov.
+Opakované volanie počas tej istej session import neduplikuje. Pracovné dáta
+môže GPT doplniť, ale web zobrazuje predchádzajúci snapshot až po novom post_tips.
+Pri už začatých zápasoch sa zachovajú pôvodné tipy aj ich podklady; nový NO_BET
+ich nevymaže. História starších publikácií zostáva v history/tips.
+
+Tip ostane viditeľný aj počas hry a po finále. Backend porovná uložený trh
+s oficiálnym výsledkom: WIN/LOSS/PUSH; nejde o predikčný model. Rozlišuje 60 minút
+od výsledku vrátane OT/SO. Pri neznámom podklade je UNAVAILABLE, nie vymyslené
+vyhodnotenie. NO_BET zápasy ukážu iba skóre. Počítadlo vyhodnotených GPT zahŕňa
+všetky uložené rozhodnutia aj po začiatku a konci zápasov.
+
+Verejné /api/days/{day} vracia zmrazené štatistiky s oddeleným scoreboard.
+Browser po publikovaní každých päť minút načíta iba /api/days/{day}/live;
+štatistiky znovu stiahne až po novej publikácii alebo ručnom obnovení.
+Po konečnom skóre všetkých zápasov tiché kontroly prestanú. Skryté karty
+sa preskakujú a rozbalené detaily zostávajú otvorené.
+
+Web zachováva oficiálne logá všetkých 32 tímov. Pod Kontroly a trhy je jediná
+sekcia Dostupné polia, v poradí **Brankár, Zostava, Oddych a cestovanie,
+Aktuálna sezóna, Minulá sezóna**. Metriky sú vedľa seba za oba tímy;
+skratky tímov sú počas scrollovania v rozbalených štatistikách pripnuté.
+Zdrojové poznámky fungujú na hover/focus/tap; samostatný zoznam URL nie je v karte.
+
+Staré publikácie bez uloženého datasetu možno obnoviť z history revízie,
+iba ak jej fingerprint presne sedí s analysis_id pri published_at. Nespárované
+aktuálne štatistiky sa nevydávajú za pôvodné. Owner utility RepairPublishedDay
+robí najprv read-only kontrolu; --apply uloží presnú obnovu a oficiálne skóre,
+s predchádzajúcou zálohou a overením, že rozhodnutia GPT zostali nezmenené.
 
 ## Vývoj a deployment
 

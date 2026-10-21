@@ -59,7 +59,7 @@ public final class LiveSmoke {
         String day="2099-12-29",key="days/"+day+".json",history="history/tips/"+day+"/";
         require(store.get(key)==null&&store.keys(history).isEmpty(),"AI test fixture already exists; refusing to overwrite");
         ObjectNode original=store.get("days/"+sourceDay+".json");require(original!=null,"Source day missing");
-        ObjectNode data=original.path("dataset").deepCopy();ObjectNode game=data.path("games").get(0).deepCopy();
+        ObjectNode data=(original.path("final_tips").path("dataset_snapshot").isObject()?original.path("final_tips").path("dataset_snapshot"):original.path("dataset")).deepCopy();ObjectNode game=data.path("games").get(0).deepCopy();
         game.put("status","scheduled").put("starts_at","2099-12-30T00:00:00Z");String id=text(game,"game_id");
         data.put("synthetic_data",true).put("as_of",Instant.now().toString());data.set("games",arr().add(game));data.set("expected_game_ids",arr().add(id));
         require(Checks.audit(data).path("complete").asBoolean(),"Source research incomplete");
@@ -78,8 +78,9 @@ public final class LiveSmoke {
             ObjectNode before=store.get(key);tool("post_tips",args,access);require(before.equals(store.get(key)),"AI post retry must be idempotent");
             JsonNode publicDay=parse(request("/api/days/"+day,null,null).body());require(text(publicDay,"final_tips.state").equals("PUBLISHED"),"Public API includes AI decisions");
             ((ArrayNode)before.path("dataset").path("games").get(0).path("home").path("roster").path("absences")).add("ISOLATED_SMOKE_TEST_CHANGE");store.put(key,before);
-            publicDay=parse(request("/api/days/"+day,null,null).body());require(text(publicDay,"final_tips.state").equals("NEEDS_REVIEW"),"Changed research invalidates AI decision");
-            require(original.equals(store.get("days/"+sourceDay+".json")),"Source day must remain untouched");
+            publicDay=parse(request("/api/days/"+day,null,null).body());require(text(publicDay,"final_tips.state").equals("PUBLISHED"),"Working data cannot invalidate a frozen publication");
+            ObjectNode after=store.get("days/"+sourceDay+".json");
+            require(original.path("dataset").equals(after.path("dataset"))&&original.path("final_tips").path("games").equals(after.path("final_tips").path("games")),"Source research and GPT decisions must remain untouched; the timer may independently update scores");
             System.out.println(obj("ai_tips","passed","checks",7,"source_day_modified",false,"temporary_test_day",day,"published_real_tips",0));
         }finally{if(created){store.take(key);for(String h:store.keys(history))store.take(h);}}
         require(store.get(key)==null&&store.keys(history).isEmpty(),"AI test fixture cleanup");

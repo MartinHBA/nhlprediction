@@ -62,18 +62,22 @@ final class Tips {
     }
     static ObjectNode view(JsonNode day,Instant now){
         JsonNode saved=day.path("final_tips");if(!saved.isObject())return obj("state",text(day,"state").equals("NO_GAMES")?"NO_GAMES":"AWAITING_ANALYSIS","games",arr());
-        Map<String,JsonNode> current=new HashMap<>();for(JsonNode g:day.path("dataset").path("games"))current.put(text(g,"game_id"),g);
-        ArrayNode games=arr();boolean legacy=!text(saved,"policy_version").equals(MarketQuotes.VERSION),review=legacy||current.size()!=saved.path("games").size();int tips=0,noBet=0;
+        Map<String,JsonNode> scores=new HashMap<>();for(JsonNode score:day.path("scoreboard").path("games"))scores.put(text(score,"game_id"),score);
+        ArrayNode games=arr();int tips=0,noBet=0,wins=0,losses=0,pushes=0;
         for(JsonNode entry:saved.path("games")){
-            ObjectNode decision=entry.deepCopy();JsonNode game=current.get(text(entry,"game_id"));String state="CURRENT";
-            if(game==null)state="NEEDS_REVIEW";
-            else if(!text(game,"status").equals("scheduled")||!Checks.time(text(game,"starts_at")).isAfter(now))state="STARTED";
-            else if(legacy||!text(entry,"basis_id").equals(gameBasis(game,now)))state="NEEDS_REVIEW";
-            if(legacy)decision.putNull("candidate"); // Never leak old model probabilities/EV into the data-only UI.
-            decision.put("state",state);if(state.equals("NEEDS_REVIEW"))review=true;
-            if(state.equals("CURRENT")){if(text(entry,"decision").equals("TIP"))tips++;else noBet++;}games.add(decision);
+            ObjectNode decision=entry.deepCopy();decision.put("state","CURRENT"); // Current published version, regardless of match status.
+            // A published decision is an historical fact. Age, a new research run or puck drop cannot erase it.
+            if(!text(saved,"policy_version").equals(MarketQuotes.VERSION)&&decision.path("candidate").isObject()){
+                ObjectNode cleaned=obj();for(String key:List.of("id","candidate_id","kind","selection","line","team","score_basis","price","odds","estimated_odds","odds_type","source","rules_url","confidence","recommendation_status"))
+                    if(decision.path("candidate").has(key))cleaned.set(key,decision.path("candidate").path(key));decision.set("candidate",cleaned);
+            }
+            JsonNode score=scores.get(text(entry,"game_id"));ObjectNode settlement=TipSettlement.evaluate(decision,score);decision.set("settlement",settlement);
+            if(text(entry,"decision").equals("TIP"))tips++;else noBet++;
+            switch(text(settlement,"state")){case "WIN" -> wins++;case "LOSS" -> losses++;case "PUSH" -> pushes++;default -> {}}
+            games.add(decision);
         }
-        return obj("state",review?"NEEDS_REVIEW":"PUBLISHED","published_at",saved.path("published_at"),"analysis_id",saved.path("analysis_id"),"tip_count",tips,"no_bet_count",noBet,"games",games,"chosen_by","CHATGPT");
+        return obj("state","PUBLISHED","published_at",saved.path("published_at"),"analysis_id",saved.path("analysis_id"),"tip_count",tips,"no_bet_count",noBet,"reviewed_count",games.size(),
+            "wins",wins,"losses",losses,"pushes",pushes,"games",games,"chosen_by","CHATGPT");
     }
     static ObjectNode prepare(JsonNode day,JsonNode args,Instant now){
         validateInput(args);if(text(day,"state").equals("PREFILLING")||!day.path("research_complete").asBoolean()||!Checks.audit(day.path("dataset")).path("complete").asBoolean())throw new IllegalArgumentException("Finish research and finalize_day first. No calculation is required.");
@@ -83,9 +87,14 @@ final class Tips {
         for(JsonNode request:args.path("decisions")){
             String id=text(request,"game_id");JsonNode game=games.get(id);if(game==null||!seen.add(id))throw new IllegalArgumentException("Unknown or duplicate game_id: "+id);
             if(text(request,"rationale").strip().length()<40||text(request,"comparison").strip().length()<20)throw new IllegalArgumentException("Provide a substantive rationale and comparison");
+            if(!text(game,"status").equals("scheduled")||!Checks.time(text(game,"starts_at")).isAfter(now)){
+                if(!text(request,"decision").equals("NO_BET"))throw new IllegalArgumentException("Started games cannot receive a new pregame TIP");
+                JsonNode previous=null;for(JsonNode prior:day.path("final_tips").path("games"))if(text(prior,"game_id").equals(id))previous=prior;
+                if(previous!=null){ObjectNode retained=previous.deepCopy();retained.put("retained_previous_analysis",true);if(!retained.has("analyzed_at"))retained.set("analyzed_at",day.path("final_tips").path("published_at"));decisions.add(retained);continue;}
+            }
             Set<String> refs=references(game),actual=new HashSet<>();for(JsonNode e:day.path("dataset").path("evidence"))actual.add(text(e,"id"));
             for(String eid:strings(request.path("evidence_ids")))if(!refs.contains(eid)||!actual.contains(eid))throw new IllegalArgumentException("Evidence does not belong to this game: "+eid);
-            ObjectNode decision=request.deepCopy();decision.put("basis_id",gameBasis(game,now));decision.put("chosen_by","CHATGPT");
+            ObjectNode decision=request.deepCopy();decision.put("basis_id",gameBasis(game,now));decision.put("chosen_by","CHATGPT");decision.put("analyzed_at",now.toString());
             if(text(request,"decision").equals("NO_BET")){if(!request.path("candidate_id").isNull())throw new IllegalArgumentException("NO_BET must have candidate_id=null");decision.putNull("candidate");}
             else{
                 if(day.path("dataset").path("synthetic_data").asBoolean())throw new IllegalArgumentException("Cannot publish a real TIP from synthetic data");
