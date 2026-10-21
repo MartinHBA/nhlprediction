@@ -251,3 +251,15 @@ zostáva až do ďalšieho post_tips. Už začaté zápasy si zachovajú skorš�
 Historické podklady obnovuje RepairPublishedDay iba pri presnej zhode fingerprintu
 s publication analysis_id v čase publikácie. --apply vytvorí súkromnú zálohu,
 uloží snapshot a skóre a overí nezmenenosť rozhodnutí GPT.
+
+## Postupné načítanie a SV% od 3.2
+
+GET /api/days/{day}/cards načíta prehľad bez štatistík, dôkazov a skrytých
+zdôvodnení. Po vykreslení kariet browser na pozadí načíta /api/days/{day};
+zhodu podkladov kontroluje data_snapshot_id. Obsah rozbaľovačov sa vytvára až
+pri otvorení. Archív vracia iba malý zoznam dní. Verejné čítanie nič nezapisuje.
+
+Brankárske save_pct_current/prior sú zlomky 0–1 odvodené z NHL game logov pred
+hracím dňom. Sú súčasťou nového zberu a schémy, ale staré nemenné publikácie
+ich nemusia obsahovať. Verzia kolektora 2.4 obnoví cache pri ďalšom importe;
+časovač po publikácii naďalej sťahuje iba skóre.

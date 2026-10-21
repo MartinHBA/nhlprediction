@@ -5,6 +5,7 @@ const path=require('node:path');
 const {JSDOM}=require('jsdom');
 const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');
 const script=fs.readFileSync(path.join(__dirname,'app.js'),'utf8');
+function expand(root){for(const d of root.querySelectorAll('details')){d.prepare?.();d.open=true;}for(const d of root.querySelectorAll('details')){d.prepare?.();d.open=true;}}
 async function boot(dayResponse,status=200,setup=()=>{}){
   const dom=new JSDOM(html,{url:'https://nhl.example/?day=2026-10-20',runScripts:'outside-only'});
   const w=dom.window;
@@ -22,6 +23,45 @@ const fixture=()=>{
   report.games.forEach(g=>{g.p_home_win=.6;g.p_away_win=.4;});
   return {checklist:report.checklist,day:'2026-10-20',state:'COMPLETE',game_count:3,updated_at:new Date().toISOString(),games:dataset.games,evidence:dataset.evidence,report};
 };
+function overview(full){const data=structuredClone(full);data.data_snapshot_id='snapshot-one';data.details_loaded=false;data.games=data.games.map(g=>({game_id:g.game_id,starts_at:g.starts_at,status:g.status,home:{name:g.home.name,goalie:{name:g.home.goalie.name,status:g.home.goalie.status}},away:{name:g.away.name,goalie:{name:g.away.goalie.name,status:g.away.goalie.status}},has_analysis_context:!!g.analysis_context?.length}));return data;}
+
+test('cards and tips render before the delayed statistics, which remain lazy until opened',async()=>{
+ const full=fixture();full.data_snapshot_id='snapshot-one';full.details_loaded=true;
+ publish(full,0,{kind:'total',selection:'under',line:7.5,score_basis:'official_final',odds_type:'QUOTED',odds:1.25});
+ full.games[0].home.goalie.save_pct_current=.925;full.games[0].checks.fields['home.goalie.save_pct_current']={status:'found',note:'NHL shots weighted by appearances'};
+ let respond;const requests=[];
+ const dom=await boot(overview(full),200,w=>{w.fetch=async url=>{requests.push(url);if(url.endsWith('/api/days'))return {ok:true,json:async()=>({days:[]})};if(url.endsWith('/cards'))return {ok:true,json:async()=>overview(full)};return new Promise(resolve=>{respond=resolve;});};});
+ try{
+  const doc=dom.window.document;assert.equal(doc.querySelectorAll('.game-card').length,3);assert.equal(doc.querySelectorAll('.recommendation h3').length,1);assert.equal(doc.querySelectorAll('.field-row').length,0);
+  const panel=doc.querySelector('[data-section="fields"]');panel.open=true;panel.dispatchEvent(new dom.window.Event('toggle'));assert.match(panel.textContent,/Načítavam podrobné/);
+  respond({ok:true,json:async()=>structuredClone(full)});await new Promise(resolve=>setTimeout(resolve,15));
+  const loaded=doc.querySelector('[data-section="fields"]');assert.equal(loaded.open,true);
+  assert.match(loaded.querySelector('[data-field-path="home.goalie.save_pct_current"]').textContent,/92,50\s*%/);
+  assert.equal(doc.querySelectorAll('.game-card')[1].querySelectorAll('.field-row').length,0);
+  assert.equal(requests.filter(u=>u.endsWith('/2026-10-20')).length,1);
+ }finally{dom.window.close();}
+});
+
+test('a failed statistics request leaves cards available and allows retrying the details',async()=>{
+ const full=fixture();full.data_snapshot_id='snapshot-one';full.details_loaded=true;let fail=true;
+ const dom=await boot(overview(full),200,w=>{w.fetch=async url=>{if(url.endsWith('/api/days'))return {ok:true,json:async()=>({days:[]})};if(url.endsWith('/cards'))return {ok:true,json:async()=>overview(full)};if(fail)throw Error('Timed out');return {ok:true,json:async()=>full};};});
+ try{
+  const doc=dom.window.document;assert.equal(doc.querySelectorAll('.game-card').length,3);expand(doc);
+  assert.match(doc.querySelector('[data-section="fields"]').textContent,/nepodarilo/);
+  fail=false;doc.querySelector('.detail-retry').click();await new Promise(resolve=>setTimeout(resolve,20));
+  assert.ok(doc.querySelector('[data-field-path="home.goalie.name"]'));assert.equal(doc.querySelectorAll('.game-card').length,3);
+ }finally{dom.window.close();}
+});
+
+test('statistics from a different analysis snapshot never replace the visible cards',async()=>{
+ const full=fixture();full.data_snapshot_id='different-snapshot';full.games[0].home.goalie.name='Must not leak';
+ const cards=overview(full);let respond;
+ const dom=await boot(cards,200,w=>{w.fetch=async url=>url.endsWith('/api/days')?{ok:true,json:async()=>({days:[]})}:url.endsWith('/cards')?{ok:true,json:async()=>cards}:new Promise(resolve=>{respond=resolve;});});
+ try{
+  respond({ok:true,json:async()=>full});await new Promise(resolve=>setTimeout(resolve,15));const doc=dom.window.document;expand(doc);
+  assert.equal(doc.querySelectorAll('.game-card').length,3);assert.equal(doc.querySelectorAll('.field-row').length,0);assert.match(doc.querySelector('[data-section="fields"]').textContent,/nepodarilo/);
+ }finally{dom.window.close();}
+});
 test('renders research while ignoring all legacy model projections',async()=>{const d=await boot(fixture());try{const doc=d.window.document;assert.equal(doc.querySelectorAll('.game-card').length,3);assert.equal(doc.getElementById('metric-reviewed').textContent,'0');assert.equal(doc.querySelectorAll('.goal-projection,.prob-bar').length,0);assert.doesNotMatch(doc.getElementById('games').textContent,/simulácií|P\(model\)/);assert.equal(doc.querySelectorAll('.market-list,table').length,0);assert.equal(doc.getElementById('day').value,'2026-10-20');}finally{d.window.close();}});
 
 function publish(f,index,candidate,extra={}){
@@ -39,7 +79,7 @@ test('shows the AI choice, rationale and confidence independently of the model p
  publish(f,0,{kind:'handicap',selection:'away',team:'away',line:2.5,score_basis:'official_final',odds_type:'ESTIMATED',estimated_odds:1.25,p_win:.84,p_win_min:.75,minimum_odds_conservative:1/.75,recommendation_status:'PRELIMINARY',confidence:'LOW',confidence_reasons:['ESTIMATED_ODDS_NOT_VERIFIED','HOME_GOALIE_NOT_CONFIRMED'],robust_edge:false});
  const d=await boot(f);try{
   const doc=d.window.document,tip=doc.querySelector('.recommendation');assert.match(tip.textContent,/PREDBEŽNÝ TIP/);assert.match(tip.textContent,/Handicap/);assert.match(tip.textContent,/\+2,5/);assert.doesNotMatch(tip.textContent,/pod 8,5/);assert.match(tip.textContent,/≈1,25/);assert.doesNotMatch(tip.textContent,/84\.0 %|P\(model\)/);assert.match(tip.textContent,/Confidence: nízka/);
-  assert.match(tip.querySelector('.recommendation-confidence').title,/Kvalita analytických/);assert.match(tip.querySelector('.tip-analysis').textContent,/Research podporuje/);
+  assert.match(tip.querySelector('.recommendation-confidence').title,/Kvalita analytických/);expand(tip);assert.match(tip.querySelector('.tip-analysis').textContent,/Research podporuje/);
   assert.equal(doc.querySelectorAll('.recommendation h3').length,1);assert.equal(doc.querySelectorAll('table').length,0);assert.equal(tip.closest('details'),null);
   assert.match(doc.getElementById('status-title').textContent,/Analýza uložená/);assert.match(doc.getElementById('status-detail').textContent,/1,20–1,35: 1/);assert.equal(doc.getElementById('ticket').hidden,true);
   assert.match(doc.querySelectorAll('.recommendation')[1].textContent,/BEZ TIPU/);
@@ -71,7 +111,7 @@ test('does not reuse another day when selected date is absent',async()=>{const d
 test('clears results and exposes backend failure',async()=>{const d=await boot({},503);try{assert.match(d.window.document.getElementById('status-title').textContent,/nepodarilo/);assert.equal(d.window.document.getElementById('metric-reviewed').textContent,'—');}finally{d.window.close();}});
 test('empty official schedule is a successful day, not an error',async()=>{const d=await boot({day:'2026-10-20',state:'NO_GAMES',game_count:0,updated_at:new Date().toISOString(),games:[],evidence:[]});try{assert.match(d.window.document.getElementById('games').textContent,/Dnes má ľad voľno/);assert.equal(d.window.document.getElementById('metric-games').textContent,'0');}finally{d.window.close();}});
 test('research text is rendered safely and unsafe source links are omitted',async()=>{const f=fixture();f.games[0].away.name='<img src=x onerror=alert(1)>';f.evidence[0].url='javascript:alert(1)';const d=await boot(f);try{assert.equal(d.window.document.querySelector('.team.away').querySelectorAll('img').length,0);assert.equal(d.window.document.querySelectorAll('a[href^="javascript:"]').length,0);assert.match(d.window.document.getElementById('games').textContent,/<img src=x/);for(const image of d.window.document.querySelectorAll('#games img'))assert.match(image.getAttribute('src'),/^assets\/teams\/[A-Z]{3}\.svg$/);}finally{d.window.close();}});
-test('missing analytical data stays visible without blocking a Java model',async()=>{const f=fixture();f.state='COLLECTING';f.games[0].home.current.xgf_5v5_per60=null;f.games[0].checks.fields['home.current.xgf_5v5_per60']={status:'unavailable',note:'Source does not publish it'};const d=await boot(f);try{const doc=d.window.document;assert.match(doc.getElementById('status-title').textContent,/finálnu analýzu/);assert.equal(doc.querySelectorAll('.goal-projection,.prob-bar').length,0);assert.equal(doc.getElementById('metric-reviewed').textContent,'0');assert.match(doc.querySelector('[data-field-path="home.current.xgf_5v5_per60"]').textContent,/N\/A/);}finally{d.window.close();}});
+test('missing analytical data stays visible without blocking a Java model',async()=>{const f=fixture();f.state='COLLECTING';f.games[0].home.current.xgf_5v5_per60=null;f.games[0].checks.fields['home.current.xgf_5v5_per60']={status:'unavailable',note:'Source does not publish it'};const d=await boot(f);try{const doc=d.window.document;assert.match(doc.getElementById('status-title').textContent,/finálnu analýzu/);assert.equal(doc.querySelectorAll('.goal-projection,.prob-bar').length,0);assert.equal(doc.getElementById('metric-reviewed').textContent,'0');expand(doc);assert.match(doc.querySelector('[data-field-path="home.current.xgf_5v5_per60"]').textContent,/N\/A/);}finally{d.window.close();}});
 test('closed unavailable checks never display as 100 percent available data',async()=>{const f=fixture();f.coverage={field_total:246,field_found:0,field_found_pct:0,critical_found:0,critical_total:96,critical_ready_games:0,scheduled_games:3,checklist_closed:276,checklist_total:276,games:[]};const d=await boot(f);try{const doc=d.window.document;assert.equal(doc.getElementById('metric-checks').textContent,'0 %');assert.match(doc.getElementById('coverage-detail').textContent,/276 \/ 276/);assert.match(doc.getElementById('coverage-detail').textContent,/0 \/ 246/);}finally{d.window.close();}});
 test('prefill state hides old projections and shows source warnings safely',async()=>{const f=fixture();f.state='PREFILLING';f.enrichment={warnings:['<b>Source delayed</b>']};const d=await boot(f);try{const doc=d.window.document;assert.match(doc.getElementById('status-title').textContent,/Načítavam štatistiky/);assert.equal(doc.querySelectorAll('.goal-projection').length,0);assert.equal(doc.querySelectorAll('#import-warning-list b').length,0);assert.match(doc.getElementById('import-warning-list').textContent,/Source delayed/);}finally{d.window.close();}});
 test('all NHL logos are available locally and failed images fall back to team code',async()=>{const f=fixture(),codes=['BOS','COL','MTL','SJS','UTA','SEA'];f.games.forEach((g,i)=>{g.home.name=codes[2*i];g.away.name=codes[2*i+1];});const d=await boot(f);try{const doc=d.window.document,images=doc.querySelectorAll('.team-logo');assert.equal(images.length,6);assert.equal(fs.readdirSync(path.join(__dirname,'assets/teams')).filter(f=>f.endsWith('.svg')).length,32);for(const img of images)assert.ok(fs.existsSync(path.join(__dirname,img.getAttribute('src'))));const img=images[0],parent=img.parentElement;img.dispatchEvent(new d.window.Event('error'));assert.equal(parent.querySelector('img'),null);assert.match(parent.textContent,/^[A-Z]{3}$/);}finally{d.window.close();}});
@@ -112,7 +152,7 @@ test('changed data updates only affected cards and preserves expanded details',a
  const {dom,data,next}=await pollingPage();
  try{
   const doc=dom.window.document,before=[...doc.querySelectorAll('.game-card')];
-  before[0].querySelectorAll('details').forEach(detail=>{detail.open=true;});
+  expand(before[0]);
   const changed=structuredClone(data);changed.games[0].home.goalie.name="Updated goalie";changed.enrichment={warnings:['Source delayed']};
   dom.window.fetch=async()=>({ok:true,json:async()=>changed});
   await next().run();
@@ -183,7 +223,7 @@ test('published predictions and reviewed counts survive final games with scores 
 test('statistics have one disclosure in the requested order with sticky team labels',async()=>{
  const f=fixture();f.publication={frozen:false,snapshot_available:false};f.games[0].analysis_context=[{topic:'Zostavy',summary:'Aktuálne informácie k zostavám.'}];const d=await boot(f);try{
   const doc=d.window.document,card=doc.querySelector('.game-card'),fields=card.querySelector('[data-section="fields"]');
-  assert.equal(card.querySelector('[data-section="critical"]'),null);
+  expand(card);assert.equal(card.querySelector('[data-section="critical"]'),null);
   assert.deepEqual([...card.querySelectorAll(':scope > details > summary')].map(n=>n.textContent),['Dáta','Doplňujúci research']);
   assert.deepEqual([...fields.querySelectorAll('.field-group>summary')].map(n=>n.textContent),['Brankár','Zostava','Oddych a cestovanie','Aktuálna sezóna','Minulá sezóna']);
   assert.equal(fields.querySelectorAll('.comparison-team').length,2);
@@ -206,6 +246,6 @@ test('new GPT publication reloads statistics exactly once after live snapshot si
  const {dom,data,next}=await pollingPage();try{
   data.publication={frozen:true,snapshot_available:true,published_at:'2026-10-20T21:16:00Z'};dom.window.fetch=async()=>({ok:true,json:async()=>structuredClone(data)});await next().run();
   const updated=structuredClone(data);updated.publication.published_at='2026-10-20T22:00:00Z';updated.games[0].home.goalie.name='New publication goalie';const requests=[];
-  dom.window.fetch=async url=>{requests.push(url);return {ok:true,json:async()=>url.endsWith('/live')?{day:data.day,publication:updated.publication}:updated};};await next().run();assert.equal(requests.length,2);assert.match(requests[0],/\/live$/);assert.match(dom.window.document.querySelector('.game-card').textContent,/New publication goalie/);
+  dom.window.fetch=async url=>{requests.push(url);return {ok:true,json:async()=>url.endsWith('/live')?{day:data.day,publication:updated.publication}:updated};};await next().run();assert.equal(requests.length,2);assert.match(requests[0],/\/live$/);expand(dom.window.document);assert.match(dom.window.document.querySelector('.game-card').textContent,/New publication goalie/);
  }finally{dom.window.close();}
 });

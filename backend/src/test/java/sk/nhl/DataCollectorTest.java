@@ -10,6 +10,24 @@ import static org.junit.jupiter.api.Assertions.*;
 import static sk.nhl.Json.*;
 
 class DataCollectorTest {
+    @Test void savePercentageUsesShotsAcrossStartsAndReliefBeforeTheCutoff(){
+        JsonNode log=obj("gameLog",List.of(
+            obj("gameId","1","gameDate","2026-10-17","gamesStarted",1,"shotsAgainst",30,"goalsAgainst",3),
+            obj("gameId","2","gameDate","2026-10-18","gamesStarted",0,"shotsAgainst",10,"goalsAgainst",0),
+            obj("gameId","3","gameDate","2026-10-20","gamesStarted",1,"shotsAgainst",50,"goalsAgainst",50)));
+        var result=DataCollector.goaliePeriod(List.of(),log,2026,LocalDate.parse("2026-10-20"),"current");
+        assertEquals(.925,result.path("values").path("save_pct_current").asDouble(),1e-12);
+        assertEquals(1,result.path("values").path("starts_current").asInt());
+        assertTrue(text(result.path("notes"),"save_pct_current").contains("including relief"));
+        ((ObjectNode)log.path("gameLog").get(1)).remove("shotsAgainst");
+        assertFalse(DataCollector.goaliePeriod(List.of(),log,2026,LocalDate.parse("2026-10-20"),"current").path("values").has("save_pct_current"));
+    }
+    @Test void savePercentageNeverInventsAValueWithoutValidShots(){
+        for(JsonNode game:List.of(obj("shotsAgainst",0,"goalsAgainst",0),obj("shotsAgainst",10,"goalsAgainst",11),obj("shotsAgainst",20,"goalsAgainst",-1))){
+            ObjectNode g=(ObjectNode)game;g.put("gameId","1").put("gameDate","2026-10-17").put("gamesStarted",1);
+            assertFalse(DataCollector.goaliePeriod(List.of(),obj("gameLog",arr().add(g)),2026,LocalDate.parse("2026-10-20"),"prior").path("values").has("save_pct_prior"));
+        }
+    }
     static String header="team,season,gameId,gameDate,situation,iceTime,xGoalsFor,xGoalsAgainst,penaltiesFor,penaltiesAgainst,shotsOnGoalFor,shotsOnGoalAgainst,highDangerShotsFor,highDangerShotsAgainst\n";
     static String gameRows(String team,int season,String date,int number){String id=season+"02"+String.format("%04d",number);return team+","+season+","+id+","+date+",all,3600,4,3,3,5,30,25,8,7\n"+team+","+season+","+id+","+date+",5on5,2400,2,1,0,0,20,18,6,4\n"+team+","+season+","+id+","+date+",5on4,300,1,0,0,0,4,0,1,0\n"+team+","+season+","+id+","+date+",4on5,600,0,2,0,0,0,4,0,2\n";}
     static ObjectNode official(String id,String day,String time,String zone){return obj("id",id,"gameType",2,"gameDate",day,"startTimeUTC",time,"gameState","OFF","venueTimezone",zone,"homeTeam",obj("abbrev","BOS","score",3),"awayTeam",obj("abbrev","COL","score",2),"gameOutcome",obj("lastPeriodType","REG"));}

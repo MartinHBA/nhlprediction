@@ -69,7 +69,7 @@ final class Workflow {
     ObjectNode saveGame(String day,JsonNode game,JsonNode evidence,int expectedRevision){
         Schedule.day(day);ObjectNode before=require(day);if(before.path("revision").asInt()!=expectedRevision||List.of("PREFILLING","RUNNING","QUEUED").contains(text(before,"state")))throw new BusyException();
         ObjectNode enriched=obj("games",List.of(game.deepCopy()),"evidence",evidence.deepCopy());
-        if(collector!=null)for(JsonNode old:before.path("dataset").path("games"))if(text(old,"game_id").equals(text(game,"game_id")))for(String side:List.of("home","away"))if(!at(old,side+".goalie.name").equals(at(game,side+".goalie.name"))){ObjectNode incoming=(ObjectNode)enriched.path("games").get(0);for(String f:List.of("starts_current","starts_prior","gsax_per60_current","gsax_per60_prior")){String p=side+".goalie."+f;if(old.path("checks").path("fields").path(p).equals(game.path("checks").path("fields").path(p))){((ObjectNode)incoming.path(side).path("goalie")).putNull(f);((ObjectNode)incoming.path("checks").path("fields")).set(p,Schedule.check());}}}
+        if(collector!=null)for(JsonNode old:before.path("dataset").path("games"))if(text(old,"game_id").equals(text(game,"game_id")))for(String side:List.of("home","away"))if(!at(old,side+".goalie.name").equals(at(game,side+".goalie.name"))){ObjectNode incoming=(ObjectNode)enriched.path("games").get(0);for(String f:Checks.GOALIE_HISTORY){String p=side+".goalie."+f;if(old.path("checks").path("fields").path(p).equals(game.path("checks").path("fields").path(p))){((ObjectNode)incoming.path(side).path("goalie")).putNull(f);((ObjectNode)incoming.path("checks").path("fields")).set(p,Schedule.check());}}}
         ObjectNode goalieImport=collector==null?obj("warnings",arr()):collector.enrichGoalies(day,enriched);
         JsonNode savedGame=enriched.path("games").get(0),savedEvidence=enriched.path("evidence");
         return store.locked("day/"+Schedule.day(day),()->{
@@ -136,7 +136,27 @@ final class Workflow {
         if(text(job,"kind").equals("prefill"))prefill(job);
         // Old queued prediction jobs are deliberately discarded after migration. No model exists.
     }
-    ObjectNode read(String day){ObjectNode d=require(day);JsonNode data=Publication.data(d);ObjectNode out=summary(d);out.set("checklist",Checks.audit(data));out.set("evidence",data.path("evidence"));out.set("games",data.path("games"));return out;}
+    ObjectNode read(String day){return read(require(day));}
+    ObjectNode read(ObjectNode d){restoreSnapshot(d);migrate(d);JsonNode data=Publication.data(d);ObjectNode out=summary(d);out.put("data_snapshot_id",webSnapshot(d));out.put("details_loaded",true);out.set("checklist",Checks.audit(data));out.set("evidence",data.path("evidence"));out.set("games",data.path("games"));return out;}
+    static String webSnapshot(JsonNode d){return OAuth.hash(Publication.exists(d)?text(d,"final_tips.published_at")+"|"+text(d,"final_tips.analysis_id"):text(d,"revision")+"|"+text(d,"updated_at")+"|"+text(d,"state"));}
+    ObjectNode readCards(ObjectNode d){
+        restoreSnapshot(d);migrate(d);ObjectNode out=summary(d);out.put("data_snapshot_id",webSnapshot(d));out.put("details_loaded",false);
+        ArrayNode cards=arr();for(JsonNode game:Publication.data(d).path("games")){
+            ObjectNode card=obj("game_id",game.path("game_id"),"starts_at",game.path("starts_at"),"status",game.path("status"),"has_analysis_context",!game.path("analysis_context").isEmpty());
+            for(String side:List.of("home","away")){
+                JsonNode goalie=game.path(side).path("goalie");
+                card.set(side,obj("name",game.path(side).path("name"),"goalie",obj("name",goalie.path("name"),"status",goalie.path("status"))));
+            }
+            cards.add(card);
+        }
+        out.set("games",cards);out.set("enrichment",obj("warnings",out.path("enrichment").path("warnings")));
+        for(JsonNode decision:out.path("final_tips").path("games")){
+            ((ObjectNode)decision).remove(List.of("comparison","risks","evidence_ids"));
+            if(text(decision,"decision").equals("TIP"))((ObjectNode)decision).remove("rationale");
+            if(decision.path("candidate").isObject()){ObjectNode quote=(ObjectNode)decision.path("candidate");quote.retain("kind","selection","line","team","score_basis","price","odds","estimated_odds","odds_type","confidence");}
+        }
+        return out;
+    }
     ObjectNode readLive(String day){ObjectNode d=require(day);return obj("day",day,"state",d.path("state"),"revision",d.path("revision"),"publication",Publication.info(d),"scoreboard",d.path("scoreboard"),"final_tips",Tips.view(d,Instant.now()));}
     ObjectNode summary(JsonNode input){
         ObjectNode d=migrate(input.deepCopy());restoreSnapshot(d);JsonNode data=Publication.data(d);
@@ -173,7 +193,7 @@ final class Workflow {
         if(resume&&Checks.audit(data).path("complete").asBoolean())return finish(day);
         return summary(saved);
     }
-    ArrayNode archive(){ArrayNode a=arr();store.keys("days/").stream().filter(k->k.matches("days/\\d{4}-\\d{2}-\\d{2}\\.json")).sorted(Comparator.reverseOrder()).limit(120).forEach(k->{ObjectNode d=store.get(k);if(d!=null)a.add(summary(d));});return a;}
+    ArrayNode archive(){ArrayNode a=arr();store.keys("days/").stream().filter(k->k.matches("days/\\d{4}-\\d{2}-\\d{2}\\.json")).sorted(Comparator.reverseOrder()).limit(120).forEach(k->{ObjectNode d=store.get(k);if(d!=null){migrate(d);a.add(obj("day",d.path("day"),"state",d.path("state"),"game_count",Publication.data(d).path("games").size(),"updated_at",d.path("updated_at")));}});return a;}
     ObjectNode candidates(String day,String gameId){return Tips.candidates(require(day),gameId,Instant.now());}
     ObjectNode postTips(String day,JsonNode args){
         Tips.validateInput(args);

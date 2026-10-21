@@ -58,9 +58,9 @@ Počas `PREFILLING` sa čaká len na zdrojový import.
 
 ## Dáta pre analytika
 
-Každý zápas má 82 kontrolovaných polí pre oba tímy: minulé/aktuálne počty zápasov,
+Každý nový zápas má 86 kontrolovaných polí pre oba tímy: minulé/aktuálne počty zápasov,
 points%, 5v5 xGF/xGA za 60 minút, PP/PK xG, disciplínu, strely, high-danger metriky,
-meno a potvrdenie brankára, štarty a GSAx/60, absencie, návraty, scratches, formácie,
+meno a potvrdenie brankára, štarty, GSAx/60 a SV% za obe sezóny, absencie, návraty, scratches, formácie,
 obranné páry, PP jednotky, oddych a časové pásma. Každý údaj má kontroly a dôkazy.
 
 Povinné polia neurčujú požiadavku na Java predikciu. `unavailable` s konkrétnym
@@ -68,7 +68,7 @@ dôvodom uzavrie poctivú kontrolu, ale nezvýši počet dostupných údajov. GP
 či medzera bráni konkrétnemu tipu. Nepreverené `not_checked` a chybné dôkazy
 blokujú uzavretie researchu a finálnu publikáciu.
 
-Dodatočné doložené informácie (napr. SV%, posledné zápasy, sila súperov či oddych
+Dodatočné doložené informácie (napr. posledné zápasy, sila súperov či oddych
 brankára) možno uložiť do `analysis_context: [{topic, summary, evidence_ids}]`.
 Nedopĺňajú sa vymyslené číselné vplyvy. Schéma je v
 `backend/src/main/resources/schema.json` a cez `get_schema`.
@@ -77,7 +77,7 @@ Nedopĺňajú sa vymyslené číselné vplyvy. Schéma je v
 
 | Zdroj | Použitie |
 | --- | --- |
-| NHL API | Oficiálny program, presné ID/tímy/UTC časy, game logy a štarty brankárov |
+| NHL API | Oficiálny program, presné ID/tímy/UTC časy, game logy, štarty a SV% brankárov |
 | [mattkravec/moneypuck-data](https://github.com/mattkravec/moneypuck-data/releases/tag/data-v2) | Parquet história tímových zápasov a záložné brankárske súhrny |
 | [NHL-Totals-Lab-Data](https://github.com/adanielmendozaz-glitch/NHL-Totals-Lab-Data) | Brankárske exporty v JSON feede |
 | NHL/DraftKings partner feed | Skutočne publikované predzápasové kurzy |
@@ -88,7 +88,12 @@ Aktuálne exporty musia mať publikáciu najviac 48 hodín starú; cache najviac
 nesprávna sezóna a nezhodné vzorky sa nepoužijú ako overené údaje.
 
 xG/60 používa správny situačný čas (5v5, 5v4, 4v5). Štarty nie sú vystúpenia;
-GSAx/60 sa odvodzuje z overenej histórie a času na ľade. Tieto prepočty vstupných
+GSAx/60 sa odvodzuje z overenej histórie a času na ľade. SV% je podiel súčtu
+zákrokov a striel proti brankárovi zo všetkých vystúpení pred NHL dňom vrátane
+striedaní, nie priemer zápasových percent. V API je `save_pct_current/prior`
+zlomok 0–1; web ho zobrazí ako percento. Pri chýbajúcich dátach alebo nulovom
+počte striel zostáva N/A. Historické publikované snapshoty sa spätne nedopĺňajú.
+Tieto prepočty vstupných
 štatistík sú opis historických dát, nie predikčný model. Oddych = rozdiel dátumov
 mínus jeden; cestovanie je proxy rozdielu UTC posunov arén, nie sledovanie letu.
 Pri zmene mena brankára sa história overí pre správnu osobu. Probable sa tým
@@ -155,14 +160,18 @@ od výsledku vrátane OT/SO. Pri neznámom podklade je UNAVAILABLE, nie vymyslen
 vyhodnotenie. NO_BET zápasy ukážu iba skóre. Počítadlo vyhodnotených GPT zahŕňa
 všetky uložené rozhodnutia aj po začiatku a konci zápasov.
 
+Verejné /api/days/{day}/cards vracia malý prehľad kariet, tipov a skóre.
+Browser ho zobrazí ako prvý; až po vykreslení načíta kompletné údaje z
+/api/days/{day}. Tie sa musia zhodovať podľa data_snapshot_id. Rozbalené detaily
+sa vytvoria až pri otvorení; chyba detailov neodstráni karty a umožní opakovanie.
 Verejné /api/days/{day} vracia zmrazené štatistiky s oddeleným scoreboard.
 Browser po publikovaní každých päť minút načíta iba /api/days/{day}/live;
 štatistiky znovu stiahne až po novej publikácii alebo ručnom obnovení.
 Po konečnom skóre všetkých zápasov tiché kontroly prestanú. Skryté karty
 sa preskakujú a rozbalené detaily zostávajú otvorené.
 
-Web zachováva oficiálne logá všetkých 32 tímov. Pod Kontroly a trhy je jediná
-sekcia Dostupné polia, v poradí **Brankár, Zostava, Oddych a cestovanie,
+Web zachováva oficiálne logá všetkých 32 tímov. Karta má sekcie Dáta
+a Doplňujúci research. Dáta majú poradie **Brankár, Zostava, Oddych a cestovanie,
 Aktuálna sezóna, Minulá sezóna**. Metriky sú vedľa seba za oba tímy;
 skratky tímov sú počas scrollovania v rozbalených štatistikách pripnuté.
 Zdrojové poznámky fungujú na hover/focus/tap; samostatný zoznam URL nie je v karte.

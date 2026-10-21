@@ -6,7 +6,7 @@ import java.util.*;
 import static sk.nhl.Json.*;
 
 final class Mcp {
-    static final String VERSION="3.1.0";
+    static final String VERSION="3.2.0";
     final Workflow workflow;
     static final String INSTRUCTIONS="""
         You are the NHL research agent AND the final prediction analyst. Azure is DATA ONLY: it collects
@@ -17,7 +17,7 @@ final class Mcp {
         native market records and checks. Research current goalies, injuries, lineups, special teams and
         context. Probable is not confirmed. Save optional sourced analysis_context and exact newly researched
         bookmaker markets with evidence_ids through save_game. Never invent quotes, confirmations or sources.
-        Save sequentially with current revision. Clear stale starts/gsax after changing goalie identity.
+        Save sequentially with current revision. Clear stale starts/gsax/SV% after changing goalie identity.
         Repair check_day and call finalize_day WITHOUT sims: this only validates/completes research synchronously.
         Get get_analysis for the complete data snapshot (get_candidates is a compatibility alias).
         Evaluate all offered types using strategy, sources and actual current data. You decide the final TIP

@@ -15,7 +15,7 @@ import static sk.nhl.Json.*;
 
 /** Deterministic, date-bounded import of published MoneyPuck downloads and official NHL data. No LLM calls. */
 final class DataCollector {
-    static final String VERSION="2.3.0";
+    static final String VERSION="2.4.0";
     static final String BULK_TEAMS="https://moneypuck.com/moneypuck/playerData/careers/gameByGame/all_teams.csv";
     record Download(String content,String url,String checkedAt) {}
     interface Fetcher { Download get(String url); }
@@ -40,12 +40,13 @@ final class DataCollector {
         LocalDate date=LocalDate.parse(Schedule.day(day));ObjectNode data=input.deepCopy();ArrayNode warnings=arr(),sources=arr();ObjectNode locked=obj();Set<String> teams=new LinkedHashSet<>();
         // A failed refresh must not relabel old native values as a successful current import.
         for(JsonNode game:data.path("games"))if(text(game,"status").equals("scheduled"))for(String side:List.of("home","away")){
+            for(String period:List.of("current","prior")){String field="save_pct_"+period,path=side+".goalie."+field;if(!game.path(side).path("goalie").has(field))((ObjectNode)game.path(side).path("goalie")).putNull(field);if(!game.path("checks").path("fields").has(path))((ObjectNode)game.path("checks").path("fields")).set(path,Schedule.check());}
             for(String period:List.of("current","prior")){
                 for(String field:Checks.STATS)clearNative((ObjectNode)game,side+"."+period+"."+field);
                 ((ObjectNode)game.path(side).path(period).path("source")).put("status","unverified");
             }
             for(String field:Checks.CONTEXT)clearNative((ObjectNode)game,side+".context."+field);
-            for(String field:List.of("starts_current","starts_prior","gsax_per60_current","gsax_per60_prior"))clearNative((ObjectNode)game,side+".goalie."+field);
+            for(String field:Checks.GOALIE_HISTORY)clearNative((ObjectNode)game,side+".goalie."+field);
         }
         for(JsonNode game:data.path("games"))if(text(game,"status").equals("scheduled"))for(String side:List.of("home","away"))teams.add(text(game,side+".name"));
         Map<String,ObjectNode> fragments=new HashMap<>();
@@ -178,9 +179,10 @@ final class DataCollector {
                 JsonNode history=histories.get(normalize(name));if(history==null)continue;
                 for(String period:List.of("prior","current")){
                     JsonNode p=history.path(period);for(JsonNode evidence:p.path("evidence"))mergeEvidence(dataset,evidence);
-                    if(p.path("values").path("starts_"+period).asInt()>0&&!p.path("values").has("gsax_per60_"+period)){warnings.add(name+"/"+period+": MoneyPuck goalie coverage does not match NHL appearances; positive starts and GSAx were not imported separately.");continue;}
-                    for(String field:List.of("starts_"+period,"gsax_per60_"+period))if(p.path("values").has(field)){
-                        JsonNode e=p.path("evidence").get(field.startsWith("starts")?0:1);set((ObjectNode)g,side+".goalie."+field,p.path("values").path(field),e,text(p.path("notes"),field),arr());
+                    boolean missingGsax=p.path("values").path("starts_"+period).asInt()>0&&!p.path("values").has("gsax_per60_"+period);
+                    if(missingGsax)warnings.add(name+"/"+period+": MoneyPuck goalie coverage does not match NHL appearances; positive starts and GSAx were not imported separately. NHL SV% remains independent.");
+                    for(String field:List.of("starts_"+period,"gsax_per60_"+period,"save_pct_"+period))if(p.path("values").has(field)&&(!missingGsax||field.startsWith("save_pct"))){
+                        JsonNode e=p.path("evidence").get(field.startsWith("gsax")?1:0);set((ObjectNode)g,side+".goalie."+field,p.path("values").path(field),e,text(p.path("notes"),field),arr());
                     }
                 }
             }catch(RuntimeException e){warnings.add(name+": goalie history import failed: "+rootMessage(e));}
@@ -205,8 +207,9 @@ final class DataCollector {
             }catch(RuntimeException ignored){ /* Retain exact NHL reconciliation and the date-bounded fallback. */ }
             // Historical days and lagging summaries require date-filtered game-by-game data.
             if(part.path("values").path("starts_"+period).asInt()>0&&!part.path("values").has("gsax_per60_"+period)){
-                if(rows==null){career=fetch.get("https://moneypuck.com/moneypuck/playerData/careers/gameByGame/regular/goalies/"+id+".csv");rows=Csv.read(career.content);}
-                part=goaliePeriod(rows,log,s,LocalDate.parse(day),period);mpEvidence=evidence(career,"mp-goalie-"+id);
+                try{if(rows==null){career=fetch.get("https://moneypuck.com/moneypuck/playerData/careers/gameByGame/regular/goalies/"+id+".csv");rows=Csv.read(career.content);}
+                    part=goaliePeriod(rows,log,s,LocalDate.parse(day),period);mpEvidence=evidence(career,"mp-goalie-"+id);
+                }catch(RuntimeException unavailable){cacheable=false; /* Keep independently available NHL starts and SV%. */}
                 if(!part.path("values").has("gsax_per60_"+period))cacheable=false;
             }
             part.set("evidence",M.valueToTree(List.of(evidence(nhl,"nhl-goalie-"+id+"-"+period),mpEvidence)));result.set(period,part);
@@ -233,9 +236,16 @@ final class DataCollector {
     }
     static ObjectNode goaliePeriod(List<Map<String,String>>rows,JsonNode log,int season,LocalDate day,String period){
         if(!log.path("gameLog").isArray())throw new IllegalArgumentException("NHL goalie gameLog absent; cannot infer zero starts");
-        Set<String>ids=new HashSet<>();int starts=0;boolean known=true;
-        for(JsonNode g:log.path("gameLog"))if(LocalDate.parse(text(g,"gameDate")).isBefore(day)){if(!ids.add(text(g,"gameId")))throw new IllegalArgumentException("Duplicate NHL goalie game");if(!g.path("gamesStarted").isIntegralNumber()||g.path("gamesStarted").asInt()<0||g.path("gamesStarted").asInt()>1)known=false;else starts+=g.path("gamesStarted").asInt();}
+        Set<String>ids=new HashSet<>();int starts=0;boolean known=true,shotsKnown=true;long shots=0,goalsAgainst=0;
+        for(JsonNode g:log.path("gameLog"))if(LocalDate.parse(text(g,"gameDate")).isBefore(day)){
+            if(!ids.add(text(g,"gameId")))throw new IllegalArgumentException("Duplicate NHL goalie game");
+            if(!g.path("gamesStarted").isIntegralNumber()||g.path("gamesStarted").asInt()<0||g.path("gamesStarted").asInt()>1)known=false;else starts+=g.path("gamesStarted").asInt();
+            JsonNode sa=g.path("shotsAgainst"),ga=g.path("goalsAgainst");
+            if(!sa.isIntegralNumber()||!ga.isIntegralNumber()||sa.asLong()<0||ga.asLong()<0||ga.asLong()>sa.asLong())shotsKnown=false;
+            else{shots+=sa.asLong();goalsAgainst+=ga.asLong();}
+        }
         ObjectNode values=obj(),notes=obj();if(known){values.put("starts_"+period,starts);notes.put("starts_"+period,"NHL gamesStarted summed before "+day+"; season="+season+", appearances="+ids.size()+", starts="+starts+". Appearances are not substituted for starts.");}
+        if(shotsKnown&&shots>0){values.put("save_pct_"+period,(double)(shots-goalsAgainst)/shots);notes.put("save_pct_"+period,"NHL regular-season gameLog before "+day+"; season="+season+", appearances="+ids.size()+" including relief; SV%=(sum(shotsAgainst) - sum(goalsAgainst))/sum(shotsAgainst)=("+shots+" - "+goalsAgainst+")/"+shots+". Shot-weighted fraction 0..1, not an average of per-game percentages; no empty-net or shootout goals added.");}
         List<Map<String,String>>selected=rows.stream().filter(r->Integer.toString(season).equals(r.get("season"))&&"all".equals(r.get("situation"))&&LocalDate.parse(r.get("gamedate"),DateTimeFormatter.BASIC_ISO_DATE).isBefore(day)).toList();
         if(!ids.isEmpty()&&sameGames(selected,ids)){
             Double xg=sum(selected,"xgoals"),goals=sum(selected,"goals"),seconds=sum(selected,"icetime");

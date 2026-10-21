@@ -251,6 +251,18 @@
           ],
           "minimum": 0
         },
+        "save_pct_current": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "NHL regular-season saves / shotsAgainst before the NHL day; fraction 0..1, including relief appearances."
+        },
+        "save_pct_prior": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Previous NHL regular-season saves / shotsAgainst before the NHL day; fraction 0..1."
+        },
         "gsax_per60_current": {
           "type": [
             "number",

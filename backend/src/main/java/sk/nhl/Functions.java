@@ -44,13 +44,17 @@ public final class Functions {
                 ObjectNode result=Services.MCP.handle(input);return response(request,result==null?202:200,result);
             }
             if(method.equals("GET")&&path.equals("/api/days"))return response(request,200,obj("days",Services.WORKFLOW.archive()));
+            if(method.equals("GET")&&path.matches("/api/days/\\d{4}-\\d{2}-\\d{2}/cards")){
+                String day=path.substring(10,20);ObjectNode d=Services.STORE.get("days/"+day+".json");if(d==null)return response(request,404,obj("error","Day has not been collected yet"));
+                return response(request,200,Services.WORKFLOW.readCards(d));
+            }
             if(method.equals("GET")&&path.matches("/api/days/\\d{4}-\\d{2}-\\d{2}/live")){
                 String day=path.substring(10,20);if(Services.STORE.get("days/"+day+".json")==null)return response(request,404,obj("error","Day has not been collected yet"));
                 return response(request,200,Services.WORKFLOW.readLive(day));
             }
             if(method.equals("GET")&&path.matches("/api/days/\\d{4}-\\d{2}-\\d{2}")){
-                String day=path.substring(10);if(Services.STORE.get("days/"+day+".json")==null)return response(request,404,obj("error","Day has not been collected yet","day",day));
-                return response(request,200,Services.WORKFLOW.read(day));
+                String day=path.substring(10);ObjectNode d=Services.STORE.get("days/"+day+".json");if(d==null)return response(request,404,obj("error","Day has not been collected yet","day",day));
+                return response(request,200,Services.WORKFLOW.read(d));
             }
             if(method.equals("GET")&&path.equals("/api/schema"))return response(request,200,resource("schema.json"));
             return response(request,404,obj("error","Not found"));

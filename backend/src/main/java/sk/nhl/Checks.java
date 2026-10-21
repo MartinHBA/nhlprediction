@@ -9,7 +9,10 @@ import static sk.nhl.Json.*;
 
 final class Checks {
     static final List<String> STATS=List.of("games","points_pct","xgf_5v5_per60","xga_5v5_per60","pp_xgf_per60","pk_xga_per60","pp_drawn_per_game","penalties_taken_per_game","shots_for_per_game","shots_against_per_game","high_danger_for_per60","high_danger_against_per60");
-    static final List<String> GOALIE=List.of("name","status","starts_current","starts_prior","gsax_per60_current","gsax_per60_prior");
+    static final List<String> GOALIE_HISTORY=List.of("starts_current","starts_prior","gsax_per60_current","gsax_per60_prior","save_pct_current","save_pct_prior");
+    static final List<String> GOALIE=List.of("name","status","starts_current","starts_prior","gsax_per60_current","gsax_per60_prior","save_pct_current","save_pct_prior");
+    // Older published snapshots keep their original checklist and are never backfilled on a public read.
+    static List<String> paths(JsonNode game){return PATHS.stream().filter(p->!p.contains(".goalie.save_pct_")||!at(game,p).isMissingNode()||game.path("checks").path("fields").has(p)).toList();}
     static final List<String> ROSTER=List.of("quantified","attack_delta_goals","defense_delta_goals_allowed","absences","returns","scratches","forward_lines","defense_pairs","power_play_units");
     static final List<String> CONTEXT=List.of("rest_days","travel_timezones");
     static final List<String> SEARCHES=List.of("total_over","total_under","handicap_home","handicap_away","moneyline_home","moneyline_away","regulation_1x2","double_chance","team_total_under","team_total_over_other");
@@ -97,7 +100,7 @@ final class Checks {
             ArrayNode unchecked=arr(),unavailable=arr(),missing=arr(),marketUnchecked=arr(),local=arr();
             if(!text(g,"status").equals("scheduled")) { games.add(obj("game_id",text(g,"game_id"),"status","SKIPPED_ALREADY_STARTED","unchecked",unchecked,"unavailable",unavailable,"missing_core_fields",missing,"market_categories_unchecked",marketUnchecked,"issues",local,"checked_count",0));continue; }
             Instant start=time(text(g,"starts_at")); Instant limit=cutoff.isBefore(start)?cutoff:start;
-            for(String p:PATHS) {
+            for(String p:paths(g)) {
                 JsonNode v=at(g,p),c=g.path("checks").path("fields").path(p);
                 check(p,c,v,evidence,limit,unchecked,unavailable,local,counts);
                 if(REQUIRED.contains(p)&&(Json.missing(v)||!text(c,"status").equals("found")))missing.add(p);
@@ -112,7 +115,7 @@ final class Checks {
             g.path("checks").path("market_searches").fieldNames().forEachRemaining(k->{if(!SEARCHES.contains(k))local.add(k+": UNKNOWN_MARKET_CATEGORY");});
             for(JsonNode issue:local)issues.add(text(g,"game_id")+": "+issue.asText());
             long fieldUnchecked=strings(unchecked).stream().filter(x->!x.startsWith("market_searches.")).count();
-            games.add(obj("game_id",text(g,"game_id"),"status",missing.isEmpty()&&unchecked.isEmpty()&&local.isEmpty()?"CORE_DATA_AVAILABLE":"INCOMPLETE","unchecked",unchecked,"unavailable",unavailable,"missing_core_fields",missing,"market_categories_unchecked",marketUnchecked,"issues",local,"checked_count",PATHS.size()-(int)fieldUnchecked));
+            games.add(obj("game_id",text(g,"game_id"),"status",missing.isEmpty()&&unchecked.isEmpty()&&local.isEmpty()?"CORE_DATA_AVAILABLE":"INCOMPLETE","unchecked",unchecked,"unavailable",unavailable,"missing_core_fields",missing,"market_categories_unchecked",marketUnchecked,"issues",local,"checked_count",paths(g).size()-(int)fieldUnchecked));
         }
         return obj("games",games,"found_total",counts[0],"unavailable_total",counts[1],"unchecked_total",counts[2],"issues",issues,"complete",issues.isEmpty()&&counts[2]==0);
     }
@@ -121,9 +124,9 @@ final class Checks {
         int found=0,unavailable=0,total=0,critical=0,criticalTotal=0,ready=0,scheduled=0;ArrayNode games=arr();
         for(JsonNode g:data.path("games")) {
             if(!text(g,"status").equals("scheduled"))continue;scheduled++;int f=0,u=0,c=0;
-            for(String p:PATHS){JsonNode check=g.path("checks").path("fields").path(p);boolean present=text(check,"status").equals("found")&&!missing(at(g,p));if(present)f++;else if(text(check,"status").equals("unavailable"))u++;if(present&&REQUIRED.contains(p))c++;}
-            found+=f;unavailable+=u;total+=PATHS.size();critical+=c;criticalTotal+=REQUIRED.size();if(c==REQUIRED.size())ready++;
-            games.add(obj("game_id",text(g,"game_id"),"field_found",f,"field_total",PATHS.size(),"critical_found",c,"critical_total",REQUIRED.size(),"core_complete",c==REQUIRED.size()));
+            for(String p:paths(g)){JsonNode check=g.path("checks").path("fields").path(p);boolean present=text(check,"status").equals("found")&&!missing(at(g,p));if(present)f++;else if(text(check,"status").equals("unavailable"))u++;if(present&&REQUIRED.contains(p))c++;}
+            found+=f;unavailable+=u;total+=paths(g).size();critical+=c;criticalTotal+=REQUIRED.size();if(c==REQUIRED.size())ready++;
+            games.add(obj("game_id",text(g,"game_id"),"field_found",f,"field_total",paths(g).size(),"critical_found",c,"critical_total",REQUIRED.size(),"core_complete",c==REQUIRED.size()));
         }
         ObjectNode audit=audit(data);int all=audit.path("found_total").asInt()+audit.path("unavailable_total").asInt()+audit.path("unchecked_total").asInt();
         return obj("field_found",found,"field_unavailable",unavailable,"field_total",total,"field_found_pct",total==0?0.0:100.0*found/total,"critical_found",critical,"critical_total",criticalTotal,"critical_ready_games",ready,"scheduled_games",scheduled,"checklist_closed",all-audit.path("unchecked_total").asInt(),"checklist_total",all,"games",games);

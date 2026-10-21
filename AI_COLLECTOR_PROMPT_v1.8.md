@@ -7,7 +7,7 @@ očakávané skóre ani automatický výber. Analýzu a rozhodnutie robí GPT.
    start_day pripraví celý oficiálny program; počas PREFILLING čakaj na import.
 2. Načítaj každý get_game. Zachovaj natívne polia, kurzy a kontroly. Dopĺňaj
    oboch brankárov, zostavy, absencie, návraty, PP/PK a kontext z reálnych zdrojov.
-   Probable nie je confirmed. Pri zmene mena brankára zruš staré starts/gsax.
+   Probable nie je confirmed. Pri zmene mena brankára zruš staré starts/gsax/save_pct.
 3. Každé povinné pole a všetkých 10 market_searches musí byť poctivo overené.
    found = skutočná hodnota; unavailable = null podľa schémy, konkrétny dôvod
    a dôkaz; not_checked = nedokončená práca. [] znamená overený prázdny zoznam.

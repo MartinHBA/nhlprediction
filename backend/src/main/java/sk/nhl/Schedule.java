@@ -36,7 +36,7 @@ final class Schedule {
     static ObjectNode source(String now,String url){return obj("url",url,"checked_at",now,"status","unverified");}
     static ObjectNode team(String name,String now,String url){
         ObjectNode t=obj("name",name);for(String period:List.of("prior","current")){ObjectNode stats=obj();Checks.STATS.forEach(f->stats.putNull(f));stats.set("source",source(now,url));t.set(period,stats);}
-        t.set("goalie",obj("name","UNKNOWN","status","unknown","starts_current",0,"starts_prior",0,"gsax_per60_current",null,"gsax_per60_prior",null,"source",source(now,url)));
+        t.set("goalie",obj("name","UNKNOWN","status","unknown","starts_current",0,"starts_prior",0,"gsax_per60_current",null,"gsax_per60_prior",null,"save_pct_current",null,"save_pct_prior",null,"source",source(now,url)));
         ObjectNode roster=obj();Checks.ROSTER.forEach(f->roster.putNull(f));roster.put("quantified",false);roster.set("absences",arr());roster.set("source",source(now,url));t.set("roster",roster);t.set("context",obj("rest_days",null,"travel_timezones",null));return t;
     }
 }

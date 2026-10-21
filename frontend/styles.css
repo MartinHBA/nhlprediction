@@ -26,6 +26,7 @@
 .field-details{padding-left:12px;border-left:2px solid var(--line);border-top:0}
 .field-details>summary{font-size:12px;font-weight:600;gap:12px}
 .field-details>.subtle{font-size:11px;margin:10px 0}
+.detail-retry{background:transparent;border:1px solid #416394;color:var(--accent);padding:5px 10px;font-size:11px;margin:4px 0 10px}
 .comparison-teams,.field-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .comparison-teams{margin:14px 0 4px}
 .comparison-team{font-size:12px;color:var(--accent);min-width:0}
