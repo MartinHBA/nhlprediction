@@ -16,14 +16,16 @@ const statDirections={games:0,points_pct:1,xgf_5v5_per60:1,xga_5v5_per60:-1,pp_x
 const fieldDirections={prior:statDirections,current:statDirections,goalie:{name:0,status:0,starts_current:0,starts_prior:0,gsax_per60_current:1,gsax_per60_prior:1,save_pct_current:1,save_pct_prior:1},roster:{quantified:0,attack_delta_goals:1,defense_delta_goals_allowed:-1,absences:0,returns:0,scratches:0,forward_lines:0,defense_pairs:0,power_play_units:0},context:{rest_days:1,travel_timezones:-1}};
 function fieldComparison(pair,game){
  const [,group,key]=pair[0].path.split('.'),direction=fieldDirections[group]?.[key]||0;
+ const digits=pair.some(field=>field.found&&typeof field.value==='number'&&Number.isFinite(field.value)&&!Number.isInteger(field.value))?3:0;
+ const values=pair.map(field=>field.found?fieldValue(field.value,field.path,digits):'N/A');
  let note=direction>0?'Vyššia hodnota je priaznivejšia.':direction<0?'Nižšia hodnota je priaznivejšia.':'Tento údaj nemá jednoznačne lepšiu vyššiu alebo nižšiu hodnotu.';
  if(key==='games'||key.startsWith('starts_'))note='Počet zápasov vyjadruje veľkosť vzorky, nie lepšiu výkonnosť.';
  if(group==='goalie'&&key==='status')note='Potvrdenie vyjadruje istotu štartu, nie kvalitu brankára.';
  if(group==='roster'&&direction)note+=' Porovnávajú sa iba vyčíslené dopady zostáv oboch tímov.';
  const comparable=direction&&pair.every(field=>field.found&&typeof field.value==='number'&&Number.isFinite(field.value))&&(group!=='roster'||['away','home'].every(side=>game[side]?.roster?.quantified===true&&game.checks?.fields?.[`${side}.roster.quantified`]?.status==='found'));
  let preferred=null;
- if(comparable&&fieldValue(pair[0].value,pair[0].path)!==fieldValue(pair[1].value,pair[1].path))preferred=(pair[0].value-pair[1].value)*direction>0?'away':'home';
- return {note,preferred};
+ if(comparable&&values[0]!==values[1])preferred=(pair[0].value-pair[1].value)*direction>0?'away':'home';
+ return {note,preferred,values};
 }
 function fieldEntries(game){
  const entries=[];
@@ -34,10 +36,15 @@ function fieldEntries(game){
  }
  return entries;
 }
-function fieldValue(value,path=''){
+function fieldValue(value,path='',digits=3){
  if(value===null||value===undefined)return 'N/A';
  if(typeof value==='boolean')return value?'Áno':'Nie';
- if(typeof value==='number')return path.includes('.save_pct_')?new Intl.NumberFormat('sk-SK',{style:'percent',minimumFractionDigits:2,maximumFractionDigits:2}).format(value):new Intl.NumberFormat('sk-SK',{maximumFractionDigits:4}).format(value);
+ if(typeof value==='number'){
+  if(!Number.isFinite(value))return 'N/A';
+  const percent=path.includes('.save_pct_');
+  const text=new Intl.NumberFormat('en-US',{useGrouping:false,minimumFractionDigits:digits,maximumFractionDigits:digits}).format(percent?value*100:value).replace(/^-0(\.0+)?$/,'0$1');
+  return text+(percent?' %':'');
+ }
  if(Array.isArray(value))return value.length?value.join('\n'):'Prázdny zoznam';
  const labels={confirmed:'Potvrdený',probable:'Predpokladaný',unknown:'Neznámy'};
  return Object.hasOwn(labels,value)?labels[value]:String(value);
@@ -69,10 +76,10 @@ function fieldDetails(game){
    const comparison=fieldComparison(pair,game);
    const explanation=[comparison.note,...pair.filter(field=>field.note).map(field=>`${game[field.side].name}: ${field.note}`)].join('\n\n');
    const label=el(explanation?'button':'span','field-label',away.label);heading.append(label);row.append(heading);
-   for(const field of pair){
+   for(const [index,field] of pair.entries()){
     const cell=el('div','field-cell '+field.side);
     cell.dataset.fieldPath=field.path;cell.setAttribute('role','group');cell.setAttribute('aria-label',`${game[field.side].name}: ${field.label}`);
-    const value=el('p','field-value'),text=field.found?fieldValue(field.value,field.path):'N/A';
+    const value=el('p','field-value'),text=comparison.values[index];
     if(comparison.preferred===field.side){value.append(el('strong','',text));cell.setAttribute('aria-label',`${game[field.side].name}: ${field.label} – priaznivejšia hodnota`);}else value.textContent=text;
     cell.append(value);values.append(cell);
    }

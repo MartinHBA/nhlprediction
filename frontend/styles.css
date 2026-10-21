@@ -40,7 +40,7 @@
 .field-heading{display:flex;justify-content:center;align-items:baseline;gap:4px 12px;text-align:center}
 .field-cell{min-width:0}
 .field-label{font-size:12px}
-.field-value{font-size:13px;margin:4px 0 0;white-space:pre-line}
+.field-value{font-size:13px;margin:4px 0 0;white-space:pre-line;font-variant-numeric:tabular-nums}
 .field-value strong{font-weight:750}
 button.field-label{background:none;border:0;padding:0;color:inherit;text-align:center;line-height:inherit;cursor:help;text-decoration:underline dotted;text-underline-offset:4px}
 .field-tooltip{position:absolute;top:calc(100% - 3px);left:0;right:0;z-index:10;padding:11px 13px;border:1px solid #416394;border-radius:6px;background:#0c172a;box-shadow:0 8px 22px #0006;color:var(--text);font-size:11px;line-height:1.7;white-space:pre-line;max-height:min(280px,50vh);overflow:auto;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .12s,visibility .12s}

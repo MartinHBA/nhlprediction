@@ -36,7 +36,7 @@ test('cards and tips render before the delayed statistics, which remain lazy unt
   const panel=doc.querySelector('[data-section="fields"]');panel.open=true;panel.dispatchEvent(new dom.window.Event('toggle'));assert.match(panel.textContent,/Načítavam podrobné/);
   respond({ok:true,json:async()=>structuredClone(full)});await new Promise(resolve=>setTimeout(resolve,15));
   const loaded=doc.querySelector('[data-section="fields"]');assert.equal(loaded.open,true);
-  assert.match(loaded.querySelector('[data-field-path="home.goalie.save_pct_current"]').textContent,/92,50\s*%/);
+  assert.match(loaded.querySelector('[data-field-path="home.goalie.save_pct_current"]').textContent,/92\.500\s*%/);
   assert.equal(doc.querySelectorAll('.game-card')[1].querySelectorAll('.field-row').length,0);
   assert.equal(requests.filter(u=>u.endsWith('/2026-10-20')).length,1);
  }finally{dom.window.close();}
@@ -292,6 +292,31 @@ test('equal, unavailable and non-comparable data never imply a team advantage',a
   for(const [metric] of cases)assert.equal(card.querySelector(`[data-metric-path="${metric}"]`).querySelector('.field-value strong'),null,metric);
   assert.equal(card.querySelector('[data-field-path="away.current.xga_5v5_per60"] .field-value').textContent,'N/A');
   assert.match(card.querySelector('[data-metric-path="current.games"] .field-tooltip').textContent,/veľkosť vzorky/);
+ }finally{d.window.close();}
+});
+
+test('each metric pair shares three decimal places if either available value is fractional',async()=>{
+ const f=fixture(),game=f.games[0];
+ const cases=[
+  ['context.rest_days',0,2,'0','2'],
+  ['current.xgf_5v5_per60',4.02,3,'4.020','3.000'],
+  ['prior.xgf_5v5_per60',1.23456,2.56789,'1.235','2.568'],
+  ['current.points_pct',50,55.2,'50.000','55.200'],
+  ['goalie.gsax_per60_current',-.2,0,'-0.200','0.000'],
+  ['goalie.save_pct_current',.925,.9,'92.500 %','90.000 %'],
+  ['prior.xga_5v5_per60',null,1.2,'N/A','1.200'],
+  ['current.xga_5v5_per60',2.1234,2.12349,'2.123','2.123'],
+  ['roster.attack_delta_goals',-.0001,0,'0.000','0.000']
+ ];
+ for(const [metric,away,home] of cases)for(const [side,value] of [['away',away],['home',home]]){const [group,key]=metric.split('.');game[side][group][key]=value;game.checks.fields[`${side}.${metric}`]={status:value===null?'unavailable':'found'};}
+ game.away.context.travel_timezones=1.5;game.home.context.travel_timezones=2;
+ game.checks.fields['away.context.travel_timezones']={status:'unavailable'};game.checks.fields['home.context.travel_timezones']={status:'found'};
+ const before=structuredClone(f),d=await boot(f);try{
+  const card=d.window.document.querySelector('.game-card');expand(card);
+  for(const [metric,,,awayText,homeText] of cases){const row=card.querySelector(`[data-metric-path="${metric}"]`);assert.equal(row.querySelector('.away .field-value').textContent,awayText,metric);assert.equal(row.querySelector('.home .field-value').textContent,homeText,metric);}
+  assert.equal(card.querySelector('[data-metric-path="current.xga_5v5_per60"] strong'),null,'rounded ties have no emphasized winner');
+  assert.equal(card.querySelector('[data-field-path="home.context.travel_timezones"] .field-value').textContent,'2','unavailable decimals do not affect the visible integer');
+  assert.deepEqual(f,before,'rounding changes display only');
  }finally{d.window.close();}
 });
 
