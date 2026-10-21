@@ -150,17 +150,29 @@ jobs:
           api_location: ''
           output_location: ''
           skip_app_build: true
-          skip_api_build: true
-          production_branch: main
       - name: Verify published website
         shell: bash
         env:
           DEPLOYED_WEBSITE_URL: ${{ steps.static-site.outputs.website_url }}
         run: |
-          curl --fail --silent --show-error --retry 5 --retry-delay 5 --max-time 30 \
-            "$DEPLOYED_WEBSITE_URL/release.json?commit=$GITHUB_SHA" -o release.json
+          for attempt in $(seq 1 24); do
+            if curl --fail --silent --show-error --max-time 20 --header 'Cache-Control: no-cache' \
+                 "$DEPLOYED_WEBSITE_URL/release.json?commit=$GITHUB_SHA&attempt=$attempt" -o release.json &&
+               node -e 'const r=require("./release.json");process.exit(r.commit===process.env.GITHUB_SHA?0:1)'; then
+              break
+            fi
+            echo 'Waiting for the tested release to reach the Static Web Apps edge.'
+            sleep 5
+          done
           node -e 'const r=require("./release.json");if(r.commit!==process.env.GITHUB_SHA)throw new Error("Published website does not match this commit")'
-          curl --fail --silent --show-error --max-time 30 "$DEPLOYED_WEBSITE_URL/" -o live-index.html
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --max-time 20 --header 'Cache-Control: no-cache' \
+                 "$DEPLOYED_WEBSITE_URL/?commit=$GITHUB_SHA&attempt=$attempt" -o live-index.html &&
+               cmp -s deployment/website/index.html live-index.html; then
+              break
+            fi
+            sleep 5
+          done
           cmp deployment/website/index.html live-index.html
           {
             echo '### Azure deployment completed'
