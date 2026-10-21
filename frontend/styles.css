@@ -30,17 +30,15 @@
 .comparison-teams{margin:14px 0 4px}
 .comparison-team{font-size:12px;color:var(--accent);min-width:0}
 .comparison-team strong{font-weight:650}
-.comparison-team small{display:block;font-size:10px;font-weight:400;color:var(--muted)}
 .comparison-team.home,.field-cell.home{text-align:right}
 .field-group{margin:16px 0}
 .field-group>summary{font-size:11px;font-weight:650;letter-spacing:.5px;color:var(--muted);padding:10px 0;gap:12px}
 .field-row{position:relative;padding:10px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
-.field-heading{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
+.field-heading{display:flex;justify-content:center;align-items:baseline;gap:4px 12px;text-align:center}
 .field-cell{min-width:0}
 .field-label{font-size:12px}
-.field-status{display:block;font-size:10px;margin-top:3px}
 .field-value{font-size:13px;margin:4px 0 0;white-space:pre-line}
-button.field-label{background:none;border:0;padding:0;color:inherit;text-align:left;line-height:inherit;cursor:help;text-decoration:underline dotted;text-underline-offset:4px}
+button.field-label{background:none;border:0;padding:0;color:inherit;text-align:center;line-height:inherit;cursor:help;text-decoration:underline dotted;text-underline-offset:4px}
 .field-tooltip{position:absolute;top:calc(100% - 3px);left:0;right:0;z-index:10;padding:11px 13px;border:1px solid #416394;border-radius:6px;background:#0c172a;box-shadow:0 8px 22px #0006;color:var(--text);font-size:11px;line-height:1.7;white-space:pre-line;max-height:min(280px,50vh);overflow:auto;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .12s,visibility .12s}
 .field-row.has-note:not(.note-dismissed):hover>.field-tooltip{visibility:visible;opacity:1;pointer-events:auto;transition-delay:.5s}
 .field-row.has-note:not(.note-dismissed):focus-within>.field-tooltip,.field-row.note-open>.field-tooltip{visibility:visible;opacity:1;pointer-events:auto;transition-delay:0s}
