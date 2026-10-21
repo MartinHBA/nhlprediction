@@ -23,9 +23,11 @@
 .recommendation.needs-review{border-left-color:var(--amber);background:#332c2244}
 .tip-analysis{margin-top:12px}
 .tip-analysis summary{font-size:11px}
-.field-details{padding-left:12px;border-left:2px solid var(--line);border-top:0}
+.field-details{padding:0 16px;border-left:3px solid var(--line);border-top:0}
 .field-details>summary{font-size:12px;font-weight:600;gap:12px}
 .field-details>.subtle{font-size:11px;margin:10px 0}
+.game-card summary{gap:12px}
+.game-card summary::after{flex:0 0 12px;text-align:center;line-height:1}
 .detail-retry{background:transparent;border:1px solid #416394;color:var(--accent);padding:5px 10px;font-size:11px;margin:4px 0 10px}
 .comparison-teams,.field-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .comparison-teams{margin:14px 0 4px}
