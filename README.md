@@ -34,7 +34,8 @@ Pripoj NHL Observatory ako vlastný MCP server s vyššie uvedenou URL a OAuth.
 Prihlás sa Microsoft účtom vlastníka Azure aplikácie. OpenAI API kľúč ani
 Microsoft client secret sa do ChatGPT nezadávajú.
 
-Po aktualizácii na **3.1.0** obnov nástroje pripojenia a over `get_analysis`.
+Po aktualizácii na **3.3.0** obnov nástroje pripojenia a over `resume_plan`
+v odpovedi `start_day` alebo `get_results`.
 Použi [denný prompt so stratégiou](docs/chatgpt-scheduled-prompt.md); do úlohy
 vlož iba jeho blok `text`. Azure deployment uložený prompt úlohy nemení.
 Najprv over skutočný skúšobný beh s prístupom k MCP, researchu a zápisom.
@@ -59,6 +60,27 @@ Najprv over skutočný skúšobný beh s prístupom k MCP, researchu a zápisom.
 na model. `post_tips` uloží rozhodnutia a deň prejde na `COMPLETE`.
 Rozhodujúce overenie je **`final_tips.state=PUBLISHED`**, aj pri všetkých NO_BET.
 Počas `PREFILLING` sa čaká len na zdrojový import.
+
+### Pokračovanie po prerušenom behu
+
+`start_day` a `get_results` vracajú `resume_plan` nad uloženými pracovnými dátami.
+GPT doplní iba nepreverené polia/trhy, opraví konkrétne chyby a obnoví uvedené
+zastarané údaje. Dokončené aktuálne zápasy preskočí pri zbere aj ukladaní;
+pred výberom ich stále analyticky posúdi cez `get_analysis`. Uzavreté
+`unavailable` kontroly sa bez nového dôvodu nehľadajú znova. Každý úspešný
+`save_game` je priebežný uložený bod; neodoslaný research backend nepozná.
+
+Plán kontroluje aktuálnosť doložených brankárov a zostáv: 6 hodín, posledných
+90 minút pred začiatkom 30 minút. Historické štatistiky sa tým neobnovujú.
+Aktuálnosť konkrétnej ponuky sa overuje samostatne pri výbere tipu.
+Bežné pokračovanie neštartuje dokončený natívny import znovu ani pri upozornení;
+`start_day(refresh_sources=true)` umožňuje výslovnú obnovu. Po publikácii zostáva
+existujúci režim zmrazených podkladov a explicitnej novej ad-hoc relácie.
+
+Natívny kurz sa zachová vrátane zdroja a času. Novší overený kurz smie GPT
+pridať pod vlastným ID s vlastným dôkazom alebo aktualizovať svoj nenatívny
+záznam s novým overením. Číselné zápisy `4` a `4.0` sú pri porovnávaní rovnaké;
+skutočné zmeny pôvodných natívnych hodnôt sa naďalej odmietnu.
 
 ## Dáta pre analytika
 

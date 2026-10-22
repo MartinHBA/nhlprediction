@@ -28,9 +28,10 @@ final class Workflow {
         if(Publication.exists(d)&&!d.path("research_session").path("active").asBoolean())d.put("state","COMPLETE");
         return d;
     }
-    ObjectNode start(String day){
+    ObjectNode start(String day){return start(day,false);}
+    ObjectNode start(String day,boolean refreshSources){
         Schedule.day(day);ObjectNode existing=store.get("days/"+day+".json");if(existing!=null){
-            ObjectNode current=require(day);if(!Publication.exists(current))return requestPrefill(day);
+            ObjectNode current=require(day);if(!Publication.exists(current))return requestPrefill(day,refreshSources);
             if(current.path("dataset").path("games").valueStream().noneMatch(g->Checks.time(text(g,"starts_at")).isAfter(Instant.now())))return summary(current);
             if(!text(current,"state").equals("ERROR")&&current.path("research_session").path("active").asBoolean()&&!Tips.old(text(current,"research_session.started_at"),Instant.now(),7200))return summary(current);
             store.locked("day/"+day,()->{ObjectNode d=require(day);refreshStarted((ObjectNode)d.path("dataset"));d.set("research_session",obj("active",true,"started_at",Instant.now().toString()));d.put("state","COLLECTING");d.put("research_complete",false);d.put("revision",d.path("revision").asInt()+1);store.put("days/"+day+".json",d);return null;});
@@ -51,7 +52,8 @@ final class Workflow {
             if(Publication.exists(d)&&!force)return summary(d);
             JsonNode previous=d.path("enrichment");
             if(!force&&text(previous,"version").equals(DataCollector.VERSION)&&text(previous,"transport").equals("owner_upload")&&text(previous,"state").equals("DONE")&&Checks.time(text(previous,"updated_at")).isAfter(Instant.now().minusSeconds(21600))&&Checks.coverage(d.path("dataset")).path("critical_found").equals(Checks.coverage(d.path("dataset")).path("critical_total")))return summary(d);
-            if(!force&&text(previous,"version").equals(DataCollector.VERSION)&&text(previous,"state").equals("DONE")&&previous.path("warnings").isEmpty())return summary(d);
+            // A resumed GPT run must not restart a completed import because of source warnings.
+            if(!force&&text(previous,"version").equals(DataCollector.VERSION)&&text(previous,"state").equals("DONE"))return summary(d);
             if(!force&&previous.hasNonNull("updated_at")&&Checks.time(text(previous,"updated_at")).isAfter(Instant.now().minusSeconds(60)))return summary(d);
             String job=UUID.randomUUID().toString();d.put("state","PREFILLING");d.put("updated_at",Instant.now().toString());d.putNull("error");d.set("enrichment",obj("state","QUEUED","version",DataCollector.VERSION,"job_id",job,"updated_at",Instant.now().toString(),"warnings",arr()));store.put("days/"+day+".json",d);
             try{queue.accept(obj("kind","prefill","day",day,"job_id",job));}catch(RuntimeException e){d.put("state","ERROR");((ObjectNode)d.path("enrichment")).put("state","ERROR");d.put("error","Could not enqueue source import. Retry start_day.");store.put("days/"+day+".json",d);throw e;}
@@ -83,8 +85,11 @@ final class Workflow {
             ObjectNode dataset=d.path("dataset").deepCopy();ArrayNode games=(ArrayNode)dataset.path("games");
             for(int i=0;i<games.size();i++)if(text(games.get(i),"game_id").equals(id)){
                 for(JsonNode oldMarket:games.get(i).path("markets"))if(NhlOdds.managed(oldMarket)&&text(savedGame,"status").equals("scheduled")){
-                    JsonNode incoming=null;for(JsonNode candidate:savedGame.path("markets"))if(text(candidate,"id").equals(text(oldMarket,"id")))incoming=candidate;
-                    if(!oldMarket.equals(incoming))throw new IllegalArgumentException("Backend NHL odds are immutable. Reload get_game and preserve backend market records.");
+                    ArrayNode incomingMarkets=(ArrayNode)savedGame.path("markets");int index=-1;for(int j=0;j<incomingMarkets.size();j++)if(text(incomingMarkets.get(j),"id").equals(text(oldMarket,"id")))index=j;
+                    JsonNode incoming=index<0?null:incomingMarkets.get(index);String changed=Json.difference(oldMarket,incoming);
+                    if(!changed.isEmpty())throw new IllegalArgumentException("Backend NHL odds are immutable: market "+text(oldMarket,"id")+", field "+changed+". Reload get_game and preserve backend market records.");
+                    // Preserve every original native field, including its numeric representation.
+                    incomingMarkets.set(index,oldMarket.deepCopy());
                 }
                 for(JsonNode incoming:savedGame.path("markets"))if(NhlOdds.managed(incoming)){JsonNode original=null;for(JsonNode oldMarket:games.get(i).path("markets"))if(text(oldMarket,"id").equals(text(incoming,"id")))original=oldMarket;if(!incoming.equals(original))throw new IllegalArgumentException("Cannot create or change a backend NHL market through save_game");}
                 for(JsonNode incoming:savedGame.path("markets"))if(!NhlOdds.managed(incoming)){

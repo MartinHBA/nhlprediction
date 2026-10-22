@@ -14,6 +14,23 @@ final class Json {
     static ArrayNode arr() { return M.createArrayNode(); }
     static JsonNode at(JsonNode n,String path) { for(String p:path.split("\\."))n=n.path(p); return n; }
     static boolean missing(JsonNode n) { return n.isNull() || n.isMissingNode(); }
+    /** Exact JSON-value comparison: numeric notation may differ, values and structure may not. */
+    static String difference(JsonNode expected,JsonNode actual){return difference(expected,actual,"$");}
+    private static String difference(JsonNode expected,JsonNode actual,String path){
+        if(expected==null||actual==null)return expected==actual?"":path;
+        if(expected.isNumber()&&actual.isNumber())return expected.decimalValue().compareTo(actual.decimalValue())==0?"":path;
+        if(expected.isObject()&&actual.isObject()){
+            for(var fields=expected.fields();fields.hasNext();){var field=fields.next();String changed=difference(field.getValue(),actual.get(field.getKey()),path+"."+field.getKey());if(!changed.isEmpty())return changed;}
+            for(var names=actual.fieldNames();names.hasNext();){String name=names.next();if(!expected.has(name))return path+"."+name;}
+            return "";
+        }
+        if(expected.isArray()&&actual.isArray()){
+            if(expected.size()!=actual.size())return path+".length";
+            for(int i=0;i<expected.size();i++){String changed=difference(expected.get(i),actual.get(i),path+"["+i+"]");if(!changed.isEmpty())return changed;}
+            return "";
+        }
+        return expected.equals(actual)?"":path;
+    }
     static double number(JsonNode n,String p) { return at(n,p).asDouble(); }
     static String text(JsonNode n,String p) { return at(n,p).asText(); }
     static List<String> strings(JsonNode n) { List<String> a=new ArrayList<>(); n.forEach(x->a.add(x.asText())); return a; }
