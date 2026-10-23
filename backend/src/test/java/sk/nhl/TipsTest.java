@@ -73,6 +73,12 @@ class TipsTest {
         assertEquals("PUBLISHED",text(workflow.read(date),"final_tips.state"));assertEquals(original,workflow.require(date).path("final_tips"));
     }
     @Test void publishedTipsSurviveAgingAndStartedGames(){workflow.postTips(date,body(true));var saved=workflow.require(date);assertEquals("PUBLISHED",text(Tips.view(saved,now.plusSeconds(7201)),"state"));((ObjectNode)saved.path("dataset").path("games").get(0)).put("starts_at",now.minusSeconds(1).toString());assertEquals("CURRENT",text(Tips.view(saved,now).path("games").get(0),"state"));}
+    @Test void newStrategyKeepsCompleteHistoricalDataOnlyQuoteMetadata(){
+        workflow.postTips(date,body(true));ObjectNode saved=workflow.require(date);((ObjectNode)saved.path("final_tips")).put("policy_version","3.0.0-data");
+        JsonNode original=saved.path("final_tips").path("games").get(0).path("candidate").deepCopy();
+        assertTrue(original.has("settlement_verified"));assertTrue(original.has("blocking_reasons"));
+        assertEquals(original,Tips.view(saved,now.plusSeconds(86400)).path("games").get(0).path("candidate"));
+    }
     @Test void incompleteResearchBlocksPublicationButNeverBlocksReadingData(){day.put("research_complete",false);store.put("days/"+date+".json",day);assertEquals("READY",text(workflow.candidates(date,""),"state"));assertThrows(IllegalArgumentException.class,()->workflow.postTips(date,body(false)));}
     @Test void newMcpDataFlowRejectsLegacySimulationParameter(){
         Mcp mcp=new Mcp(workflow);var response=mcp.call("get_analysis",obj("day",date));assertFalse(response.path("isError").asBoolean());

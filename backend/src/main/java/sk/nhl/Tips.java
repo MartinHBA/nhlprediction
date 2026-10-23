@@ -68,7 +68,8 @@ final class Tips {
         for(JsonNode entry:saved.path("games")){
             ObjectNode decision=entry.deepCopy();decision.put("state","CURRENT"); // Current published version, regardless of match status.
             // A published decision is an historical fact. Age, a new research run or puck drop cannot erase it.
-            if(!text(saved,"policy_version").equals(MarketQuotes.VERSION)&&decision.path("candidate").isObject()){
+            // The previous data-only policy already stores real quotes; preserve its complete historical metadata.
+            if(!List.of(MarketQuotes.VERSION,"3.0.0-data").contains(text(saved,"policy_version"))&&decision.path("candidate").isObject()){
                 ObjectNode cleaned=obj();for(String key:List.of("id","candidate_id","kind","selection","line","team","score_basis","price","odds","estimated_odds","odds_type","source","rules_url","confidence","recommendation_status"))
                     if(decision.path("candidate").has(key))cleaned.set(key,decision.path("candidate").path(key));decision.set("candidate",cleaned);
             }
