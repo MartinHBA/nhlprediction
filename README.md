@@ -124,6 +124,9 @@ zobrazovaným NHL dňom, vrátane striedaní (nie iba štarty od začiatku).
 Web ho číta z už uloženého natívneho NHL dôkazu o predzápasovej vzorke;
 nepočíta ho z dnešných živých skóre ani z aktuálneho celosezónneho súhrnu.
 Overená prázdna vzorka sa zobrazí ako `(0)`, chýbajúci dôkaz ako `(N/A)`.
+Nulu môže doložiť aj uložený research o NHL debute: overené nulové štarty za
+obe sezóny a výslovné potvrdenie žiadnych predchádzajúcich NHL nastúpení,
+spoločne podložené predzápasovým dôkazom. Samotná nula štartov nestačí.
 Po publikácii sa používa rovnaký zmrazený podklad aj na rýchlych kartách.
 Tieto prepočty vstupných
 štatistík sú opis historických dát, nie predikčný model. Oddych = rozdiel dátumov

@@ -43,4 +43,25 @@ class GoalieAppearancesTest {
         d=base.deepCopy();d.set("evidence",arr());assertTrue(count(d).isNull());
         d=base.deepCopy();ObjectNode check=(ObjectNode)d.path("games").get(0).path("checks").path("fields").path("away.goalie.save_pct_current");check.put("note",text(check,"note").replace("appearances=1","appearances=2"));assertTrue(count(d).isNull());
     }
+    static ObjectNode researchedDebut(){
+        ObjectNode d=data(obj("gameLog",arr())),g=(ObjectNode)d.path("games").get(0),goalie=(ObjectNode)g.path("away").path("goalie"),checks=(ObjectNode)g.path("checks").path("fields");
+        for(String field:List.of("starts_current","starts_prior","save_pct_current","gsax_per60_current")){
+            boolean starts=field.startsWith("starts");if(starts)goalie.put(field,0);else goalie.putNull(field);
+            checks.set("away.goalie."+field,obj("status",starts?"found":"unavailable","evidence_ids",List.of("researched-debut-proof"),"note",starts?"First NHL debut report implies 0 NHL games started before game.":"No NHL appearances before debut, so NHL GSAx and SV% rate undefined; no substituted AHL data."));
+        }
+        d.set("evidence",arr().add(obj("id","researched-debut-proof","url","https://news.example/goalie-nhl-debut","checked_at",DAY+"T17:59:00Z")));return d;
+    }
+    @Test void sourcedDebutResearchShowsZeroWithoutRewritingTheSavedSnapshot(){
+        ObjectNode d=researchedDebut(),before=d.deepCopy();assertEquals(IntNode.valueOf(0),count(d));assertEquals(before,d);
+    }
+    @Test void zeroStartsAndUnavailableRatesWithoutExplicitDebutEvidenceStayUnknown(){
+        ObjectNode d=researchedDebut();ObjectNode check=(ObjectNode)d.path("games").get(0).path("checks").path("fields").path("away.goalie.save_pct_current");
+        check.put("note","SV% unavailable; goalie may have played in relief.");assertTrue(count(d).isNull());
+        d=researchedDebut();((ObjectNode)d.path("games").get(0).path("away").path("goalie")).put("starts_prior",1);assertTrue(count(d).isNull());
+    }
+    @Test void debutNeedsSharedExistingEvidenceBeforeThePredictionCutoff(){
+        ObjectNode d=researchedDebut();d.set("evidence",arr());assertTrue(count(d).isNull());
+        d=researchedDebut();((ObjectNode)d.path("evidence").get(0)).put("checked_at","2026-10-23T01:00:00Z");assertTrue(count(d).isNull());
+        d=researchedDebut();((ObjectNode)d.path("games").get(0).path("checks").path("fields").path("away.goalie.starts_prior")).set("evidence_ids",arr().add("unrelated-proof"));assertTrue(count(d).isNull());
+    }
 }
