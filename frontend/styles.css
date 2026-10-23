@@ -11,7 +11,7 @@
 @media(max-width:1100px){.games-grid{grid-template-columns:1fr}.team-name strong{font-size:30px}}
 @media(max-width:480px){.matchup{padding:20px 0;gap:10px}.team,.team.home{flex-direction:column;justify-content:flex-start;gap:10px;text-align:center}.team.home .team-code{order:-1}.team-code{width:88px;height:88px}.team-name strong{font-size:23px;letter-spacing:-.3px}.team-name small{font-size:9px;margin-bottom:6px}.versus{font-size:10px}}
 
-.games-grid{align-items:start}
+.games-grid{align-items:stretch}
 .goalie-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:-6px 0 22px}
 .goalie-preview{min-width:0;overflow-wrap:anywhere;line-height:1.5}
 .goalie-preview.home{text-align:right}
