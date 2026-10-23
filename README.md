@@ -119,6 +119,12 @@ zákrokov a striel proti brankárovi zo všetkých vystúpení pred NHL dňom vr
 striedaní, nie priemer zápasových percent. V API je `save_pct_current/prior`
 zlomok 0–1; web ho zobrazí ako percento. Pri chýbajúcich dátach alebo nulovom
 počte striel zostáva N/A. Historické publikované snapshoty sa spätne nedopĺňajú.
+Pod logom tímu je za menom brankára počet nastúpení v aktuálnej sezóne pred
+zobrazovaným NHL dňom, vrátane striedaní (nie iba štarty od začiatku).
+Web ho číta z už uloženého natívneho NHL dôkazu o predzápasovej vzorke;
+nepočíta ho z dnešných živých skóre ani z aktuálneho celosezónneho súhrnu.
+Overená prázdna vzorka sa zobrazí ako `(0)`, chýbajúci dôkaz ako `(N/A)`.
+Po publikácii sa používa rovnaký zmrazený podklad aj na rýchlych kartách.
 Tieto prepočty vstupných
 štatistík sú opis historických dát, nie predikčný model. Oddych = rozdiel dátumov
 mínus jeden; cestovanie je proxy rozdielu UTC posunov arén, nie sledovanie letu.

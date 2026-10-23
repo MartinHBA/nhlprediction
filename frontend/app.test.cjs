@@ -27,16 +27,18 @@ const fixture=()=>{
 function overview(full){const data=structuredClone(full);data.data_snapshot_id='snapshot-one';data.details_loaded=false;data.games=data.games.map(g=>({game_id:g.game_id,starts_at:g.starts_at,status:g.status,home:{name:g.home.name,goalie:{name:g.home.goalie.name,status:g.home.goalie.status}},away:{name:g.away.name,goalie:{name:g.away.goalie.name,status:g.away.goalie.status}},has_analysis_context:!!g.analysis_context?.length}));return data;}
 
 test('goalie names and localized confirmation appear at the card edges before statistics load',async()=>{
- const full=fixture();full.games[0].away.goalie={name:'Juuse Saros',status:'probable'};full.games[0].home.goalie={name:'Michael DiPietro',status:'confirmed'};
+ const full=fixture();full.games[0].away.goalie={name:'Juuse Saros',status:'probable',starts_current:99};full.games[0].home.goalie={name:'Michael DiPietro',status:'confirmed'};
+ full.goalie_appearances={[full.games[0].game_id]:{away:0,home:3}};
  full.games[1].away.goalie={name:null,status:'unknown'};
  const dom=await boot(overview(full),200,w=>{w.fetch=async url=>({ok:true,json:async()=>url.endsWith('/api/days')?{days:[]}:overview(full)});});
  try{
   const card=dom.window.document.querySelector('.game-card');
-  assert.equal(card.querySelector('.goalie-preview.away .goalie-name').textContent,'Juuse Saros');
-  assert.equal(card.querySelector('.goalie-preview.home .goalie-name').textContent,'Michael DiPietro');
+  assert.equal(card.querySelector('.goalie-preview.away .goalie-name').textContent,'Juuse Saros (0)');
+  assert.equal(card.querySelector('.goalie-preview.home .goalie-name').textContent,'Michael DiPietro (3)');
   assert.equal(card.querySelector('.goalie-preview.away .goalie-status').textContent,'Predpokladaný');
   assert.equal(card.querySelector('.goalie-preview.home .goalie-status').textContent,'Potvrdený');
   assert.equal(dom.window.document.querySelectorAll('.game-card')[1].querySelector('.goalie-preview.away .goalie-name').textContent,'N/A');
+  assert.match(dom.window.document.querySelectorAll('.game-card')[1].querySelector('.goalie-preview.home .goalie-name').textContent,/\(N\/A\)$/);
   dom.window.NHL_I18N.setLanguage('en');const translated=dom.window.document.querySelector('.game-card');
   assert.equal(translated.querySelector('.goalie-preview.away .goalie-status').textContent,'Probable');assert.equal(translated.querySelector('.goalie-preview.home .goalie-status').textContent,'Confirmed');
   assert.equal(card.querySelectorAll('.field-row').length,0);

@@ -100,6 +100,7 @@ window.NHL_I18N=(()=>{
  ['Potvrdený','Confirmed','Potvrzený','Bekräftad','Vahvistettu','Bestätigt'],
  ['Predpokladaný','Probable','Předpokládaný','Trolig','Todennäköinen','Voraussichtlich'],
  ['Neznámy','Unknown','Neznámý','Okänd','Ei tiedossa','Unbekannt'],
+ ['Počet zápasov v aktuálnej sezóne pred týmto zápasom, vrátane striedaní.','Current-season appearances before this game, including relief appearances.','Počet zápasů v aktuální sezóně před tímto zápasem, včetně střídání.','Antal matcher den här säsongen före denna match, inklusive inhopp.','Tämän kauden ottelut ennen tätä ottelua, myös vaihdosta tulleena.','Einsätze in dieser Saison vor diesem Spiel, einschließlich Einwechslungen.'],
  ['Podrobné dáta sa nepodarilo načítať.','Detailed data could not be loaded.','Podrobná data se nepodařilo načíst.','Detaljerade data kunde inte laddas.','Yksityiskohtaisia tietoja ei voitu ladata.','Detaildaten konnten nicht geladen werden.'],
  ['Načítavam podrobné dáta…','Loading detailed data…','Načítám podrobná data…','Laddar detaljerade data…','Ladataan yksityiskohtaisia tietoja…','Detaildaten werden geladen…'],
  ['Skúsiť znovu','Try again','Zkusit znovu','Försök igen','Yritä uudelleen','Erneut versuchen'],

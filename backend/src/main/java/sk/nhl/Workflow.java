@@ -167,7 +167,7 @@ final class Workflow {
         ObjectNode d=migrate(input.deepCopy());restoreSnapshot(d);JsonNode data=Publication.data(d);
         return obj("day",text(d,"day"),"state",text(d,"state"),"updated_at",text(d,"updated_at"),"revision",d.path("revision"),"game_count",data.path("games").size(),"as_of",data.path("as_of"),"error",d.path("error"),
             "enrichment",Publication.metadata(d,"enrichment"),"odds_import",Publication.metadata(d,"odds_import"),"research_complete",d.path("research_complete").asBoolean(),"coverage",Checks.coverage(data),"publication",Publication.info(d),
-            "scoreboard",d.path("scoreboard"),"final_tips",Tips.view(d,Instant.now()),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));
+            "scoreboard",d.path("scoreboard"),"goalie_appearances",GoalieAppearances.view(data,text(d,"day")),"final_tips",Tips.view(d,Instant.now()),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));
     }
     void eveningTick(Instant now){
         String day=NhlOdds.pollDay(now);ObjectNode existing=store.get("days/"+day+".json");

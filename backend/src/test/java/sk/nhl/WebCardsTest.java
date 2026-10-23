@@ -25,6 +25,17 @@ class WebCardsTest {
         assertEquals(cards.path("data_snapshot_id"),f.workflow.readCards(changed).path("data_snapshot_id"));
         assertNotEquals(9,f.workflow.read(f.date).path("games").get(0).path("home").path("current").path("xgf_5v5_per60").asDouble());
     }
+    @Test void firstPaintAndFullDetailsUseTheSameFrozenGoalieAppearanceCounts(){
+        TipsTest f=new TipsTest();f.setup();JsonNode g=f.day.path("dataset").path("games").get(0);String id=text(g,"game_id");
+        ((ObjectNode)g.path("away").path("goalie")).put("starts_current",0);
+        ((ObjectNode)g.path("checks").path("fields")).set("away.goalie.starts_current",obj("status","found","note","NHL gamesStarted summed before 2099-01-01; season=2098, appearances=0, starts=0. Appearances are not substituted for starts.","evidence_ids",java.util.List.of("auto-nhl-goalie-8471234-current-zero")));
+        ((ArrayNode)f.day.path("dataset").path("evidence")).add(obj("id","auto-nhl-goalie-8471234-current-zero","url","https://api-web.nhle.com/v1/player/8471234/game-log/20982099/2","checked_at",f.now.minusSeconds(30).toString()));
+        f.store.put("days/"+f.date+".json",f.day);f.workflow.postTips(f.date,f.body(true));
+        JsonNode first=f.workflow.readCards(f.workflow.require(f.date)).path("goalie_appearances");assertEquals(IntNode.valueOf(0),first.path(id).path("away"));
+        ObjectNode changed=f.workflow.require(f.date);((ObjectNode)changed.path("dataset").path("games").get(0).path("away").path("goalie")).put("starts_current",99);
+        ((ObjectNode)changed.path("dataset").path("games").get(0).path("checks").path("fields").path("away.goalie.starts_current")).put("note","Changed after publication");f.store.put("days/"+f.date+".json",changed);
+        assertEquals(first,f.workflow.read(f.date).path("goalie_appearances"));assertEquals(first,f.workflow.readCards(changed).path("goalie_appearances"));
+    }
     @Test void archiveOnlyReturnsSmallIndexAndUnpublishedSnapshotsChangeWithRevision(){
         TipsTest f=new TipsTest();f.setup();var first=f.workflow.readCards(f.day);
         ObjectNode changed=f.day.deepCopy();changed.put("revision",8);f.store.put("days/"+f.date+".json",changed);
