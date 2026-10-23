@@ -1,6 +1,6 @@
 # Manuálny test Oddize z Azure
 
-Function App: `nhlpredict-txocp2arkmldw`, funkcia `oddizeProbe`.
+Function App: `nhlpredict-txocp2arkmldw`, funkcia `diagnosticsOddize`.
 Je to samostatná diagnostika; neukladá zápasy, research ani kurzy a nespúšťa
 denný flow. Existujúci NHL import ostáva nezmenený.
 

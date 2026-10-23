@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>sk.nhl</groupId><artifactId>nhl-functions</artifactId><version>3.4.4</version>
+  <groupId>sk.nhl</groupId><artifactId>nhl-functions</artifactId><version>3.4.5</version>
   <properties><maven.compiler.release>21</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><functionAppName>nhl-local</functionAppName></properties>
   <dependencyManagement><dependencies><dependency><groupId>com.azure</groupId><artifactId>azure-sdk-bom</artifactId><version>1.3.8</version><type>pom</type><scope>import</scope></dependency></dependencies></dependencyManagement>
   <dependencies>

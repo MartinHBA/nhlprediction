@@ -18,7 +18,8 @@ public final class OddizeProbe {
     record Upstream(int status,HttpHeaders headers,String body){}
     @FunctionalInterface interface Transport {Upstream send(HttpRequest request)throws IOException,InterruptedException;}
 
-    @FunctionName("oddizeProbe")
+    // Azure registers routes in function-name order; this must precede the "http" catch-all.
+    @FunctionName("diagnosticsOddize")
     public HttpResponseMessage run(@HttpTrigger(name="request",methods={HttpMethod.GET},authLevel=AuthorizationLevel.ADMIN,route="api/diagnostics/oddize")HttpRequestMessage<Optional<String>> request,ExecutionContext context){
         try{
             String mode=request.getQueryParameters().getOrDefault("mode","connection");
