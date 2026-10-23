@@ -199,8 +199,9 @@ Použi NHL PREDICTION STRATEGY v1.8 s aktuálnymi pravidlami:
    Zavolaj get_analysis(day, game_id) pre každý zápas. Obsahuje oba tímy,
    brankárov, zostavy, analysis_context, kontroly, dôkazy a Oddize katalóg.
    get_candidates je kompatibilný alias; uprednostni get_analysis.
-   markets obsahuje ceny aj mimo pásma a neprípustné ponuky na kontext;
-   candidates sú možnosti v pásme 1,18–1,35. Vyberaj iba selectable=true.
+   markets aj candidates obsahujú IBA ponuky v pásme 1,18–1,35 vrátane pred
+   zaokrúhlením. Celé odpovede zostávajú iba v privátnej backendovej cache.
+   Niektoré ponuky v pásme môžu byť blokované; vyberaj iba selectable=true.
    Nie sú zoradeným odporúčaním modelu. Nepočítajú úspešnosť ani EV.
    Pri WAITING_FOR_ODDS alebo QUEUED/RUNNING kontroluj get_results, kým import
    skončí; nevydávaj dočasne chýbajúci katalóg za konečný NO_BET.

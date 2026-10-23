@@ -8,6 +8,7 @@ import static sk.nhl.Json.*;
 
 /** One authoritative day catalogue: real main lines, alternates and team totals, with provenance. */
 final class OddizeOdds implements OddsSource {
+    static final String VERSION="4.1.0-band-only";
     static final String PREFIX="oddize-",EVIDENCE_PREFIX="auto-oddize-";
     static final ZoneId ZONE=ZoneId.of("Europe/Bratislava");
     static final Map<String,String> ALIASES=Map.ofEntries(Map.entry("MON","MTL"),Map.entry("CBS","CBJ"),Map.entry("UTH","UTA"),Map.entry("WAS","WSH"),Map.entry("WIN","WPG"));
@@ -20,7 +21,8 @@ final class OddizeOdds implements OddsSource {
     static boolean due(String day,Instant now){return !now.isBefore(LocalDate.parse(day).atTime(19,45).atZone(ZONE).toInstant().minusSeconds(15));}
     // Tolerate an early/late :45 invocation; the UTC hourly cron still fires only once in this local window.
     static boolean snapshotWindow(Instant now){var local=now.atZone(ZONE);int minutes=local.getHour()*60+local.getMinute();return minutes>=19*60+30&&minutes<20*60+15;}
-    static ObjectNode pending(String day){return obj("provider","Oddize","state","SCHEDULED","requested_day",day,"scheduled_at",LocalDate.parse(day).atTime(19,45).atZone(ZONE).toInstant().toString(),"scheduled_local_time","19:45","poll_timezone","Europe/Bratislava","market_count",0,"covered_games",0,"complete_snapshot",false);}
+    static boolean complete(JsonNode meta){return text(meta,"provider").equals("Oddize")&&text(meta,"catalogue_version").equals(VERSION)&&meta.path("complete_snapshot").asBoolean();}
+    static ObjectNode pending(String day){return obj("provider","Oddize","catalogue_version",VERSION,"price_band",obj("min",MarketQuotes.MIN_ODDS,"max",MarketQuotes.MAX_ODDS),"state","SCHEDULED","requested_day",day,"scheduled_at",LocalDate.parse(day).atTime(19,45).atZone(ZONE).toInstant().toString(),"scheduled_local_time","19:45","poll_timezone","Europe/Bratislava","market_count",0,"covered_games",0,"complete_snapshot",false);}
     @Override public synchronized ObjectNode collect(String day,JsonNode original){
         client.requests=0;client.creditsUsed=0;client.creditsRemaining=null;
         Schedule.day(day);Instant now=clock.instant();ObjectNode data=original.deepCopy();ArrayNode warnings=arr();Map<String,ObjectNode> games=new LinkedHashMap<>();Map<String,Map<String,ObjectNode>> prices=new LinkedHashMap<>();
@@ -28,7 +30,7 @@ final class OddizeOdds implements OddsSource {
             ObjectNode game=(ObjectNode)item;if(!text(game,"status").equals("scheduled")||!Checks.time(text(game,"starts_at")).isAfter(now)){if(text(game,"status").equals("scheduled"))game.put("status","live");game.set("markets",arr());continue;}
             String id=text(game,"game_id");games.put(id,game);prices.put(id,new LinkedHashMap<>());
         }
-        if(games.isEmpty())return obj("dataset",data,"odds_import",obj("provider","Oddize","state","NO_UPCOMING_GAMES","requested_day",day,"upcoming_games",0,"covered_games",0,"market_count",0,"complete_snapshot",true,"checked_at",now.toString()));
+        if(games.isEmpty()){ObjectNode meta=pending(day);meta.put("state","NO_UPCOMING_GAMES").put("upcoming_games",0).put("complete_snapshot",true).put("checked_at",now.toString());return obj("dataset",data,"odds_import",meta);}
         String mainPath="/odds/latest?sport=nhl&date="+day+"&limit=100";ObjectNode main=null;Map<String,JsonNode> events=new LinkedHashMap<>();int failures=0;
         try{
             main=client.get(day,mainPath,1);JsonNode body=main.path("body");if(!text(body,"sport").equals("nhl")||!body.path("events").isArray())throw new IllegalStateException("Unexpected Oddize NHL catalogue");
@@ -62,25 +64,29 @@ final class OddizeOdds implements OddsSource {
         }
         // The cutoff must include evidence fetched during the batch, not its start time.
         now=clock.instant();String auditId=EVIDENCE_PREFIX+"catalogue-"+OAuth.hash(day+now).substring(0,16);DataCollector.mergeEvidence(data,obj("id",auditId,"url",OddizeClient.BASE+mainPath,"checked_at",now.toString()));
-        int covered=0,count=0,selectable=0,upcoming=0;Instant newest=null;
+        int covered=0,count=0,selectable=0,upcoming=0,recognized=0,excluded=0;Instant newest=null;
         for(var entry:games.entrySet()){
             ObjectNode game=entry.getValue();Map<String,ObjectNode> nativePrices=prices.get(entry.getKey());checkConsistency(nativePrices.values());
             if(!Checks.time(text(game,"starts_at")).isAfter(now)){game.put("status","live");game.set("markets",arr());continue;}upcoming++;
-            ArrayNode markets=arr();for(JsonNode prior:game.path("markets"))if(!NhlOdds.managed(prior))markets.add(prior);
-            markets.addAll(new ArrayList<>(nativePrices.values()));game.set("markets",markets);
-            if(!nativePrices.isEmpty())covered++;count+=nativePrices.size();
-            for(ObjectNode price:nativePrices.values()){Instant seen=instant(text(price,"observed_at"));if(newest==null||seen.isAfter(newest))newest=seen;}
+            // Check the full raw series first; out-of-band prices remain only in the HTTP cache.
+            recognized+=nativePrices.size();ArrayNode markets=arr();
+            for(ObjectNode price:nativePrices.values()){
+                if(!MarketQuotes.inRange(number(price,"odds"))){excluded++;continue;}
+                markets.add(price);Instant seen=instant(text(price,"observed_at"));if(newest==null||seen.isAfter(newest))newest=seen;
+            }
+            game.set("markets",markets);if(!markets.isEmpty())covered++;count+=markets.size();
             ObjectNode checks=(ObjectNode)game.path("checks").path("market_searches");
             for(String search:Checks.SEARCHES){
                 Set<String> proofIds=new LinkedHashSet<>();for(JsonNode price:markets)if(Checks.matches(search,price))proofIds.addAll(strings(price.path("evidence_ids")));
                 boolean found=!proofIds.isEmpty();if(!found)proofIds.add(auditId);
-                String note=found?"Saved price evidence exists in this category. Only backend Oddize offers can be selected; historical non-Oddize prices remain context. Read freshness, settlement and quality blockers.":List.of("regulation_1x2","double_chance").contains(search)?"Not exposed by the Oddize NHL API catalogue. Do not derive or web-search a replacement.":"No identifiable Oddize offer in this category for this exact game. No replacement price was inferred.";
+                String note=found?"Backend Oddize offers in 1.18-1.35 are saved in this category. Read freshness, settlement and quality blockers.":List.of("regulation_1x2","double_chance").contains(search)?"Not exposed by the Oddize NHL API catalogue. Do not derive or web-search a replacement.":"No identifiable Oddize offer in 1.18-1.35 for this exact game/category. Other prices remain only in the raw cache; no replacement was inferred.";
                 checks.set(search,obj("status",found?"found":"unavailable","evidence_ids",proofIds,"note",note));
             }
             for(JsonNode price:MarketQuotes.all(game,now))if(price.path("selectable").asBoolean())selectable++;
         }
         data.put("as_of",now.toString());ObjectNode meta=pending(day);meta.put("state",failures==0?(covered==upcoming?"READY":"PARTIAL"):covered>0?"PARTIAL":"ERROR");
         meta.put("upcoming_games",upcoming);meta.put("covered_games",covered);meta.put("market_count",count);meta.put("selectable_count",selectable);meta.put("complete_snapshot",failures==0);
+        meta.put("recognized_price_count",recognized);meta.put("excluded_outside_band_count",excluded);
         meta.put("checked_at",main==null?now.toString():text(main,"checked_at"));meta.put("last_attempt_at",now.toString());meta.put("source_updated_at",newest==null?"":newest.toString());meta.put("snapshot_id","oddize-"+OAuth.hash(day+"|"+meta.path("checked_at")).substring(0,20));
         meta.put("http_requests_this_attempt",client.requests);meta.put("credits_used_this_attempt",client.creditsUsed);if(client.creditsRemaining!=null)meta.put("credits_remaining",client.creditsRemaining);
         meta.set("warnings",warnings);meta.put("failed_requests",failures);meta.put("url",OddizeClient.BASE+mainPath);meta.set("unsupported_markets",M.valueToTree(List.of("regulation_1x2","double_chance")));

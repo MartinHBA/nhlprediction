@@ -28,7 +28,10 @@ class TipsTest {
         store=new MemoryStore();store.create("days/"+date+".json",day);workflow=new Workflow(store,d->obj(),j->{throw new AssertionError("No prediction should ever be queued");});
     }
     JsonNode game(){return day.path("dataset").path("games").get(0);}
-    JsonNode candidate(){return MarketQuotes.all(game(),now).valueStream().filter(c->text(c,"kind").equals("handicap")).findFirst().orElseThrow();}
+    JsonNode candidate(){
+        JsonNode raw=game().path("markets").valueStream().filter(c->text(c,"kind").equals("handicap")).findFirst().orElseThrow();ObjectNode quote=raw.deepCopy();quote.put("price",number(raw,"odds")).put("odds_type","QUOTED");
+        ArrayNode out=arr();MarketQuotes.add(out,game(),quote,arr(),text(raw,"id"));return out.get(0);
+    }
     ObjectNode body(boolean tip){
         ArrayNode decisions=arr();int i=0;for(JsonNode g:day.path("dataset").path("games")){
             boolean select=tip&&i++==0;decisions.add(obj("game_id",text(g,"game_id"),"decision",select?"TIP":"NO_BET","candidate_id",select?text(candidate(),"candidate_id"):null,

@@ -20,6 +20,7 @@ pravdepodobností, EV či automatických tipov. Rozhoduje GPT kvalitatívne.
 5. Doplnkový doložený kontext ulož do analysis_context {topic,summary,evidence_ids}.
    save_game ukladaj priebežne s revision; pri konflikte načítaj aktuálny stav.
 6. Ceny sú iba backendové Oddize QUOTED zo zberu o 19:45 Europe/Bratislava.
+   Do zápasov a MCP sa ukladajú iba ponuky 1,18–1,35; celý feed ostáva v cache.
    Ceny, hranice a pravidlá NEHĽADAJ na webe, neodhaduj a nezapisuj do markets.
    Backend uzatvára market_searches. Neprítomné typy nevyrábaj. Rešpektuj
    observed_at, snapshot_at, zdroj, bookmakera, pravidlá a blocking_reasons.

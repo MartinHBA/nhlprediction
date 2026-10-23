@@ -25,6 +25,7 @@ final class MarketQuotes {
     static ArrayNode all(JsonNode game,Instant now){
         ArrayNode result=arr();if(!text(game,"status").equals("scheduled")||!Checks.time(text(game,"starts_at")).isAfter(now))return result;
         for(JsonNode raw:game.path("markets")){
+            if(!inRange(number(raw,"odds")))continue;
             ObjectNode quote=raw.deepCopy();quote.put("odds_type","QUOTED");quote.put("price",number(raw,"odds"));
             ArrayNode blockers=arr();if(!fresh(raw,now))blockers.add("PRICE_OR_SETTLEMENT_UNVERIFIED_OR_STALE");
             if(!OddizeOdds.managed(raw)||!text(raw,"provider").equals("Oddize"))blockers.add("BACKEND_ODDIZE_PRICE_REQUIRED");

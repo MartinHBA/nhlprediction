@@ -6,7 +6,7 @@ import java.util.*;
 import static sk.nhl.Json.*;
 
 final class Mcp {
-    static final String VERSION="4.0.2";
+    static final String VERSION="4.1.0";
     final Workflow workflow;
     static final String INSTRUCTIONS="""
         You are the NHL research agent AND final prediction analyst. Azure is DATA ONLY: schedule,
@@ -27,7 +27,8 @@ final class Mcp {
         blocked backend price means consider another selectable candidate or NO_BET, not external odds research.
         Only backend Oddize QUOTED candidates may be chosen. get_analysis contains the price catalogue,
         bookmaker, source, observation time, snapshot time, score_basis, rules, warnings and price blockers.
-        The catalogue may include unavailable categories and old/unverified offers for context. Select only
+        Only offers in 1.18-1.35 are saved to games or returned to MCP; full responses stay in the private raw cache.
+        In-band offers may be old/unverified or blocked. Select only
         selectable=true candidates in inclusive 1.18-1.35. Do not assume every market exists for every game.
         Both regulation (60 minutes) and official_final (OT/SO including one shootout winner goal) are allowed
         only with verified bookmaker settlement. Never relabel them or derive one from the other.
@@ -71,7 +72,7 @@ final class Mcp {
         tools.add(tool("get_results","Get collection/publication state and resume_plan over saved research. Continue only missing checks or listed stale fields; do not repeat completed current research. The analysis ends after post_tips with final_tips.state=PUBLISHED.",daySchema(),true));
         ObjectNode analysis=daySchema();((ObjectNode)analysis.path("properties")).set("game_id",property("string","Optional game ID; omit for the complete day snapshot."));
         ((ObjectNode)analysis.path("properties")).set("summary_only",obj("type","boolean","default",false,"description","Final common snapshot: IDs, basis hashes, revision, analysis_id and compact band candidates only. Compare basis_id with your per-game analyses; reload changed games. Saves tokens."));
-        tools.add(tool("get_analysis","Read complete analytical DATA: both teams, stats, goalies, roster, extra sourced context, checks, evidence and ALL backend Oddize quoted prices. No model predictions. GPT compares and decides. Returns revision and analysis_id for post_tips.",analysis,true));
+        tools.add(tool("get_analysis","Read complete analytical DATA: both teams, stats, goalies, roster, extra sourced context, checks, evidence and backend Oddize quoted prices ONLY in 1.18-1.35. No model predictions. GPT compares and decides. Returns revision and analysis_id for post_tips.",analysis,true));
         tools.add(tool("get_candidates","Compatibility alias for get_analysis. Data and price catalogue only; no calculation or automatic preference. Prefer get_analysis.",analysis,true));
         tools.add(tool("post_tips","Publish GPT's own final TIP or NO_BET for EVERY official game after research and comparison. Use a selectable quote ID, evidence, rationale, comparison, risks and your confidence. No Java probabilities or EV. Only backend Oddize QUOTED candidates are allowed; never research or save replacement prices.",Tips.inputSchema(),false));
         return tools;

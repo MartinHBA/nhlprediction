@@ -52,7 +52,7 @@ Najprv over skutočný skúšobný beh s prístupom k MCP, researchu a zápisom.
 | `save_game` | Research a dodatočný športový kontext s dôkazmi; bez zmien kurzov |
 | `check_day` | Kontrola všetkých polí, kategórií trhov a dôkazov |
 | `finalize_day` | Synchrónna validácia a označenie researchu za dokončený, bez `sims` |
-| `get_analysis` | Analytický dataset a všetky dostupné ceny; GPT posúdi a rozhodne |
+| `get_analysis` | Analytický dataset a ceny iba v pásme 1,18–1,35; GPT posúdi a rozhodne |
 | `get_candidates` | Kompatibilný alias dátového `get_analysis` |
 | `post_tips` | Celý deň rozhodnutí GPT: TIP/NO_BET, dôvody, alternatívy, riziká, confidence |
 | `get_results` | Stav zberu a publikácie, dostupnosť dát/kurzov a odkaz na web |
@@ -156,6 +156,12 @@ bez dodatočných diagnostík; free limit je 1500 za fakturačný mesiac.
 Ponuky sa párujú podľa presných tímov/domácich/hostí a času s toleranciou
 10 minút; cudzie dni a už začaté zápasy sa nevydávajú za aktuálne ponuky.
 Zachováva sa bookmaker, čas pozorovania ceny, čas API snapshotu a dôkazy.
+Od verzie 4.1 sa do pracovných zápasov a MCP ukladajú **iba ceny 1,18–1,35**
+vrátane pred zaokrúhlením. Celé odpovede ostávajú iba v privátnej HTTP cache.
+Kontroly konzistentnosti najprv preveria celú cenovú sériu v pamäti, potom sa
+vykoná filter. Počty `recognized_price_count` a `excluded_outside_band_count`
+rozlišujú rozpoznané a vynechané ponuky; `market_count` počíta uložené pásmo.
+Starý pracovný katalóg sa pri obnove prefiltruje z cache; publikácie sa nemenia.
 Staré, nekonzistentné alebo nejednoznačne vyhodnocované ceny nie sú selectable.
 Pravidlá full-game sú overené pre FanDuel, BetMGM a DraftKings; ostatné knihy
 ostávajú kontextom, kým nie je doložené ich vyhodnotenie. Zdrojové pravidlá

@@ -18,13 +18,17 @@ class MarketQuotesTest {
             assertTrue(c.path("selectable").asBoolean());assertEquals("QUOTED",text(c,"odds_type"));assertEquals(original,q);assertFalse(c.has("p_win"));
         }
         var game=obj("game_id","123","status","scheduled","starts_at",now.plusSeconds(18000).toString(),"markets",arr().add(quote().put("odds",1.9)));
-        assertEquals(1,MarketQuotes.all(game,now).size(),"No inferred alternative boundaries");
+        assertTrue(MarketQuotes.all(game,now).isEmpty(),"Out-of-band prices and inferred boundaries must not reach MCP");
     }
     @Test void oldProviderManualUnverifiedUnknownAndInconsistentPricesCannotBeSelected(){
         for(ObjectNode q:List.of(quote().put("id","manual"),quote().put("provider","NHL"),quote().put("settlement_verified",false),quote().put("score_basis","unknown"),quote().put("observed_at",now.minusSeconds(7201).toString()),quote().put("observed_at",now.plusSeconds(1).toString()),quote().set("quality_warnings",arr().add("INCONSISTENT_TOTAL_PRICE_ORDER"))))assertFalse(candidate(q).path("selectable").asBoolean(),q.toString());
     }
-    @Test void allPricesRemainContextButBandAndTeamOverBanControlSelection(){
-        assertFalse(candidate(quote().put("odds",1.04)).path("selectable").asBoolean());
+    @Test void onlyInBandPricesReachTheAnalystAndTeamOverBanStillApplies(){
+        for(double price:new double[]{1.04,1.179999,1.350001,2.1}){
+            var game=obj("game_id","123","status","scheduled","starts_at",now.plusSeconds(18000).toString(),"markets",arr().add(quote().put("odds",price)));
+            assertTrue(MarketQuotes.all(game,now).isEmpty());
+        }
+        assertTrue(candidate(quote().put("odds",1.18)).path("selectable").asBoolean());assertTrue(candidate(quote().put("odds",1.35)).path("selectable").asBoolean());
         assertFalse(candidate(quote().put("kind","team_total").put("team","home").put("selection","over").put("line",2.5)).path("selectable").asBoolean());
         assertTrue(candidate(quote().put("kind","team_total").put("team","home").put("selection","under").put("line",2.5)).path("selectable").asBoolean());
     }

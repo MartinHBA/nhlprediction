@@ -71,7 +71,9 @@ class OddizeOddsTest {
     @Test void parsesRecordedProviderPayloadWithoutChangingItsOddsOrRules(){
         JsonNode fixture=resource("oddize-catalogue.json");var result=importer(new MemoryStore(),new AtomicInteger(),p->(ObjectNode)fixture.path(p.startsWith("/odds/")?"main":p.startsWith("/props/")?"team-totals":p.endsWith("alt_t")?"alt_t":"alt_s")).collect(DAY,data());
         assertEquals("READY",text(result,"odds_import.state"));assertTrue(Checks.validate(result.path("dataset")).isEmpty(),Checks.validate(result.path("dataset")).toString());
-        var quotes=MarketQuotes.all(result.path("dataset").path("games").get(0),NOW);assertTrue(quotes.size()>100);assertTrue(quotes.valueStream().anyMatch(q->q.path("selectable").asBoolean()));
+        var quotes=MarketQuotes.all(result.path("dataset").path("games").get(0),NOW);assertFalse(quotes.isEmpty());assertTrue(quotes.valueStream().anyMatch(q->q.path("selectable").asBoolean()));
+        assertTrue(result.path("odds_import").path("recognized_price_count").asInt()>100);assertTrue(result.path("odds_import").path("excluded_outside_band_count").asInt()>100);
+        for(JsonNode q:result.path("dataset").path("games").get(0).path("markets"))assertTrue(MarketQuotes.inRange(number(q,"odds")));
         for(JsonNode q:quotes)if(q.path("selectable").asBoolean()){assertEquals("official_final",text(q,"score_basis"));assertTrue(Set.of("fd","mgm","dk").contains(text(q,"bookmaker_code")));assertEquals("QUOTED",text(q,"odds_type"));}
     }
     @Test void longImportRebasesOntoConcurrentResearchAndCannotOverwriteIt(){
@@ -93,5 +95,31 @@ class OddizeOddsTest {
         var result=new OddizeOdds(client,moving).collect(DAY,data());
         assertEquals(NOW.plusSeconds(8).toString(),text(result,"dataset.as_of"));assertEquals(4,result.path("odds_import").path("selectable_count").asInt());
         assertTrue(Checks.validate(result.path("dataset")).isEmpty(),Checks.validate(result.path("dataset")).toString());
+    }
+    @Test void rawCacheKeepsFullPricesButGamesAndMcpReceiveOnlyTheBand(){
+        MemoryStore store=new MemoryStore();AtomicInteger calls=new AtomicInteger();
+        var result=importer(store,calls,p->{var r=response(p);if(p.startsWith("/odds/"))((ArrayNode)r.path("events").get(0).path("odds")).add(price("fd","t","Over",4.5).put("american_odds","-1000")).add(price("fd","t","Under",8.5).put("american_odds","-200"));return r;}).collect(DAY,data());
+        assertEquals(7,result.path("odds_import").path("recognized_price_count").asInt());assertEquals(2,result.path("odds_import").path("excluded_outside_band_count").asInt());assertEquals(5,result.path("odds_import").path("market_count").asInt());
+        JsonNode game=result.path("dataset").path("games").get(0);for(JsonNode q:game.path("markets"))assertTrue(MarketQuotes.inRange(number(q,"odds")));
+        var day=obj("day",DAY,"state","COLLECTING","revision",1,"dataset",result.path("dataset"),"odds_import",result.path("odds_import"));
+        for(JsonNode q:Tips.candidates(day,"",NOW).path("games").get(0).path("markets"))assertTrue(MarketQuotes.inRange(number(q,"price")));
+        ObjectNode cache=store.keys("cache/oddize/").stream().map(store::get).filter(c->text(c,"endpoint").contains("/odds/latest")).findFirst().orElseThrow();assertEquals(4,cache.path("body").path("events").get(0).path("odds").size());
+    }
+    @Test void fullRawSeriesQualityChecksStillProtectTheRetainedBand(){
+        var result=importer(new MemoryStore(),new AtomicInteger(),p->{var r=response(p);if(p.startsWith("/odds/"))((ArrayNode)r.path("events").get(0).path("odds")).add(price("mgm","t","Under",6.5).put("american_odds","-1000"));return r;}).collect(DAY,data());
+        JsonNode retained=result.path("dataset").path("games").get(0).path("markets").valueStream().filter(q->text(q,"offer_type").equals("alt_t")).findFirst().orElseThrow();
+        assertTrue(strings(retained.path("quality_warnings")).contains("INCONSISTENT_TOTAL_PRICE_ORDER"));assertTrue(MarketQuotes.inRange(number(retained,"odds")));
+        assertEquals(1,result.path("odds_import").path("excluded_outside_band_count").asInt());
+    }
+    @Test void oldCompleteCatalogueIsRebuiltFromCacheWithoutRepurchasingResponses(){
+        MemoryStore store=new MemoryStore();AtomicInteger calls=new AtomicInteger();var odds=importer(store,calls,OddizeOddsTest::response);var imported=odds.collect(DAY,data());
+        ObjectNode oldMeta=(ObjectNode)imported.path("odds_import");oldMeta.remove("catalogue_version");assertFalse(OddizeOdds.complete(oldMeta));
+        ObjectNode legacy=(ObjectNode)imported.path("dataset").path("games").get(0).path("markets").get(0).deepCopy();legacy.put("id","old-researched-price").put("odds",2.4);
+        ((ArrayNode)imported.path("dataset").path("games").get(0).path("markets")).add(legacy);
+        store.put("days/"+DAY+".json",obj("day",DAY,"state","COLLECTING","revision",3,"dataset",imported.path("dataset"),"official_games",data().path("games"),"odds_import",oldMeta));
+        List<ObjectNode> jobs=new ArrayList<>();DataCollector collector=new DataCollector(store,u->{throw new AssertionError();},CLOCK);collector.odds=odds;var w=new Workflow(store,d->data(),jobs::add,collector);
+        w.requestOdds(DAY,NOW);assertEquals(1,jobs.size());w.processImport(jobs.get(0));assertEquals(4,calls.get());
+        ObjectNode saved=w.require(DAY);assertTrue(OddizeOdds.complete(saved.path("odds_import")));assertEquals(0,saved.path("odds_import").path("credits_used_this_attempt").asInt());
+        for(JsonNode q:saved.path("dataset").path("games").get(0).path("markets")){assertTrue(OddizeOdds.managed(q));assertTrue(MarketQuotes.inRange(number(q,"odds")));}
     }
 }

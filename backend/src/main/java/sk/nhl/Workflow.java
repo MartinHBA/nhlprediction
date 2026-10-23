@@ -185,17 +185,17 @@ final class Workflow {
         if(collector==null||collector.odds==null)return summary(require(day));
         return store.locked("day/"+Schedule.day(day),()->{
             ObjectNode d=require(day);JsonNode previous=d.path("odds_import");
-            if(!OddizeOdds.due(day,now)||text(d,"state").equals("NO_GAMES")||text(d,"state").equals("PREFILLING")||Publication.exists(d)&&!d.path("research_session").path("active").asBoolean()||previous.path("complete_snapshot").asBoolean())return summary(d);
+            if(!OddizeOdds.due(day,now)||text(d,"state").equals("NO_GAMES")||text(d,"state").equals("PREFILLING")||Publication.exists(d)&&!d.path("research_session").path("active").asBoolean()||OddizeOdds.complete(previous))return summary(d);
             if(List.of("QUEUED","RUNNING").contains(text(previous,"state"))&&!Tips.old(text(previous,"last_attempt_at"),now,900))return summary(d);
             if(List.of("ERROR","PARTIAL").contains(text(previous,"state"))&&!Tips.old(text(previous,"last_attempt_at"),now,300))return summary(d);
-            String id=UUID.randomUUID().toString();ObjectNode meta=previous.isObject()&&text(previous,"provider").equals("Oddize")?previous.deepCopy():OddizeOdds.pending(day);meta.put("provider","Oddize").put("state","QUEUED").put("job_id",id).put("last_attempt_at",now.toString());d.set("odds_import",meta);store.put("days/"+day+".json",d);
+            String id=UUID.randomUUID().toString();ObjectNode meta=OddizeOdds.pending(day);meta.put("state","QUEUED").put("job_id",id).put("last_attempt_at",now.toString());d.set("odds_import",meta);store.put("days/"+day+".json",d);
             try{queue.accept(obj("kind","oddize","day",day,"job_id",id));}catch(RuntimeException e){meta.put("state","ERROR").put("reason","Could not enqueue Oddize catalogue. Resume start_day after the queue is available.");store.put("days/"+day+".json",d);throw e;}
             return summary(d);
         });
     }
     void importOdds(JsonNode job){
         String day=Schedule.day(text(job,"day"));ObjectNode before=store.locked("day/"+day,()->{
-            ObjectNode d=require(day);if(!text(d,"odds_import.job_id").equals(text(job,"job_id"))||d.path("odds_import").path("complete_snapshot").asBoolean()||Publication.exists(d)&&!d.path("research_session").path("active").asBoolean())return null;
+            ObjectNode d=require(day);if(!text(d,"odds_import.job_id").equals(text(job,"job_id"))||OddizeOdds.complete(d.path("odds_import"))||Publication.exists(d)&&!d.path("research_session").path("active").asBoolean())return null;
             if(text(d,"state").equals("PREFILLING"))throw new BusyException();
             if(text(d,"odds_import.state").equals("RUNNING")&&!Tips.old(text(d,"odds_import.last_attempt_at"),Instant.now(),300))throw new BusyException();
             ((ObjectNode)d.path("odds_import")).put("state","RUNNING").put("last_attempt_at",Instant.now().toString());store.put("days/"+day+".json",d);return d;
@@ -208,8 +208,7 @@ final class Workflow {
                 ObjectNode merged=d.path("dataset").deepCopy();
                 for(JsonNode proof:imported.path("dataset").path("evidence"))if(text(proof,"id").startsWith(OddizeOdds.EVIDENCE_PREFIX))DataCollector.mergeEvidence(merged,proof);
                 for(JsonNode current:merged.path("games"))for(JsonNode updated:imported.path("dataset").path("games"))if(text(current,"game_id").equals(text(updated,"game_id"))){
-                    ArrayNode quotes=arr();for(JsonNode old:current.path("markets"))if(!NhlOdds.managed(old))quotes.add(old);
-                    for(JsonNode price:updated.path("markets"))if(OddizeOdds.managed(price))quotes.add(price);
+                    ArrayNode quotes=arr();for(JsonNode price:updated.path("markets"))if(OddizeOdds.managed(price)&&MarketQuotes.inRange(number(price,"odds")))quotes.add(price);
                     ((ObjectNode)current).set("markets",quotes);((ObjectNode)current.path("checks")).set("market_searches",updated.path("checks").path("market_searches").deepCopy());
                 }
                 refreshStarted(merged);merged.put("as_of",Instant.now().toString());List<String> errors=Checks.validate(merged);if(!errors.isEmpty())throw new IllegalStateException("Oddize catalogue validation: "+errors.subList(0,Math.min(3,errors.size())));
