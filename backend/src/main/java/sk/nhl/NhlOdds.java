@@ -8,7 +8,7 @@ import java.util.regex.*;
 import static sk.nhl.Json.*;
 
 /** Imports only real, fresh, pregame DraftKings quotes attached to the exact NHL game. */
-final class NhlOdds {
+final class NhlOdds implements OddsSource {
     static final String URL="https://api-web.nhle.com/v1/partner-game/US/now";
     static final String RULES="https://sportsbook.draftkings.com/help/sport-rules/hockey";
     static final String PREFIX="nhl-dk-",EVIDENCE_PREFIX="auto-nhl-odds-";
@@ -17,9 +17,9 @@ final class NhlOdds {
     final DataCollector.Fetcher fetch;final Clock clock;
     NhlOdds(){this(DataCollector::download,Clock.systemUTC());}
     NhlOdds(DataCollector.Fetcher fetch,Clock clock){this.fetch=fetch;this.clock=clock;}
-    static boolean managed(JsonNode market){return text(market,"id").startsWith(PREFIX);}
-    static boolean nativeCheck(JsonNode check){return strings(check.path("evidence_ids")).stream().anyMatch(id->id.startsWith(EVIDENCE_PREFIX));}
-    ObjectNode collect(String day,JsonNode original){
+    static boolean managed(JsonNode market){return text(market,"id").startsWith(PREFIX)||OddizeOdds.managed(market);}
+    static boolean nativeCheck(JsonNode check){return strings(check.path("evidence_ids")).stream().anyMatch(id->id.startsWith(EVIDENCE_PREFIX)||id.startsWith(OddizeOdds.EVIDENCE_PREFIX));}
+    public ObjectNode collect(String day,JsonNode original){
         ObjectNode data=original.deepCopy();Instant now=clock.instant();JsonNode feed=obj();String reason="";ArrayNode warnings=arr();
         boolean fetched=false,usable=false;Instant updated=Instant.EPOCH;
         try{

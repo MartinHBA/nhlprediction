@@ -24,12 +24,24 @@ public final class OddizeProbe {
         try{
             String mode=request.getQueryParameters().getOrDefault("mode","connection");
             String day=request.getQueryParameters().getOrDefault("day",LocalDate.now(ZoneId.of("America/New_York")).toString());
+            if(mode.equals("catalogue")){
+                Schedule.day(day);var clock=Clock.systemUTC();var client=new OddizeClient(Store.cloud(),clock,System.getenv("ODDIZE_API_KEY"),outbound->{var r=HTTP.send(outbound,HttpResponse.BodyHandlers.ofString());return new Upstream(r.statusCode(),r.headers(),r.body());},"preview",true);
+                ObjectNode imported=new OddizeOdds(client,clock).collect(day,Schedule.fetch(day));
+                ArrayNode games=arr();for(JsonNode game:imported.path("dataset").path("games")){
+                    ArrayNode examples=arr();Map<String,Integer> types=new TreeMap<>();int usable=0;
+                    for(JsonNode q:MarketQuotes.all(game,clock.instant()))if(q.path("selectable").asBoolean()){
+                        usable++;types.merge(text(q,"kind"),1,Integer::sum);if(examples.size()<6)examples.add(obj("kind",q.path("kind"),"selection",q.path("selection"),"line",q.path("line"),"price",q.path("price"),"bookmaker",q.path("bookmaker"),"score_basis",q.path("score_basis"),"observed_at",q.path("observed_at")));
+                    }
+                    games.add(obj("game_id",game.path("game_id"),"away",game.path("away").path("name"),"home",game.path("home").path("name"),"quotes",game.path("markets").size(),"selectable",usable,"types",types,"examples",examples));
+                }
+                var errors=Checks.validate(imported.path("dataset"));return Functions.response(request,200,obj("mode",mode,"writes_daily_data",false,"success",errors.isEmpty()&&imported.path("odds_import").path("complete_snapshot").asBoolean(),"validation_errors",errors,"odds_import",imported.path("odds_import"),"games",games));
+            }
             ObjectNode result=probe(mode,day,System.getenv("ODDIZE_API_KEY"),outbound->{
                 var response=HTTP.send(outbound,HttpResponse.BodyHandlers.ofString());
                 return new Upstream(response.statusCode(),response.headers(),response.body());
             });
             return Functions.response(request,200,result);
-        }catch(IllegalArgumentException e){return Functions.response(request,400,obj("error","Use mode=connection, usage or nhl and an optional valid day=YYYY-MM-DD."));}
+        }catch(IllegalArgumentException e){return Functions.response(request,400,obj("error","Use mode=connection, usage, nhl or catalogue and an optional valid day=YYYY-MM-DD."));}
     }
 
     static ObjectNode probe(String mode,String day,String apiKey,Transport transport){

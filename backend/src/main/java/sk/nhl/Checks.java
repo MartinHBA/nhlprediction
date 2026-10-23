@@ -77,7 +77,7 @@ final class Checks {
                     boolean valid=switch(k) {
                         case "total","team_total" -> List.of("over","under").contains(s)&&!missing(line)&&line.asDouble()>=0&&(k.equals("total")||m.has("team"));
                         case "handicap" -> List.of("home","away").contains(s)&&!missing(line)&&text(m,"team").equals(s);
-                        case "moneyline" -> List.of("home","away").contains(s)&&line.isNull()&&basis.equals("official_final");
+                        case "moneyline" -> List.of("home","away").contains(s)&&line.isNull()&&(basis.equals("official_final")||basis.equals("unknown")&&!m.path("settlement_verified").asBoolean());
                         case "regulation_1x2" -> List.of("home","away","draw").contains(s)&&line.isNull()&&basis.equals("regulation");
                         case "double_chance" -> List.of("1X","X2","12").contains(s)&&line.isNull()&&basis.equals("regulation");
                         default -> false;

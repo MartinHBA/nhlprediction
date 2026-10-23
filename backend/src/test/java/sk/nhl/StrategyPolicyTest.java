@@ -16,14 +16,14 @@ class StrategyPolicyTest {
             else assertThrows(IllegalArgumentException.class,()->f.workflow.postTips(f.date,args));
         }
     }
-    @Test void totalPublicationRequiresRegulationAndVerifiedSettlementEvenWhenPriceIsInBand(){
+    @Test void totalPublicationAllowsBothBasesButRequiresVerifiedSettlement(){
         for(String basis:List.of("regulation","official_final"))for(boolean verified:List.of(true,false)){
             TipsTest f=new TipsTest();f.setup();ObjectNode total=null;for(JsonNode q:f.game().path("markets"))if(text(q,"kind").equals("total")){total=(ObjectNode)q;break;}
             assertNotNull(total);total.put("odds",1.18).put("score_basis",basis).put("settlement_verified",verified);
             f.store.put("days/"+f.date+".json",f.day);String id=text(total,"id");
             JsonNode candidate=MarketQuotes.all(f.game(),f.now).valueStream().filter(q->text(q,"id").equals(id)).findFirst().orElseThrow();
             ObjectNode args=f.body(true);((ObjectNode)args.path("decisions").get(0)).put("candidate_id",text(candidate,"candidate_id"));
-            if(basis.equals("regulation")&&verified)assertEquals("PUBLISHED",text(f.workflow.postTips(f.date,args),"final_tips.state"));
+            if(verified)assertEquals("PUBLISHED",text(f.workflow.postTips(f.date,args),"final_tips.state"));
             else {assertThrows(IllegalArgumentException.class,()->f.workflow.postTips(f.date,args));assertFalse(f.workflow.require(f.date).has("final_tips"));}
         }
     }

@@ -41,25 +41,35 @@ final class Tips {
         for(JsonNode market:game.path("markets"))refs.addAll(strings(market.path("evidence_ids")));
         for(JsonNode context:game.path("analysis_context"))refs.addAll(strings(context.path("evidence_ids")));return refs;
     }
+    static ObjectNode priceBrief(JsonNode quote){
+        ObjectNode out=obj();for(String key:List.of("candidate_id","kind","selection","team","line","price","bookmaker_code","score_basis","observed_at","selectable","blocking_reasons"))if(quote.has(key))out.set(key,quote.path(key));return out;
+    }
+    static ObjectNode snapshot(JsonNode day,Instant now){
+        ArrayNode games=arr();for(JsonNode game:day.path("dataset").path("games")){
+            ArrayNode band=arr();for(JsonNode q:MarketQuotes.all(game,now))if(q.path("in_preferred_band").asBoolean())band.add(priceBrief(q));
+            games.add(obj("game_id",game.path("game_id"),"basis_id",gameBasis(game,now),"status",game.path("status"),"starts_at",game.path("starts_at"),"candidates",band));
+        }
+        return obj("day",day.path("day"),"state",text(day,"state").equals("PREFILLING")?"PREFILLING":List.of("QUEUED","RUNNING").contains(text(day,"odds_import.state"))?"WAITING_FOR_ODDS":"READY","revision",day.path("revision"),"analysis_id",analysisId(day,now),"summary_only",true,"research_complete",day.path("research_complete"),"odds_import",day.path("odds_import"),"games",games,"instruction","Compare basis_id with the per-game analyses. Reload get_analysis(day,game_id) for changed games before publishing; do not mix snapshots. Prices come only from the backend.");
+    }
     static ObjectNode candidates(JsonNode day,String gameId,Instant now){
-        ArrayNode games=arr();boolean found=gameId.isBlank();String state=text(day,"state").equals("NO_GAMES")?"NO_GAMES":text(day,"state").equals("PREFILLING")?"PREFILLING":"READY";
+        ArrayNode games=arr();boolean found=gameId.isBlank();String state=text(day,"state").equals("NO_GAMES")?"NO_GAMES":text(day,"state").equals("PREFILLING")?"PREFILLING":List.of("QUEUED","RUNNING").contains(text(day,"odds_import.state"))?"WAITING_FOR_ODDS":"READY";
         for(JsonNode game:day.path("dataset").path("games")){
             String id=text(game,"game_id");if(!gameId.isBlank()&&!gameId.equals(id))continue;found=true;
             Set<String> refs=references(game);ArrayNode evidence=arr();for(JsonNode e:day.path("dataset").path("evidence"))if(refs.contains(text(e,"id")))evidence.add(e);
-            ArrayNode quotes=state.equals("READY")?MarketQuotes.all(game,now):arr(),band=arr();for(JsonNode quote:quotes)if(quote.path("in_preferred_band").asBoolean())band.add(quote);
+            ArrayNode quotes=state.equals("READY")?MarketQuotes.all(game,now):arr(),band=arr(),briefs=arr();for(JsonNode quote:quotes){briefs.add(priceBrief(quote));if(quote.path("in_preferred_band").asBoolean())band.add(quote);}
             ArrayNode warnings=arr();for(String side:List.of("home","away")){
                 if(!text(game,side+".goalie.status").equals("confirmed"))warnings.add(side.toUpperCase()+"_GOALIE_NOT_CONFIRMED");
                 for(String group:List.of("goalie","roster"))if(old(text(game,side+"."+group+".source.checked_at"),now,21600))warnings.add(side.toUpperCase()+"_"+group.toUpperCase()+"_CHECK_STALE");
             }
-            if(quotes.valueStream().noneMatch(q->text(q,"kind").equals("handicap")&&text(q,"odds_type").equals("ESTIMATED")))warnings.add("NO_HANDICAP_PRICE_INTERPOLATION_WITHOUT_TWO_INDEPENDENT_ANCHOR_LINES");
-            if(quotes.valueStream().noneMatch(q->MarketQuotes.goalTotal(q)&&text(q,"score_basis").equals("regulation")&&text(q,"odds_type").equals("QUOTED")&&MarketQuotes.fresh(q,now)))warnings.add("NO_VERIFIED_REGULATION_TOTALS_FIND_60_MINUTE_BOOKMAKER_OFFER");
+            if(quotes.valueStream().noneMatch(OddizeOdds::managed))warnings.add("NO_BACKEND_ODDIZE_QUOTES_DO_NOT_WEB_SEARCH_PRICES");
+            if(band.isEmpty())warnings.add("NO_QUOTE_IN_1_18_1_35_BAND");
             games.add(obj("game_id",id,"starts_at",text(game,"starts_at"),"status",text(game,"status"),"basis_id",gameBasis(game,now),"home",game.path("home"),"away",game.path("away"),
-                "analysis_context",game.path("analysis_context").isArray()?game.path("analysis_context"):arr(),"checks",game.path("checks"),"evidence",evidence,"markets",quotes,"candidates",band,"data_warnings",warnings));
+                "analysis_context",game.path("analysis_context").isArray()?game.path("analysis_context"):arr(),"checks",game.path("checks"),"evidence",evidence,"markets",briefs,"candidates",band,"data_warnings",warnings));
         }
         if(!found)throw new IllegalArgumentException("Unknown game_id");
         return obj("day",text(day,"day"),"state",state,"revision",day.path("revision"),"analysis_id",analysisId(day,now),"research_complete",day.path("research_complete").asBoolean(),
             "odds_import",day.path("odds_import"),"coverage",Checks.coverage(day.path("dataset")),"odds_min",MarketQuotes.MIN_ODDS,"odds_max",MarketQuotes.MAX_ODDS,"games",games,
-            "instruction","DATA ONLY. No Java model, simulations, predicted scores, probabilities, EV or automatic picks. GPT uses strategy v1.8: compare both attacks against opposing defence/goalie; current/prior emphasis 60/40 with sample uncertainty; explain the concrete opposite scoring case. LOW TIP is allowed when defensible. All quoted prices are included; candidates contains the 1.18-1.35 band, including blocked entries. Total/team_total picks MUST be regulation-only with verified 60-minute bookmaker rules. Never relabel official_final or estimate regulation prices from final-score anchors. Search for an exact regulation offer if missing. Moneyline OT/SO is separate. Estimated prices are not verified offers. Save new prices/evidence via save_game, finalize, reload this snapshot, then post_tips for every game.");
+            "instruction","DATA ONLY. Oddize is the only source of selectable prices, collected once at 19:45 Europe/Bratislava. QUOTED offers only: no estimates, interpolation or web research for odds. Research goalies, lineups and context as before. Compare both attacks and all offered market types, current/prior 60/40 with sample uncertainty and concrete counterarguments. LOW TIP is allowed when defensible. Choose at most one selectable candidate in 1.18-1.35 per game or NO_BET. Both regulation and official_final (OT/SO) are allowed only with verified bookmaker rules; never change score_basis. Missing categories are unavailable, not permission to invent or web-search a price. Save research only, finalize, reload one current snapshot and post_tips for every game. No model, simulations, probabilities or EV.");
     }
     static ObjectNode view(JsonNode day,Instant now){
         JsonNode saved=day.path("final_tips");if(!saved.isObject())return obj("state",text(day,"state").equals("NO_GAMES")?"NO_GAMES":"AWAITING_ANALYSIS","games",arr());
@@ -69,7 +79,7 @@ final class Tips {
             ObjectNode decision=entry.deepCopy();decision.put("state","CURRENT"); // Current published version, regardless of match status.
             // A published decision is an historical fact. Age, a new research run or puck drop cannot erase it.
             // The previous data-only policy already stores real quotes; preserve its complete historical metadata.
-            if(!List.of(MarketQuotes.VERSION,"3.0.0-data").contains(text(saved,"policy_version"))&&decision.path("candidate").isObject()){
+            if(!List.of(MarketQuotes.VERSION,"3.1.0-regulation-totals","3.0.0-data").contains(text(saved,"policy_version"))&&decision.path("candidate").isObject()){
                 ObjectNode cleaned=obj();for(String key:List.of("id","candidate_id","kind","selection","line","team","score_basis","price","odds","estimated_odds","odds_type","source","rules_url","confidence","recommendation_status"))
                     if(decision.path("candidate").has(key))cleaned.set(key,decision.path("candidate").path(key));decision.set("candidate",cleaned);
             }
@@ -82,7 +92,8 @@ final class Tips {
             "wins",wins,"losses",losses,"pushes",pushes,"games",games,"chosen_by","CHATGPT");
     }
     static ObjectNode prepare(JsonNode day,JsonNode args,Instant now){
-        validateInput(args);if(text(day,"state").equals("PREFILLING")||!day.path("research_complete").asBoolean()||!Checks.audit(day.path("dataset")).path("complete").asBoolean())throw new IllegalArgumentException("Finish research and finalize_day first. No calculation is required.");
+        validateInput(args);if(List.of("QUEUED","RUNNING").contains(text(day,"odds_import.state")))throw new IllegalArgumentException("Wait for the backend Oddize catalogue to finish, then reload get_analysis.");
+        if(text(day,"state").equals("PREFILLING")||!day.path("research_complete").asBoolean()||!Checks.audit(day.path("dataset")).path("complete").asBoolean())throw new IllegalArgumentException("Finish research and finalize_day first. No calculation is required.");
         if(!text(args,"analysis_id").equals(analysisId(day,now)))throw new IllegalArgumentException("Data snapshot changed. Reload get_analysis and re-evaluate.");
         Map<String,JsonNode> games=new LinkedHashMap<>();for(JsonNode g:day.path("dataset").path("games"))games.put(text(g,"game_id"),g);
         Set<String> seen=new HashSet<>();ArrayNode decisions=arr();
@@ -102,11 +113,10 @@ final class Tips {
                 if(day.path("dataset").path("synthetic_data").asBoolean())throw new IllegalArgumentException("Cannot publish a real TIP from synthetic data");
                 if(!text(game,"status").equals("scheduled")||!Checks.time(text(game,"starts_at")).isAfter(now))throw new IllegalArgumentException("Cannot publish a pregame tip after the start");
                 JsonNode selected=null;for(JsonNode quote:MarketQuotes.all(game,now))if(text(quote,"candidate_id").equals(text(request,"candidate_id")))selected=quote;
-                if(selected!=null&&MarketQuotes.goalTotal(selected)&&!text(selected,"score_basis").equals("regulation"))throw new IllegalArgumentException("Goal totals require regulation (60-minute) settlement. Find a verified regulation offer; official_final cannot be selected or relabelled.");
+                if(selected!=null&&(!OddizeOdds.managed(selected)||!text(selected,"odds_type").equals("QUOTED")))throw new IllegalArgumentException("Only backend Oddize QUOTED offers may be selected. Do not research or submit replacement prices.");
                 if(selected==null||!selected.path("selectable").asBoolean())throw new IllegalArgumentException("Select a current selectable price in 1.18-1.35 with verified settlement; read blocking_reasons.");
                 if(request.path("evidence_ids").isEmpty())throw new IllegalArgumentException("TIP requires supporting evidence_ids");
-                if(text(selected,"odds_type").equals("ESTIMATED")&&request.path("risks").isEmpty())throw new IllegalArgumentException("Estimated price requires an explicit risk explanation");
-                ObjectNode quote=selected.deepCopy();quote.put("confidence",text(request,"confidence"));quote.put("recommendation_status",text(selected,"odds_type").equals("ESTIMATED")?"PRELIMINARY":"GPT_SELECTION");decision.set("candidate",quote);
+                ObjectNode quote=selected.deepCopy();quote.put("confidence",text(request,"confidence"));quote.put("recommendation_status","GPT_SELECTION");decision.set("candidate",quote);
             }decisions.add(decision);
         }
         if(seen.size()!=games.size())throw new IllegalArgumentException("Post one TIP or NO_BET decision for EVERY official game");

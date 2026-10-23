@@ -21,9 +21,9 @@ final class DataCollector {
     interface Fetcher { Download get(String url); }
     static long nextMoneyPuck=0,blockedMoneyPuck=0;
     static synchronized void paceMoneyPuck(){long now=System.currentTimeMillis();if(now<blockedMoneyPuck)throw new IllegalStateException("MoneyPuck requested a download cooldown; retry later");long wait=nextMoneyPuck-now;if(wait>0)try{Thread.sleep(wait);}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IllegalStateException("Download interrupted",e);}nextMoneyPuck=System.currentTimeMillis()+1200;}
-    final Store store;final Fetcher fetch;final Clock clock;boolean usePublishedBulk=false;MirrorSources mirrors;NhlOdds odds;
+    final Store store;final Fetcher fetch;final Clock clock;boolean usePublishedBulk=false;MirrorSources mirrors;OddsSource odds;
     final Map<Integer,Map<String,Download>> bulkCache=new HashMap<>();
-    DataCollector(Store store){this(store,DataCollector::download,Clock.systemUTC());usePublishedBulk=true;mirrors=new MirrorSources(store,fetch,clock);odds=new NhlOdds(fetch,clock);}
+    DataCollector(Store store){this(store,DataCollector::download,Clock.systemUTC());usePublishedBulk=true;mirrors=new MirrorSources(store,fetch,clock);odds=new OddizeOdds(store);}
     DataCollector(Store store,Fetcher fetch,Clock clock){this.store=store;this.fetch=fetch;this.clock=clock;}
     static String teamUrl(String team){if(!team.matches("[A-Z]{3}"))throw new IllegalArgumentException("Invalid team code");return "https://moneypuck.com/moneypuck/playerData/careers/gameByGame/regular/teams/"+team+".csv";}
     static String clubUrl(String team,int season){if(!team.matches("[A-Z]{3}"))throw new IllegalArgumentException("Invalid team code");return "https://api-web.nhle.com/v1/club-schedule-season/"+team+"/"+season+(season+1);}
@@ -76,10 +76,11 @@ final class DataCollector {
             locked.set(text(game,"game_id"),protectedPaths);
         }
         ObjectNode goalie=enrichGoalies(day,data);for(JsonNode w:goalie.path("warnings"))warnings.add(w);
-        ObjectNode oddsMeta=null;if(odds!=null){ObjectNode imported=odds.collect(day,data);data=(ObjectNode)imported.path("dataset");oddsMeta=(ObjectNode)imported.path("odds_import");}
+        // Statistics start at 18:00. Prices are collected separately, once at 19:45 Bratislava.
+        ObjectNode oddsMeta=null;if(odds!=null&&!(odds instanceof OddizeOdds)){ObjectNode imported=odds.collect(day,data);data=(ObjectNode)imported.path("dataset");oddsMeta=(ObjectNode)imported.path("odds_import");}
         data.put("as_of",clock.instant().toString());for(JsonNode g:data.path("games"))if(text(g,"status").equals("scheduled")&&!Checks.time(text(g,"starts_at")).isAfter(clock.instant())){((ObjectNode)g).put("status","live");((ObjectNode)g).set("markets",arr());}
         var validation=Checks.validate(data);if(!validation.isEmpty())throw new IllegalStateException("Imported data failed validation: "+String.join("; ",validation.subList(0,Math.min(8,validation.size()))));
-        return obj("dataset",data,"auto_fields",locked,"version",VERSION,"updated_at",clock.instant().toString(),"warnings",unique(warnings),"sources",uniqueSources(sources),"mirror_sources",mirrors==null?arr():mirrors.status(),"odds_import",oddsMeta,"attribution","Team xG and goalie GSAx data: MoneyPuck.com, via public GitHub mirrors. NHL schedule and starts: NHL. Odds: DraftKings via NHL.","coverage",Checks.coverage(data));
+        return obj("dataset",data,"auto_fields",locked,"version",VERSION,"updated_at",clock.instant().toString(),"warnings",unique(warnings),"sources",uniqueSources(sources),"mirror_sources",mirrors==null?arr():mirrors.status(),"odds_import",oddsMeta,"attribution","Team xG and goalie GSAx data: MoneyPuck.com, via public GitHub mirrors. NHL schedule and starts: NHL. Bookmaker odds: Oddize daily catalogue at 19:45 Europe/Bratislava.","coverage",Checks.coverage(data));
     }
     ObjectNode team(String day,String team){
         String key="cache/prefill/"+VERSION+"/"+day+"/"+team;ObjectNode cached=store.get(key);

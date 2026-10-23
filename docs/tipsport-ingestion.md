@@ -1,3 +1,6 @@
+> Historický dokument: od verzie 4.0 používa produkčný zber výhradne Oddize.
+> Aktuálny postup je v [README](../README.md#kurzy-z-oddize). Nižšie uvedený NHL adapter zostáva iba kvôli kompatibilite a testom.
+
 # Tipsport: stav integrácie
 
 Implementácia zberu nie je dokončená ani nasadená. Pri bežnom HTTP overení

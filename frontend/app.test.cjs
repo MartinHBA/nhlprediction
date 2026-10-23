@@ -24,6 +24,17 @@ const fixture=()=>{
   report.games.forEach(g=>{g.p_home_win=.6;g.p_away_win=.4;});
   return {checklist:report.checklist,day:'2026-10-20',state:'COMPLETE',game_count:3,updated_at:new Date().toISOString(),games:dataset.games,evidence:dataset.evidence,report};
 };
+test('Oddize collection states use the daily 19:45 schedule in every language',async()=>{
+ for(const state of ['SCHEDULED','RUNNING','ERROR','READY']){
+  const f=fixture();f.odds_import={provider:'Oddize',state,covered_games:2,upcoming_games:3,market_count:315,checked_at:new Date().toISOString(),source_updated_at:new Date().toISOString()};
+  const d=await boot(f);try{
+   for(const lang of ['sk','en','cs','sv','fi','de']){
+    d.window.NHL_I18N.setLanguage(lang);const text=d.window.document.getElementById('coverage-detail').textContent;
+    assert.match(text,/Oddize/);assert.match(text,/19:45/);assert.doesNotMatch(text,/NHL\/DraftKings/);
+   }
+  }finally{d.window.close();}
+ }
+});
 function overview(full){const data=structuredClone(full);data.data_snapshot_id='snapshot-one';data.details_loaded=false;data.games=data.games.map(g=>({game_id:g.game_id,starts_at:g.starts_at,status:g.status,home:{name:g.home.name,goalie:{name:g.home.goalie.name,status:g.home.goalie.status}},away:{name:g.away.name,goalie:{name:g.away.goalie.name,status:g.away.goalie.status}},has_analysis_context:!!g.analysis_context?.length}));return data;}
 
 function clockAt(w,iso){

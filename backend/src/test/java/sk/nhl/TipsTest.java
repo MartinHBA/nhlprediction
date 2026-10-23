@@ -16,7 +16,10 @@ class TipsTest {
         for(JsonNode g:data.path("games")){
             ((ObjectNode)g).put("starts_at","2099-01-02T00:00:00Z");
             for(String side:List.of("home","away"))for(String group:List.of("prior","current","goalie","roster"))((ObjectNode)at(g,side+"."+group+".source")).put("status","verified").put("checked_at",checked);
-            for(JsonNode q:g.path("markets"))((ObjectNode)q.path("source")).put("status","verified").put("checked_at",checked);
+            for(JsonNode q:g.path("markets")){
+                ((ObjectNode)q).put("id","oddize-"+text(q,"id")).put("provider","Oddize").put("bookmaker","FanDuel").put("bookmaker_code","fd").put("observed_at",checked).put("snapshot_at",checked).set("quality_warnings",arr());
+                ((ObjectNode)q.path("source")).put("status","verified").put("checked_at",checked);
+            }
         }return data;
     }
     @BeforeEach void setup(){
@@ -85,23 +88,29 @@ class TipsTest {
         assertThrows(IllegalArgumentException.class,()->mcp.call("finalize_day",obj("day",date,"sims",1000)));
         response=mcp.call("post_tips",body(true));assertFalse(response.path("isError").asBoolean());
     }
+    @Test void compactSnapshotKeepsTheSameCandidateAndBasisIdsWithoutRepeatingResearch(){
+        var full=workflow.candidates(date,"");var compact=Tips.snapshot(day,now);
+        assertEquals(full.path("analysis_id"),compact.path("analysis_id"));
+        for(int i=0;i<compact.path("games").size();i++){
+            var brief=compact.path("games").get(i);assertEquals(full.path("games").get(i).path("basis_id"),brief.path("basis_id"));assertFalse(brief.has("home"));assertFalse(brief.has("evidence"));
+            assertEquals(full.path("games").get(i).path("candidates").get(0).path("candidate_id"),brief.path("candidates").get(0).path("candidate_id"));
+        }
+        Mcp mcp=new Mcp(workflow);assertFalse(mcp.call("get_analysis",obj("day",date,"summary_only",true)).path("isError").asBoolean());
+        assertTrue(mcp.call("get_analysis",obj("day",date,"summary_only",true,"game_id",text(game(),"game_id"))).path("isError").asBoolean());
+    }
     @Test void migratedPredictionsAreNeverExposedAsDataOrCurrentTips(){
         workflow.postTips(date,body(true));var old=workflow.require(date);((ObjectNode)old.path("final_tips")).remove("policy_version");old.set("report",obj("games",arr().add(obj("lambda_total",5,"p_win",.9))));store.put("days/"+date+".json",old);
         var result=workflow.read(date);assertFalse(result.has("report"));assertEquals("PUBLISHED",text(result,"final_tips.state"));assertFalse(result.path("final_tips").path("games").get(0).path("candidate").has("p_win"));
     }
-    @Test void canSaveSourcedContextAndExactQuoteThenChooseIt(){
-        // The NHL feed can honestly report this category unavailable before GPT finds another offer.
-        String nativeProof="auto-nhl-odds-missing";((ArrayNode)day.path("dataset").path("evidence")).add(obj("id",nativeProof,"url",NhlOdds.URL,"checked_at",now.minusSeconds(30).toString()));
-        ((ObjectNode)game().path("checks").path("market_searches")).set("handicap_away",obj("status","unavailable","evidence_ids",List.of(nativeProof),"note","NHL feed does not supply this offer."));store.put("days/"+date+".json",day);
-        ObjectNode g=game().deepCopy();g.set("analysis_context",arr().add(obj("topic","Recent form","summary","Verified contextual research not represented by the old statistical fields.","evidence_ids",List.of("new-proof"))));
-        ObjectNode quote=AlternativeMarketsTest.quote("handicap","away",2.5,1.29);quote.put("id","researched-exact");((ObjectNode)quote.path("source")).put("checked_at",now.minusSeconds(1).toString());quote.set("evidence_ids",arr().add("new-proof"));((ArrayNode)g.path("markets")).add(quote);
-        var proof=obj("id","new-proof","url","https://book.example/odds","checked_at",now.minusSeconds(1).toString());
-        workflow.saveGame(date,g,arr().add(proof),7);var ready=workflow.finish(date);assertEquals("READY_FOR_ANALYSIS",text(ready,"state"),ready.toString());
-        assertEquals("found",text(workflow.require(date).path("dataset").path("games").get(0).path("checks").path("market_searches").path("handicap_away"),"status"));
-        assertTrue(Mcp.editable(workflow.require(date),text(g,"game_id")).path("evidence").valueStream().anyMatch(e->text(e,"id").equals("new-proof")));
-        day=workflow.require(date);var exact=workflow.candidates(date,"").path("games").get(0).path("candidates").valueStream().filter(q->text(q,"id").equals("researched-exact")).findFirst().orElseThrow();
-        var args=body(true);((ObjectNode)args.path("decisions").get(0)).put("candidate_id",text(exact,"candidate_id")).set("evidence_ids",arr().add("new-proof"));
-        assertEquals("PUBLISHED",text(workflow.postTips(date,args),"final_tips.state"));
+    @Test void researchContextCanBeSavedWithOmittedBackendPricesThenPublished(){
+        ObjectNode edit=Mcp.editable(workflow.require(date),text(game(),"game_id"));
+        assertTrue(edit.path("game").path("markets").isEmpty());assertTrue(edit.path("backend_prefilled_markets_omitted").asInt()>0);
+        ((ObjectNode)edit.path("game")).set("analysis_context",arr().add(obj("topic","Recent form","summary","Verified contextual research for this exact game.","evidence_ids",List.of("new-proof"))));
+        var proof=obj("id","new-proof","url","https://nhl.example/research","checked_at",now.minusSeconds(1).toString());
+        workflow.saveGame(date,edit.path("game"),arr().add(proof),7);
+        assertEquals(game().path("markets"),workflow.require(date).path("dataset").path("games").get(0).path("markets"));
+        assertEquals("READY_FOR_ANALYSIS",text(workflow.finish(date),"state"));day=workflow.require(date);
+        assertEquals("PUBLISHED",text(workflow.postTips(date,body(true)),"final_tips.state"));
     }
     @Test void unavailableStatisticalInputDoesNotRequireOrBlockAnyPredictionCalculation(){
         ((ObjectNode)game().path("home").path("current")).putNull("xgf_5v5_per60");

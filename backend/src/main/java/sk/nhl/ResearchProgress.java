@@ -30,7 +30,7 @@ final class ResearchProgress {
         boolean waiting=text(day,"state").equals("PREFILLING"),published=Publication.exists(day)&&!day.path("research_session").path("active").asBoolean();
         for(JsonNode game:data.path("games")){
             String id=text(game,"game_id");JsonNode local=audits.getOrDefault(id,obj());ArrayNode fields=arr(),searches=arr(),refresh=arr();
-            for(String path:strings(local.path("unchecked")))if(path.startsWith("market_searches."))searches.add(path.substring("market_searches.".length()));else fields.add(path);
+            for(String path:strings(local.path("unchecked")))if(path.startsWith("market_searches.")){if(!text(day,"odds_import.provider").equals("Oddize"))searches.add(path.substring("market_searches.".length()));}else fields.add(path);
             Instant start=timestamp(text(game,"starts_at"));boolean alreadyStarted=!text(game,"status").equals("scheduled")||start==null||!start.isAfter(now);
             long maxAge=start!=null&&!start.isAfter(now.plusSeconds(NEAR_START_WINDOW))?NEAR_START_MAX_AGE:NORMAL_MAX_AGE;
             Set<String> nativePaths=new HashSet<>(strings(day.path("auto_fields").path(id)));
@@ -45,7 +45,7 @@ final class ResearchProgress {
         return obj("mode","RESUME_SAVED_RESEARCH","generated_at",now.toString(),"games_requiring_collection",work,"games_reusing_research",reused,"started_games",started,
             "next_step",text(day,"state").equals("NO_GAMES")?"NO_GAMES":waiting?"WAIT_FOR_IMPORT":published?"KEEP_PUBLISHED":work>0?"COLLECT_REMAINING":!validation.isEmpty()||!audit.path("issues").isEmpty()?"REPAIR_VALIDATION":"FINALIZE_AND_ANALYZE",
             "freshness",obj("goalie_and_roster_max_age_seconds",NORMAL_MAX_AGE,"within_90_minutes_of_start_max_age_seconds",NEAR_START_MAX_AGE),
-            "instruction","Reuse saved values, evidence and closed unavailable checks. Research only unchecked_fields, unchecked_market_searches, refresh_fields or specific errors/new information. Do not re-save unchanged games. All games must still be evaluated from get_analysis before post_tips. Refresh shortlisted stale bookmaker prices when needed; a saved price is not automatically current.",
+            "instruction","Reuse saved values, evidence and closed unavailable checks. Research only unchecked_fields, refresh_fields or specific errors/new information. All price collection and market searches belong to the backend Oddize snapshot, never web-search odds or create replacement prices. Native prices/checks are restored on save. Do not re-save unchanged games. All games must still be evaluated from get_analysis before post_tips; use only current selectable backend candidates.",
             "validation_errors",validation,"checklist_issues",audit.path("issues"),"games",games);
     }
 }

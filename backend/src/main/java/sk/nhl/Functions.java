@@ -69,6 +69,10 @@ public final class Functions {
     public void oddsWatch(@TimerTrigger(name="timer",schedule="0 0,30 * * * *")String timer,ExecutionContext context){
         var now=java.time.Instant.now();if(NhlOdds.pollingWindow(now))Services.WORKFLOW.eveningTick(now);
     }
+    @FunctionName("oddizeSnapshot")
+    public void oddizeSnapshot(@TimerTrigger(name="timer",schedule="0 45 * * * *")String timer,ExecutionContext context){
+        var now=java.time.Instant.now();if(OddizeOdds.snapshotWindow(now))Services.WORKFLOW.oddsSnapshotTick(now);
+    }
     @FunctionName("maintenance")
     public void maintenance(@TimerTrigger(name="timer",schedule="0 */15 * * * *")String timer,ExecutionContext context){
         Services.AUTH.cleanup();

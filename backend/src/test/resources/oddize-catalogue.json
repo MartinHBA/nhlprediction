@@ -1,0 +1,3560 @@
+{
+  "main": {
+    "count": 1,
+    "events": [
+      {
+        "event_id": "202610230CHI",
+        "odds": [
+          {
+            "american_odds": "+135",
+            "book": "blys",
+            "book_name": "Bally's",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+114",
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:23:33Z",
+            "ts": 1792776213
+          },
+          {
+            "american_odds": "-195",
+            "book": "blys",
+            "book_name": "Bally's",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-240",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:13:38Z",
+            "ts": 1792764818
+          },
+          {
+            "american_odds": "+143",
+            "book": "boag",
+            "book_name": "BetOnlineAG",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+123",
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:15:31Z",
+            "ts": 1792779331
+          },
+          {
+            "american_odds": "-180",
+            "book": "boag",
+            "book_name": "BetOnlineAG",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-206",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:15:31Z",
+            "ts": 1792779331
+          },
+          {
+            "american_odds": "+137",
+            "book": "bov",
+            "book_name": "Bovada",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+127",
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:03:52Z",
+            "ts": 1792778632
+          },
+          {
+            "american_odds": "-183",
+            "book": "bov",
+            "book_name": "Bovada",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-205",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:03:52Z",
+            "ts": 1792778632
+          },
+          {
+            "american_odds": "+135",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+114",
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:23:46Z",
+            "ts": 1792776226
+          },
+          {
+            "american_odds": "-195",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-240",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:14:01Z",
+            "ts": 1792764841
+          },
+          {
+            "american_odds": "+141",
+            "book": "circa",
+            "book_name": "Circa",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+119",
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:23:34Z",
+            "ts": 1792776214
+          },
+          {
+            "american_odds": "-180",
+            "book": "circa",
+            "book_name": "Circa",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-215",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:13:25Z",
+            "ts": 1792764805
+          },
+          {
+            "american_odds": "+140",
+            "book": "czr",
+            "book_name": "Caesars",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+130",
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:37:29Z",
+            "ts": 1792777049
+          },
+          {
+            "american_odds": "-180",
+            "book": "czr",
+            "book_name": "Caesars",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-205",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:44:12Z",
+            "ts": 1792781052
+          },
+          {
+            "american_odds": "+142",
+            "book": "dk",
+            "book_name": "DraftKings",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+140",
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:14:05Z",
+            "ts": 1792764845
+          },
+          {
+            "american_odds": "-180",
+            "book": "dk",
+            "book_name": "DraftKings",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-185",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:14:05Z",
+            "ts": 1792764845
+          },
+          {
+            "american_odds": "+140",
+            "book": "espn",
+            "book_name": "theScore Bet",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+120",
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:27:22Z",
+            "ts": 1792765642
+          },
+          {
+            "american_odds": "-175",
+            "book": "espn",
+            "book_name": "theScore Bet",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-215",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:27:22Z",
+            "ts": 1792765642
+          },
+          {
+            "american_odds": "+132",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+114",
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:38:00Z",
+            "ts": 1792777080
+          },
+          {
+            "american_odds": "-188",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-215",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:38:00Z",
+            "ts": 1792777080
+          },
+          {
+            "american_odds": "+135",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+120",
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:03:06Z",
+            "ts": 1792778586
+          },
+          {
+            "american_odds": "-175",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-200",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:43:31Z",
+            "ts": 1792781011
+          },
+          {
+            "american_odds": "+144",
+            "book": "novig",
+            "book_name": "NoVig",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+120",
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:43:35Z",
+            "ts": 1792781015
+          },
+          {
+            "american_odds": "-171",
+            "book": "novig",
+            "book_name": "NoVig",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-204",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:43:35Z",
+            "ts": 1792781015
+          },
+          {
+            "american_odds": "+135",
+            "book": "parx",
+            "book_name": "Parx",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+114",
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:24:00Z",
+            "ts": 1792776240
+          },
+          {
+            "american_odds": "-195",
+            "book": "parx",
+            "book_name": "Parx",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-240",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:13:56Z",
+            "ts": 1792764836
+          },
+          {
+            "american_odds": "+130",
+            "book": "pb",
+            "book_name": "PointsBet",
+            "line": 0,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+115",
+            "open_line": 0,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:13:14Z",
+            "ts": 1792764794
+          },
+          {
+            "american_odds": "-180",
+            "book": "pb",
+            "book_name": "PointsBet",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-210",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:13:14Z",
+            "ts": 1792764794
+          },
+          {
+            "american_odds": "+152",
+            "book": "phtx",
+            "book_name": "ProphetX",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+112",
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:43:39Z",
+            "ts": 1792781019
+          },
+          {
+            "american_odds": "-168",
+            "book": "phtx",
+            "book_name": "ProphetX",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-220",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T16:03:36Z",
+            "ts": 1792771416
+          },
+          {
+            "american_odds": "+145",
+            "book": "poly",
+            "book_name": "Polymarket",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "+136",
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:13:10Z",
+            "ts": 1792764790
+          },
+          {
+            "american_odds": "-189",
+            "book": "poly",
+            "book_name": "Polymarket",
+            "line": 1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "-222",
+            "open_line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T12:13:55Z",
+            "ts": 1792757635
+          },
+          {
+            "american_odds": "+155",
+            "book": "blys",
+            "book_name": "Bally's",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+185",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:13:38Z",
+            "ts": 1792764818
+          },
+          {
+            "american_odds": "-162",
+            "book": "blys",
+            "book_name": "Bally's",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-136",
+            "team": "MON",
+            "timestamp": "2026-10-23T17:23:33Z",
+            "ts": 1792776213
+          },
+          {
+            "american_odds": "+157",
+            "book": "boag",
+            "book_name": "BetOnlineAG",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+178",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:15:31Z",
+            "ts": 1792779331
+          },
+          {
+            "american_odds": "-163",
+            "book": "boag",
+            "book_name": "BetOnlineAG",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-140",
+            "team": "MON",
+            "timestamp": "2026-10-23T18:15:31Z",
+            "ts": 1792779331
+          },
+          {
+            "american_odds": "+158",
+            "book": "bov",
+            "book_name": "Bovada",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+173",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:03:52Z",
+            "ts": 1792778632
+          },
+          {
+            "american_odds": "-163",
+            "book": "bov",
+            "book_name": "Bovada",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-147",
+            "team": "MON",
+            "timestamp": "2026-10-23T18:03:52Z",
+            "ts": 1792778632
+          },
+          {
+            "american_odds": "+155",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+185",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:14:01Z",
+            "ts": 1792764841
+          },
+          {
+            "american_odds": "-162",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-136",
+            "team": "MON",
+            "timestamp": "2026-10-23T17:23:46Z",
+            "ts": 1792776226
+          },
+          {
+            "american_odds": "+155",
+            "book": "circa",
+            "book_name": "Circa",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+185",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:13:25Z",
+            "ts": 1792764805
+          },
+          {
+            "american_odds": "-157",
+            "book": "circa",
+            "book_name": "Circa",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-133",
+            "team": "MON",
+            "timestamp": "2026-10-23T17:23:34Z",
+            "ts": 1792776214
+          },
+          {
+            "american_odds": "+145",
+            "book": "czr",
+            "book_name": "Caesars",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+172",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:44:12Z",
+            "ts": 1792781052
+          },
+          {
+            "american_odds": "-170",
+            "book": "czr",
+            "book_name": "Caesars",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-154",
+            "team": "MON",
+            "timestamp": "2026-10-23T17:37:29Z",
+            "ts": 1792777049
+          },
+          {
+            "american_odds": "+150",
+            "book": "dk",
+            "book_name": "DraftKings",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+154",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:14:05Z",
+            "ts": 1792764845
+          },
+          {
+            "american_odds": "-170",
+            "book": "dk",
+            "book_name": "DraftKings",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-166",
+            "team": "MON",
+            "timestamp": "2026-10-23T14:14:05Z",
+            "ts": 1792764845
+          },
+          {
+            "american_odds": "+145",
+            "book": "espn",
+            "book_name": "theScore Bet",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+170",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:27:22Z",
+            "ts": 1792765642
+          },
+          {
+            "american_odds": "-165",
+            "book": "espn",
+            "book_name": "theScore Bet",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-140",
+            "team": "MON",
+            "timestamp": "2026-10-23T14:27:22Z",
+            "ts": 1792765642
+          },
+          {
+            "american_odds": "+152",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+172",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:38:00Z",
+            "ts": 1792777080
+          },
+          {
+            "american_odds": "-160",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-137",
+            "team": "MON",
+            "timestamp": "2026-10-23T17:38:00Z",
+            "ts": 1792777080
+          },
+          {
+            "american_odds": "+145",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+165",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:03:06Z",
+            "ts": 1792778586
+          },
+          {
+            "american_odds": "-160",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-145",
+            "team": "MON",
+            "timestamp": "2026-10-23T18:03:06Z",
+            "ts": 1792778586
+          },
+          {
+            "american_odds": "+157",
+            "book": "novig",
+            "book_name": "NoVig",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+186",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:43:35Z",
+            "ts": 1792781015
+          },
+          {
+            "american_odds": "-157",
+            "book": "novig",
+            "book_name": "NoVig",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-130",
+            "team": "MON",
+            "timestamp": "2026-10-23T18:43:35Z",
+            "ts": 1792781015
+          },
+          {
+            "american_odds": "+155",
+            "book": "parx",
+            "book_name": "Parx",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+185",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:13:56Z",
+            "ts": 1792764836
+          },
+          {
+            "american_odds": "-162",
+            "book": "parx",
+            "book_name": "Parx",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-136",
+            "team": "MON",
+            "timestamp": "2026-10-23T17:24:00Z",
+            "ts": 1792776240
+          },
+          {
+            "american_odds": "+150",
+            "book": "pb",
+            "book_name": "PointsBet",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+175",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:13:14Z",
+            "ts": 1792764794
+          },
+          {
+            "american_odds": "-160",
+            "book": "pb",
+            "book_name": "PointsBet",
+            "line": 0,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-140",
+            "open_line": 0,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:13:14Z",
+            "ts": 1792764794
+          },
+          {
+            "american_odds": "-156",
+            "book": "phtx",
+            "book_name": "ProphetX",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-150",
+            "team": "MON",
+            "timestamp": "2026-10-23T18:03:39Z",
+            "ts": 1792778619
+          },
+          {
+            "american_odds": "+160",
+            "book": "phtx",
+            "book_name": "ProphetX",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+164",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T16:53:06Z",
+            "ts": 1792774386
+          },
+          {
+            "american_odds": "+165",
+            "book": "poly",
+            "book_name": "Polymarket",
+            "line": -1.5,
+            "market": "spread",
+            "offer_type": "s",
+            "open_american_odds": "+194",
+            "open_line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T12:13:55Z",
+            "ts": 1792757635
+          },
+          {
+            "american_odds": "-165",
+            "book": "poly",
+            "book_name": "Polymarket",
+            "line": null,
+            "market": "moneyline",
+            "offer_type": "ml",
+            "open_american_odds": "-154",
+            "team": "MON",
+            "timestamp": "2026-10-23T14:13:10Z",
+            "ts": 1792764790
+          },
+          {
+            "american_odds": "-103",
+            "book": "blys",
+            "book_name": "Bally's",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+104",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T14:13:38Z",
+            "ts": 1792764818
+          },
+          {
+            "american_odds": "+102",
+            "book": "boag",
+            "book_name": "BetOnlineAG",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+104",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T07:34:56Z",
+            "ts": 1792740896
+          },
+          {
+            "american_odds": "+100",
+            "book": "bov",
+            "book_name": "Bovada",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+102",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T16:13:12Z",
+            "ts": 1792771992
+          },
+          {
+            "american_odds": "-103",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+104",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T14:14:01Z",
+            "ts": 1792764841
+          },
+          {
+            "american_odds": "+100",
+            "book": "circa",
+            "book_name": "Circa",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+100",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T01:23:08Z",
+            "ts": 1792718588
+          },
+          {
+            "american_odds": "-107",
+            "book": "czr",
+            "book_name": "Caesars",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+106",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:37:29Z",
+            "ts": 1792777049
+          },
+          {
+            "american_odds": "+102",
+            "book": "dk",
+            "book_name": "DraftKings",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+110",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-22T16:23:09Z",
+            "ts": 1792686189
+          },
+          {
+            "american_odds": "+105",
+            "book": "espn",
+            "book_name": "theScore Bet",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+100",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T14:27:22Z",
+            "ts": 1792765642
+          },
+          {
+            "american_odds": "+104",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+108",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T14:24:55Z",
+            "ts": 1792765495
+          },
+          {
+            "american_odds": "+100",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-118",
+            "open_line": 6,
+            "team": "Over",
+            "timestamp": "2026-10-23T12:03:26Z",
+            "ts": 1792757006
+          },
+          {
+            "american_odds": "+106",
+            "book": "novig",
+            "book_name": "NoVig",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+106",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:43:35Z",
+            "ts": 1792781015
+          },
+          {
+            "american_odds": "-103",
+            "book": "parx",
+            "book_name": "Parx",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+104",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T14:04:01Z",
+            "ts": 1792764241
+          },
+          {
+            "american_odds": "+100",
+            "book": "pb",
+            "book_name": "PointsBet",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+110",
+            "open_line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-22T18:13:04Z",
+            "ts": 1792692784
+          },
+          {
+            "american_odds": "-119",
+            "book": "phtx",
+            "book_name": "ProphetX",
+            "line": 6,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-156",
+            "open_line": 5.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:33:30Z",
+            "ts": 1792780410
+          },
+          {
+            "american_odds": "+100",
+            "book": "poly",
+            "book_name": "Polymarket",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-148",
+            "open_line": 5.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T12:23:31Z",
+            "ts": 1792758211
+          },
+          {
+            "american_odds": "-122",
+            "book": "blys",
+            "book_name": "Bally's",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-129",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T14:13:38Z",
+            "ts": 1792764818
+          },
+          {
+            "american_odds": "-118",
+            "book": "boag",
+            "book_name": "BetOnlineAG",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-120",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T07:34:56Z",
+            "ts": 1792740896
+          },
+          {
+            "american_odds": "-120",
+            "book": "bov",
+            "book_name": "Bovada",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-122",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T16:13:12Z",
+            "ts": 1792771992
+          },
+          {
+            "american_odds": "-122",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-129",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T14:14:01Z",
+            "ts": 1792764841
+          },
+          {
+            "american_odds": "-120",
+            "book": "circa",
+            "book_name": "Circa",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-120",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T01:23:08Z",
+            "ts": 1792718588
+          },
+          {
+            "american_odds": "-118",
+            "book": "czr",
+            "book_name": "Caesars",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-130",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:37:29Z",
+            "ts": 1792777049
+          },
+          {
+            "american_odds": "-122",
+            "book": "dk",
+            "book_name": "DraftKings",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-130",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-22T16:23:09Z",
+            "ts": 1792686189
+          },
+          {
+            "american_odds": "-125",
+            "book": "espn",
+            "book_name": "theScore Bet",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-120",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T14:27:22Z",
+            "ts": 1792765642
+          },
+          {
+            "american_odds": "-128",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-132",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T14:24:55Z",
+            "ts": 1792765495
+          },
+          {
+            "american_odds": "-120",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-102",
+            "open_line": 6,
+            "team": "Under",
+            "timestamp": "2026-10-23T12:03:26Z",
+            "ts": 1792757006
+          },
+          {
+            "american_odds": "-115",
+            "book": "novig",
+            "book_name": "NoVig",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-115",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:43:35Z",
+            "ts": 1792781015
+          },
+          {
+            "american_odds": "-122",
+            "book": "parx",
+            "book_name": "Parx",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-129",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T14:04:01Z",
+            "ts": 1792764241
+          },
+          {
+            "american_odds": "-120",
+            "book": "pb",
+            "book_name": "PointsBet",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "-130",
+            "open_line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-22T18:13:04Z",
+            "ts": 1792692784
+          },
+          {
+            "american_odds": "+111",
+            "book": "phtx",
+            "book_name": "ProphetX",
+            "line": 6,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+117",
+            "open_line": 5.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:33:30Z",
+            "ts": 1792780410
+          },
+          {
+            "american_odds": "-112",
+            "book": "poly",
+            "book_name": "Polymarket",
+            "line": 6.5,
+            "market": "total",
+            "offer_type": "t",
+            "open_american_odds": "+131",
+            "open_line": 5.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T12:23:31Z",
+            "ts": 1792758211
+          }
+        ],
+        "sport": "nhl",
+        "start_date": "2026-10-23T20:00:00-04:00",
+        "team1": "MON",
+        "team2": "CHI"
+      }
+    ],
+    "sport": "nhl"
+  },
+  "alt_t": {
+    "alt_type": "alt_t",
+    "count": 20,
+    "event_id": "202610230CHI",
+    "lines": [
+      {
+        "line": 0.5,
+        "prices": [
+          {
+            "american_odds": "-177",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 0.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-220",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 0.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          }
+        ]
+      },
+      {
+        "line": 1.5,
+        "prices": [
+          {
+            "american_odds": "-157",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 1.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+138",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 1.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          }
+        ]
+      },
+      {
+        "line": 2.5,
+        "prices": [
+          {
+            "american_odds": "+145",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 2.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-230",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 2.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-6000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 2.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+2400",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 2.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          }
+        ]
+      },
+      {
+        "line": 3,
+        "prices": [
+          {
+            "american_odds": "-10000",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 3,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "+1400",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 3,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:00:50Z",
+            "ts": 1792774850
+          }
+        ]
+      },
+      {
+        "line": 3.5,
+        "prices": [
+          {
+            "american_odds": "+370",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 3.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+550",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 3.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-1100",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 3.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+610",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 3.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-800",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 3.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "+475",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 3.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 4,
+        "prices": [
+          {
+            "american_odds": "-750",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 4,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "+450",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 4,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 4.5,
+        "prices": [
+          {
+            "american_odds": "-335",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 4.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+330",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 4.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-550",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 4.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+350",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 4.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-450",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 4.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "+310",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 4.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 5,
+        "prices": [
+          {
+            "american_odds": "-325",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "+240",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 5.5,
+        "prices": [
+          {
+            "american_odds": "-162",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 5.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+128",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 5.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-160",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 5.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+126",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 5.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-155",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 5.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "+120",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 5.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 6,
+        "prices": [
+          {
+            "american_odds": "-130",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 6,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "-102",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 6,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 6.5,
+        "prices": [
+          {
+            "american_odds": "+128",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-122",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+100",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-128",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+100",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 6.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "-120",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 6.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 7,
+        "prices": [
+          {
+            "american_odds": "+165",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 7,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "-220",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 7,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 7.5,
+        "prices": [
+          {
+            "american_odds": "+225",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 7.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-305",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 7.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+240",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 7.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-340",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 7.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+220",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 7.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "-300",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 7.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 8,
+        "prices": [
+          {
+            "american_odds": "+290",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 8,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:00:50Z",
+            "ts": 1792774850
+          },
+          {
+            "american_odds": "-425",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 8,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 8.5,
+        "prices": [
+          {
+            "american_odds": "+340",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 8.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-670",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 8.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+390",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 8.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T16:47:57Z",
+            "ts": 1792774077
+          },
+          {
+            "american_odds": "-600",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 8.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+325",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 8.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "-475",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 8.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 9,
+        "prices": [
+          {
+            "american_odds": "+600",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 9,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "-1200",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 9,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 9.5,
+        "prices": [
+          {
+            "american_odds": "+700",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 9.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-1430",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 9.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+890",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 9.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-1800",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 9.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          }
+        ]
+      },
+      {
+        "line": 10.5,
+        "prices": [
+          {
+            "american_odds": "+1420",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 10.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-3500",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 10.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          }
+        ]
+      },
+      {
+        "line": 11.5,
+        "prices": [
+          {
+            "american_odds": "+4000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 11.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-8000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 11.5,
+            "team": "Under",
+            "timestamp": "2026-10-23T16:47:57Z",
+            "ts": 1792774077
+          }
+        ]
+      },
+      {
+        "line": 12.5,
+        "prices": [
+          {
+            "american_odds": "+6000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 12.5,
+            "team": "Over",
+            "timestamp": "2026-10-23T14:48:05Z",
+            "ts": 1792766885
+          }
+        ]
+      }
+    ],
+    "sport": "nhl"
+  },
+  "alt_s": {
+    "alt_type": "alt_s",
+    "count": 12,
+    "event_id": "202610230CHI",
+    "lines": [
+      {
+        "line": -6.5,
+        "prices": [
+          {
+            "american_odds": "+6500",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -6.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T16:47:57Z",
+            "ts": 1792774077
+          }
+        ]
+      },
+      {
+        "line": -5.5,
+        "prices": [
+          {
+            "american_odds": "+3100",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -5.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+1800",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -5.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:00:50Z",
+            "ts": 1792774850
+          }
+        ]
+      },
+      {
+        "line": -4.5,
+        "prices": [
+          {
+            "american_odds": "+6000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -4.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T16:47:57Z",
+            "ts": 1792774077
+          },
+          {
+            "american_odds": "+1360",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -4.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+1000",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -4.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": -3.5,
+        "prices": [
+          {
+            "american_odds": "+650",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": -3.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+1550",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -3.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+550",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -3.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+950",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -3.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T13:00:53Z",
+            "ts": 1792760453
+          },
+          {
+            "american_odds": "+500",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -3.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": -2.5,
+        "prices": [
+          {
+            "american_odds": "+575",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": -2.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+280",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": -2.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+550",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -2.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+230",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -2.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+425",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -2.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T14:01:17Z",
+            "ts": 1792764077
+          },
+          {
+            "american_odds": "+220",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -2.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": -1.5,
+        "prices": [
+          {
+            "american_odds": "+325",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": -1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:34:51Z",
+            "ts": 1792776891
+          },
+          {
+            "american_odds": "+150",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "+290",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+150",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "+290",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "+145",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": -1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 1.5,
+        "prices": [
+          {
+            "american_odds": "-195",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-455",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-192",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-430",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-175",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 1.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "-425",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 1.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 2.5,
+        "prices": [
+          {
+            "american_odds": "-385",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 2.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-1000",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 2.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-320",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 2.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-950",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 2.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-300",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 2.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          },
+          {
+            "american_odds": "-700",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 2.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:01:17Z",
+            "ts": 1792764077
+          }
+        ]
+      },
+      {
+        "line": 3.5,
+        "prices": [
+          {
+            "american_odds": "-1115",
+            "book": "briv",
+            "book_name": "BetRivers",
+            "line": 3.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:34:16Z",
+            "ts": 1792780456
+          },
+          {
+            "american_odds": "-950",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 3.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-3500",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 3.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T16:47:57Z",
+            "ts": 1792774077
+          },
+          {
+            "american_odds": "-900",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 3.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:00:50Z",
+            "ts": 1792774850
+          },
+          {
+            "american_odds": "-3000",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 3.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T14:01:17Z",
+            "ts": 1792764077
+          }
+        ]
+      },
+      {
+        "line": 4.5,
+        "prices": [
+          {
+            "american_odds": "-3000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 4.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-20000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 4.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-3000",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 4.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T18:00:38Z",
+            "ts": 1792778438
+          }
+        ]
+      },
+      {
+        "line": 5.5,
+        "prices": [
+          {
+            "american_odds": "-8000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 5.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-50000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 5.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-10000",
+            "book": "mgm",
+            "book_name": "BetMGM",
+            "line": 5.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:00:50Z",
+            "ts": 1792774850
+          }
+        ]
+      },
+      {
+        "line": 6.5,
+        "prices": [
+          {
+            "american_odds": "-20000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 6.5,
+            "team": "CHI",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          },
+          {
+            "american_odds": "-100000",
+            "book": "fd",
+            "book_name": "FanDuel",
+            "line": 6.5,
+            "team": "MON",
+            "timestamp": "2026-10-23T17:47:49Z",
+            "ts": 1792777669
+          }
+        ]
+      }
+    ],
+    "sport": "nhl"
+  },
+  "team-totals": {
+    "count": 1,
+    "events": [
+      {
+        "event_id": "202610230CHI",
+        "players": [
+          {
+            "all_odds": [
+              {
+                "american_odds": "-275",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-8000",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-5000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+190",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+1400",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+2000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+163",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-750",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-950",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-750",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-265",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+440",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+550",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T17:47:49Z",
+                "ts": 1792777669
+              },
+              {
+                "american_odds": "+425",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-600",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 2,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+350",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 2,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-275",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 2.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-245",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 2.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-260",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 2.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-250",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 2.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+165",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 2.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+180",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 2.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+194",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 2.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+175",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 2.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-175",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 3,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+125",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 3,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-106",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 3.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-110",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 3.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-102",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 3.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T17:47:49Z",
+                "ts": 1792777669
+              },
+              {
+                "american_odds": "-110",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 3.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-129",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 3.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-130",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 3.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T17:27:52Z",
+                "ts": 1792776472
+              },
+              {
+                "american_odds": "-126",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 3.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-125",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 3.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+150",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 4,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-210",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 4,
+                "team": "Under",
+                "timestamp": "2026-10-23T17:00:50Z",
+                "ts": 1792774850
+              },
+              {
+                "american_odds": "+225",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 4.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+215",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 4.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+230",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 4.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+200",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 4.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-375",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 4.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-300",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 4.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-320",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 4.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-295",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 4.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+375",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-650",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+490",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 5.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+570",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 5.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+425",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 5.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-875",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 5.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-1000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 5.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-800",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 5.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+1380",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 6.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-3000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 6.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+4300",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 7.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-8000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 7.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              }
+            ],
+            "alt_lines": [
+              0.5,
+              2,
+              2.5,
+              3,
+              3.5,
+              4,
+              4.5,
+              5,
+              5.5,
+              6.5,
+              7.5
+            ],
+            "main_line": 1.5,
+            "odds": [
+              {
+                "american_odds": "+163",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-750",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-950",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-750",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-265",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+440",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+550",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T17:47:49Z",
+                "ts": 1792777669
+              },
+              {
+                "american_odds": "+425",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              }
+            ],
+            "player_name": "MON"
+          },
+          {
+            "all_odds": [
+              {
+                "american_odds": "-195",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-2800",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-2000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-2500",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+133",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+1000",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+1060",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+750",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-1600",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 1,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+650",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 1,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-435",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-425",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T17:27:52Z",
+                "ts": 1792776472
+              },
+              {
+                "american_odds": "-400",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-375",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 1.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+285",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+285",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+280",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+250",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 1.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-250",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 2,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+175",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 2,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-143",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 2.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-150",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 2.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-134",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 2.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-140",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 2.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+106",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 2.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+110",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 2.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+106",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 2.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+100",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 2.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+115",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 3,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-160",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 3,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+163",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 3.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+165",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 3.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+180",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 3.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+165",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 3.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-275",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 3.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-225",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 3.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-235",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 3.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-235",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 3.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+290",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 4,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-475",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 4,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+375",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 4.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+370",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 4.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+430",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 4.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+350",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 4.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "-770",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 4.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-600",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 4.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-700",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 4.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-625",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 4.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+900",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 5.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+1080",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 5.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-2200",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 5.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-2000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 5.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+2800",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 6.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-8000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 6.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              }
+            ],
+            "alt_lines": [
+              1,
+              1.5,
+              2,
+              2.5,
+              3,
+              3.5,
+              4,
+              4.5,
+              5.5,
+              6.5
+            ],
+            "main_line": 0.5,
+            "odds": [
+              {
+                "american_odds": "-195",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "-2800",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "-2000",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "-2500",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 0.5,
+                "team": "Over",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              },
+              {
+                "american_odds": "+133",
+                "book": "briv",
+                "book_name": "BetRivers",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:34:16Z",
+                "ts": 1792780456
+              },
+              {
+                "american_odds": "+1000",
+                "book": "dk",
+                "book_name": "DraftKings",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:27:20Z",
+                "ts": 1792780040
+              },
+              {
+                "american_odds": "+1060",
+                "book": "fd",
+                "book_name": "FanDuel",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:47:56Z",
+                "ts": 1792781276
+              },
+              {
+                "american_odds": "+750",
+                "book": "mgm",
+                "book_name": "BetMGM",
+                "line": 0.5,
+                "team": "Under",
+                "timestamp": "2026-10-23T18:00:38Z",
+                "ts": 1792778438
+              }
+            ],
+            "player_name": "CHI"
+          }
+        ],
+        "start_date": "2026-10-23 20:00:00-04:00",
+        "team1": "MON",
+        "team2": "CHI"
+      }
+    ],
+    "prop_type": "tt_goals",
+    "sport": "nhl"
+  }
+}

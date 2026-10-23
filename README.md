@@ -16,10 +16,11 @@ Doména webu používa DNS CNAME a spravovaný HTTPS certifikát.
 **Azure resource group:** `nhlprediction` · `westeurope`.
 
 ```text
-18:00 Europe/Bratislava → Azure: program, štatistiky, prvá kontrola kurzov
-18:30, 19:00, ... 08:00 → Azure: kurzy pred publikáciou, potom už iba skóre
+18:00 Europe/Bratislava → Azure: program a štatistiky
+19:45 Europe/Bratislava → Azure: jeden denný katalóg Oddize vrátane alternatív
+Každých 30 minút do 08:00 → skóre; po publikácii žiadne nové analytické dáta
 20:00 → ChatGPT Cloud úloha: MCP dáta + webový research
-  → save_game: zostavy, brankári, kontext, prípadne presné nové kurzy
+  → save_game: zostavy, brankári, kontext; ceny zostávajú výhradne backendové
   → check_day + finalize_day: iba validácia a uzavretie researchu
   → get_analysis: spoločný aktuálny dátový snapshot
   → analytické rozhodnutie GPT → post_tips → web
@@ -34,7 +35,7 @@ Pripoj NHL Observatory ako vlastný MCP server s vyššie uvedenou URL a OAuth.
 Prihlás sa Microsoft účtom vlastníka Azure aplikácie. OpenAI API kľúč ani
 Microsoft client secret sa do ChatGPT nezadávajú.
 
-Po aktualizácii na **3.4.0** obnov nástroje pripojenia a over `resume_plan`
+Po aktualizácii na **4.0.0** obnov nástroje pripojenia a over `resume_plan`
 v odpovedi `start_day` alebo `get_results`.
 Použi [denný prompt so stratégiou](docs/chatgpt-scheduled-prompt.md); do úlohy
 vlož iba jeho blok `text`. Azure deployment uložený prompt úlohy nemení.
@@ -48,7 +49,7 @@ Najprv over skutočný skúšobný beh s prístupom k MCP, researchu a zápisom.
 | `get_schema` | Autoritatívna schéma vrátane kontextu a dokladovaných kurzov |
 | `start_day` | Úplný oficiálny program a asynchrónny import dát |
 | `get_game` | Uložený zápas, natívne chránené polia, dôkazy a revision |
-| `save_game` | Research, dodatočný kontext a nové overené ponuky s dôkazmi |
+| `save_game` | Research a dodatočný športový kontext s dôkazmi; bez zmien kurzov |
 | `check_day` | Kontrola všetkých polí, kategórií trhov a dôkazov |
 | `finalize_day` | Synchrónna validácia a označenie researchu za dokončený, bez `sims` |
 | `get_analysis` | Analytický dataset a všetky dostupné ceny; GPT posúdi a rozhodne |
@@ -106,7 +107,7 @@ Nedopĺňajú sa vymyslené číselné vplyvy. Schéma je v
 | NHL API | Oficiálny program, presné ID/tímy/UTC časy, game logy, štarty a SV% brankárov |
 | [mattkravec/moneypuck-data](https://github.com/mattkravec/moneypuck-data/releases/tag/data-v2) | Parquet história tímových zápasov a záložné brankárske súhrny |
 | [NHL-Totals-Lab-Data](https://github.com/adanielmendozaz-glitch/NHL-Totals-Lab-Data) | Brankárske exporty v JSON feede |
-| NHL/DraftKings partner feed | Skutočne publikované predzápasové kurzy |
+| Oddize Sports Odds API | Skutočné bookmakerove kurzy, alternatívne totals/handicapy a tímové totals o 19:45 |
 
 MoneyPuck mirrory nahrádzajú priamy prístup, ktorý z Azure vracal HTTP 403.
 Aktuálne exporty musia mať publikáciu najviac 48 hodín starú; cache najviac
@@ -138,52 +139,35 @@ Natívne polia/kurzy sú chránené pred prepísaním. JSON `5` a `5.0` sú rovn
 zaokrúhlenie hodnoty sa odmietne. Pri konflikte revision sa znovu načíta zápas.
 Nové overenie má nové evidence ID; existujúci dôkaz sa spätne nemení.
 
-## Kurzy a ich aproximácie
+## Kurzy z Oddize
 
-`oddsWatch` sa spúšťa každú celú a pol hodinu UTC, časové okno vyhodnocuje
-v **Europe/Bratislava 17:45–08:00** vrátane DST. Začiatok okna 17:45 je poistka
-pre mierne predčasné vyvolanie termínu 18:00; nový beh o 17:45 nepridáva.
-Založí deň, načíta štatistiky
-alebo obnoví NHL feed. Žiadny predikčný výpočet nespúšťa.
+Produkčný zber používa **Oddize Sports Odds API**, nie NHL/DraftKings feed.
+Samostatný timer s UTC cronom `0 45 * * * *` a lokálnym filtrom spustí zber
+o **19:45 Europe/Bratislava vrátane DST**. Polhodinový timer obnoví zlyhanú
+frontu, ale úspešný denný katalóg už nenakupuje znova.
 
-Feed `https://api-web.nhle.com/v1/partner-game/US/now` sa páruje podľa presného
-NHL dňa, ID, tímov a UTC začiatku. Publikácia musí byť najviac dve hodiny stará.
-Čas stiahnutia neobnovuje čas publikácie. Podporované sú moneyline vrátane OT/SO,
-1/X/2 po 60 minútach, celkové góly a handicap. Začaté zápasy sa vyradia.
-`odds_import` rozlišuje WAITING/PARTIAL/READY/ERROR/NO_UPCOMING_GAMES.
+Import tvorí hlavný NHL katalóg (1 kredit), alternatívne totals a handicapy
+(2 + 2 kredity na zápas) a jeden hromadný request tímových totals (2 kredity).
+Úspešné odpovede sa trvalo cachujú podľa dňa/requestu. Pri zlyhaní alebo
+reštarte sa opakujú iba chýbajúce requesty. Tempo je najviac jeden request
+za 2,1 sekundy. Pri 209 zápasoch a 30 dňoch vychádza približne **926 kreditov**
+bez dodatočných diagnostík; free limit je 1500 za fakturačný mesiac.
 
-`get_analysis` obsahuje všetky dostupné ceny vrátane tých mimo preferovaného
-pásma; `candidates` sú iba **1,18–1,35 vrátane**. Žiadne poradie neznamená
-odporúčanie. `selectable` kontroluje cenu, aktuálnosť a pravidlá; neposudzuje
-predikčnú výhodu ani kvalitu tímu. **Tímový over 2,5 je pozastavený.**
+Ponuky sa párujú podľa presných tímov/domácich/hostí a času s toleranciou
+10 minút; cudzie dni a už začaté zápasy sa nevydávajú za aktuálne ponuky.
+Zachováva sa bookmaker, čas pozorovania ceny, čas API snapshotu a dôkazy.
+Staré, nekonzistentné alebo nejednoznačne vyhodnocované ceny nie sú selectable.
+Pravidlá full-game sú overené pre FanDuel, BetMGM a DraftKings; ostatné knihy
+ostávajú kontextom, kým nie je doložené ich vyhodnotenie. Zdrojové pravidlá
+a dátum kontroly sú v `BookmakerRules.java` a v dôkazoch snapshotu.
 
-Stratégia v1.8 posudzuje útok každého tímu proti súperovej obrane a brankárovi
-samostatne. Pri porovnateľných tímových aj brankárskych metrikách používa dôraz
-60 % aktuálna/40 % minulá sezóna, s výslovnou neistotou malých vzoriek.
-OVER aj UNDER vyžadujú konkrétny štatistický protiargument a vysvetlenie výberu.
-Obhájiteľný LOW confidence TIP zostáva povolený.
-
-**Celkové aj tímové góly sa smú vybrať výhradne za 60 minút**:
-`score_basis=regulation` s overenými pravidlami bookmakera. Backend zablokuje
-výber `official_final` totalov; zachová ich iba ako pôvodné dátové podklady.
-Ani ich ceny nemožno preoznačiť alebo použiť ako kotvu regulation odhadu.
-Chýbajúcu regulation ponuku musí GPT dohľadať. Moneyline vrátane OT/SO zostáva
-samostatným trhom; handicap zachováva vlastné overené pravidlá vyhodnotenia.
-Historické publikované tipy a ich pôvodné pravidlá sa spätne nemenia.
-
-- **QUOTED:** skutočne overená ponuka so zdrojom, časom a pravidlami trhu.
-- **ESTIMATED total:** cenová krivka z čerstvej kompletnej dvojice over/under
-  za 60 minút rovnakého bookmakera, publikácie a overených pravidiel. Po odstránení marže sa prispôsobí
-  Poissonov tvar cenovej krivky a pre ďalšie polgólové hranice sa predpokladá
-  rovnaká marža. Ide iba o aproximáciu ceny z trhu, nie model tímov či skóre.
-- **ESTIMATED handicap:** iba interpolácia medzi **dvoma nezávislými kompletnými
-  hranicami** tej istej publikácie/pravidiel; bez simulovaného rozdielu skóre.
-  Jedna protichodná dvojica nestačí, vtedy backend odhad nevytvorí.
-
-Presný kurz môže GPT dohľadať pri zvažovaní tipu a pridať cez `save_game` do
-`markets` s vlastným ID, `evidence_ids`, overeným source a rules_url. Odhady sa
-ako overené ponuky neukladajú. Dodatočný reálny kurz môže pokryť aj kategóriu,
-ktorú NHL feed označil za nedostupnú; natívne ponuky zostávajú chránené.
+Povolené pásmo je **1,18–1,35 vrátane pred zaokrúhlením**. Gólové trhy aj
+handicapy môžu byť `regulation` alebo `official_final` podľa overených pravidiel;
+OT/SO sa nesmie preoznačiť na 60 minút. Tímový over 2,5 zostáva zakázaný.
+API neposkytuje všetky typy (napríklad 1/X/2 alebo dvojtipy); chýbajúce
+typy neprerátavame. Cenové aproximácie sú odstránené. GPT ceny ani pravidlá
+nehľadá na webe a nemôže ich pridať/zmeniť cez save_game; používa iba
+backendových QUOTED kandidátov. Športový research naďalej dopĺňa cez web/MCP.
 
 ## Finálne výbery a web
 

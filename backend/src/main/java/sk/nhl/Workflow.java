@@ -30,6 +30,10 @@ final class Workflow {
     }
     ObjectNode start(String day){return start(day,false);}
     ObjectNode start(String day,boolean refreshSources){
+        ObjectNode result=startResearch(day,refreshSources);
+        return collector!=null&&collector.odds instanceof OddizeOdds?requestOdds(day,Instant.now()):result;
+    }
+    ObjectNode startResearch(String day,boolean refreshSources){
         Schedule.day(day);ObjectNode existing=store.get("days/"+day+".json");if(existing!=null){
             ObjectNode current=require(day);if(!Publication.exists(current))return requestPrefill(day,refreshSources);
             if(current.path("dataset").path("games").valueStream().noneMatch(g->Checks.time(text(g,"starts_at")).isAfter(Instant.now())))return summary(current);
@@ -40,7 +44,7 @@ final class Workflow {
         ObjectNode data=schedule.apply(day);
         store.locked("day/"+day,()->{
             ObjectNode found=store.get("days/"+day+".json");if(found!=null)return summary(found);
-            ObjectNode d=obj("day",day,"state",data.path("games").isEmpty()?"NO_GAMES":"COLLECTING","updated_at",Instant.now().toString(),"revision",0,"dataset",data,"official_games",data.path("games").deepCopy(),"report",null,"error",null);
+            ObjectNode d=obj("day",day,"state",data.path("games").isEmpty()?"NO_GAMES":"COLLECTING","updated_at",Instant.now().toString(),"revision",0,"dataset",data,"official_games",data.path("games").deepCopy(),"report",null,"error",null,"odds_import",OddizeOdds.pending(day));
             store.create("days/"+day+".json",d);return summary(d);
         });return requestPrefill(day);
     }
@@ -67,6 +71,7 @@ final class Workflow {
             store.locked("day/"+day,()->{ObjectNode d=require(day);if(!text(d,"enrichment.job_id").equals(text(job,"job_id"))||!text(d,"state").equals("PREFILLING")||d.path("revision").asInt()!=snapshot.path("revision").asInt())return null;
                 store.put("history/"+day+"/"+d.path("revision").asInt()+".json",d);d.set("dataset",result.remove("dataset"));JsonNode odds=result.remove("odds_import");if(odds!=null&&!odds.isNull())d.set("odds_import",odds);ObjectNode paths=(ObjectNode)result.remove("auto_fields");d.path("auto_fields").fields().forEachRemaining(entry->{ArrayNode combined=paths.has(entry.getKey())?(ArrayNode)paths.path(entry.getKey()):arr();Set<String> all=new LinkedHashSet<>(strings(combined));all.addAll(strings(entry.getValue()));paths.set(entry.getKey(),M.valueToTree(all));});d.set("auto_fields",paths);result.remove("coverage");result.put("state","DONE");result.put("job_id",text(job,"job_id"));d.set("enrichment",result);d.put("revision",d.path("revision").asInt()+1);d.put("state","COLLECTING");d.remove("report");d.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",d);return null;});
         }catch(RuntimeException e){store.locked("day/"+day,()->{ObjectNode d=require(day);if(text(d,"enrichment.job_id").equals(text(job,"job_id"))&&text(d,"state").equals("PREFILLING")){d.put("state","ERROR");d.put("error","Source import failed. Retry start_day. "+DataCollector.rootMessage(e));((ObjectNode)d.path("enrichment")).put("state","ERROR").put("updated_at",Instant.now().toString());store.put("days/"+day+".json",d);}return null;});throw e;}
+        if(collector.odds instanceof OddizeOdds)requestOdds(day,Instant.now());
     }
     ObjectNode saveGame(String day,JsonNode game,JsonNode evidence,int expectedRevision){
         Schedule.day(day);ObjectNode before=require(day);if(before.path("revision").asInt()!=expectedRevision||List.of("PREFILLING","RUNNING","QUEUED").contains(text(before,"state")))throw new BusyException();
@@ -86,24 +91,19 @@ final class Workflow {
             for(int i=0;i<games.size();i++)if(text(games.get(i),"game_id").equals(id)){
                 for(JsonNode oldMarket:games.get(i).path("markets"))if(NhlOdds.managed(oldMarket)&&text(savedGame,"status").equals("scheduled")){
                     ArrayNode incomingMarkets=(ArrayNode)savedGame.path("markets");int index=-1;for(int j=0;j<incomingMarkets.size();j++)if(text(incomingMarkets.get(j),"id").equals(text(oldMarket,"id")))index=j;
+                    if(index<0&&OddizeOdds.managed(oldMarket)){incomingMarkets.add(oldMarket.deepCopy());continue;}
                     JsonNode incoming=index<0?null:incomingMarkets.get(index);String changed=Json.difference(oldMarket,incoming);
-                    if(!changed.isEmpty())throw new IllegalArgumentException("Backend NHL odds are immutable: market "+text(oldMarket,"id")+", field "+changed+". Reload get_game and preserve backend market records.");
+                    if(!changed.isEmpty())throw new IllegalArgumentException("Backend odds are immutable: market "+text(oldMarket,"id")+", field "+changed+". Reload get_game; omitted Oddize records are restored automatically.");
                     // Preserve every original native field, including its numeric representation.
                     incomingMarkets.set(index,oldMarket.deepCopy());
                 }
-                for(JsonNode incoming:savedGame.path("markets"))if(NhlOdds.managed(incoming)){JsonNode original=null;for(JsonNode oldMarket:games.get(i).path("markets"))if(text(oldMarket,"id").equals(text(incoming,"id")))original=oldMarket;if(!incoming.equals(original))throw new IllegalArgumentException("Cannot create or change a backend NHL market through save_game");}
+                for(JsonNode incoming:savedGame.path("markets"))if(NhlOdds.managed(incoming)){JsonNode original=null;for(JsonNode oldMarket:games.get(i).path("markets"))if(text(oldMarket,"id").equals(text(incoming,"id")))original=oldMarket;if(!incoming.equals(original))throw new IllegalArgumentException("Cannot create or change a backend market through save_game");}
                 for(JsonNode incoming:savedGame.path("markets"))if(!NhlOdds.managed(incoming)){
                     JsonNode original=null;for(JsonNode oldMarket:games.get(i).path("markets"))if(text(oldMarket,"id").equals(text(incoming,"id")))original=oldMarket;
-                    if(!incoming.equals(original)&&(!MarketQuotes.fresh(incoming,Instant.now())||incoming.path("evidence_ids").isEmpty()))throw new IllegalArgumentException("New/revised researched prices need fresh verified source, settlement rules and evidence_ids. Never save an estimate as a quote.");
+                    if(!incoming.equals(original))throw new IllegalArgumentException("Prices are backend-only. GPT may save research, but cannot add or change bookmaker prices.");
                 }
+                if(text(savedGame,"status").equals("scheduled"))for(JsonNode old:games.get(i).path("markets"))if(!NhlOdds.managed(old)&&savedGame.path("markets").valueStream().noneMatch(q->text(q,"id").equals(text(old,"id"))))((ArrayNode)savedGame.path("markets")).add(old.deepCopy());
                 for(String search:Checks.SEARCHES){JsonNode original=games.get(i).path("checks").path("market_searches").path(search),incoming=savedGame.path("checks").path("market_searches").path(search);if(NhlOdds.nativeCheck(original)){if(!incoming.isMissingNode()&&!original.equals(incoming))throw new IllegalArgumentException("Backend market checks are immutable: "+search);((ObjectNode)savedGame.path("checks").path("market_searches")).set(search,original.deepCopy());}}
-                // An independently verified offer can satisfy a category absent from the NHL feed.
-                // The caller still preserves native checks; the server records the additional proof.
-                for(String search:Checks.SEARCHES){
-                    Set<String> manualProofs=new LinkedHashSet<>();boolean nativeFound=false;
-                    for(JsonNode quote:savedGame.path("markets"))if(Checks.matches(search,quote)){if(NhlOdds.managed(quote))nativeFound=true;else manualProofs.addAll(strings(quote.path("evidence_ids")));}
-                    if(!nativeFound&&!manualProofs.isEmpty())((ObjectNode)savedGame.path("checks").path("market_searches")).set(search,obj("status","found","evidence_ids",manualProofs,"note","Additional bookmaker offer verified by GPT research; not an inferred NHL quote."));
-                }
                 for(JsonNode path:d.path("auto_fields").path(id)){
                     String p=path.asText();JsonNode nativeValue=at(games.get(i),p),incomingValue=at(savedGame,p);
                     JsonNode original=games.get(i).path("checks").path("fields").path(p),incoming=savedGame.path("checks").path("fields").path(p);
@@ -127,7 +127,7 @@ final class Workflow {
     ObjectNode finish(String day){
 
         return store.locked("day/"+Schedule.day(day),()->{
-            ObjectNode d=require(day);if(List.of("PREFILLING","QUEUED","RUNNING").contains(text(d,"state")))return summary(d);
+            ObjectNode d=require(day);if(List.of("PREFILLING","QUEUED","RUNNING").contains(text(d,"state"))||List.of("QUEUED","RUNNING").contains(text(d,"odds_import.state")))return summary(d);
             if(text(d,"state").equals("NO_GAMES"))return summary(d);
             refreshStarted((ObjectNode)d.path("dataset"));
             List<String>errors=Checks.validate(d.path("dataset"));if(!errors.isEmpty())return obj("status","INVALID_INPUT","errors",errors);
@@ -139,6 +139,7 @@ final class Workflow {
     }
     void processImport(JsonNode job){
         if(text(job,"kind").equals("prefill"))prefill(job);
+        else if(text(job,"kind").equals("oddize"))importOdds(job);
         // Old queued prediction jobs are deliberately discarded after migration. No model exists.
     }
     ObjectNode read(String day){return read(require(day));}
@@ -174,8 +175,47 @@ final class Workflow {
         if(existing==null){start(day);refreshScores(day,now);return;}
         if(Publication.exists(existing)){refreshScores(day,now);return;}
         if(collector!=null&&!text(existing,"enrichment.version").equals(DataCollector.VERSION))requestPrefill(day);
-        else refreshOdds(day);
+        if(collector!=null&&collector.odds instanceof OddizeOdds)requestOdds(day,now);
         refreshScores(day,now);
+    }
+    void oddsSnapshotTick(Instant now){
+        String day=NhlOdds.pollDay(now);if(store.get("days/"+day+".json")==null)start(day);requestOdds(day,now);
+    }
+    ObjectNode requestOdds(String day,Instant now){
+        if(collector==null||collector.odds==null)return summary(require(day));
+        return store.locked("day/"+Schedule.day(day),()->{
+            ObjectNode d=require(day);JsonNode previous=d.path("odds_import");
+            if(!OddizeOdds.due(day,now)||text(d,"state").equals("NO_GAMES")||text(d,"state").equals("PREFILLING")||Publication.exists(d)&&!d.path("research_session").path("active").asBoolean()||previous.path("complete_snapshot").asBoolean())return summary(d);
+            if(List.of("QUEUED","RUNNING").contains(text(previous,"state"))&&!Tips.old(text(previous,"last_attempt_at"),now,900))return summary(d);
+            if(List.of("ERROR","PARTIAL").contains(text(previous,"state"))&&!Tips.old(text(previous,"last_attempt_at"),now,300))return summary(d);
+            String id=UUID.randomUUID().toString();ObjectNode meta=previous.isObject()&&text(previous,"provider").equals("Oddize")?previous.deepCopy():OddizeOdds.pending(day);meta.put("provider","Oddize").put("state","QUEUED").put("job_id",id).put("last_attempt_at",now.toString());d.set("odds_import",meta);store.put("days/"+day+".json",d);
+            try{queue.accept(obj("kind","oddize","day",day,"job_id",id));}catch(RuntimeException e){meta.put("state","ERROR").put("reason","Could not enqueue Oddize catalogue. Resume start_day after the queue is available.");store.put("days/"+day+".json",d);throw e;}
+            return summary(d);
+        });
+    }
+    void importOdds(JsonNode job){
+        String day=Schedule.day(text(job,"day"));ObjectNode before=store.locked("day/"+day,()->{
+            ObjectNode d=require(day);if(!text(d,"odds_import.job_id").equals(text(job,"job_id"))||d.path("odds_import").path("complete_snapshot").asBoolean()||Publication.exists(d)&&!d.path("research_session").path("active").asBoolean())return null;
+            if(text(d,"state").equals("PREFILLING"))throw new BusyException();
+            if(text(d,"odds_import.state").equals("RUNNING")&&!Tips.old(text(d,"odds_import.last_attempt_at"),Instant.now(),300))throw new BusyException();
+            ((ObjectNode)d.path("odds_import")).put("state","RUNNING").put("last_attempt_at",Instant.now().toString());store.put("days/"+day+".json",d);return d;
+        });if(before==null)return;
+        try{
+            ObjectNode imported=collector.odds.collect(day,before.path("dataset"));
+            store.locked("day/"+day,()->{
+                ObjectNode d=require(day);if(!text(d,"odds_import.job_id").equals(text(job,"job_id"))||Publication.exists(d)&&!d.path("research_session").path("active").asBoolean())return null;
+                if(text(d,"state").equals("PREFILLING"))throw new BusyException();
+                ObjectNode merged=d.path("dataset").deepCopy();
+                for(JsonNode proof:imported.path("dataset").path("evidence"))if(text(proof,"id").startsWith(OddizeOdds.EVIDENCE_PREFIX))DataCollector.mergeEvidence(merged,proof);
+                for(JsonNode current:merged.path("games"))for(JsonNode updated:imported.path("dataset").path("games"))if(text(current,"game_id").equals(text(updated,"game_id"))){
+                    ArrayNode quotes=arr();for(JsonNode old:current.path("markets"))if(!NhlOdds.managed(old))quotes.add(old);
+                    for(JsonNode price:updated.path("markets"))if(OddizeOdds.managed(price))quotes.add(price);
+                    ((ObjectNode)current).set("markets",quotes);((ObjectNode)current.path("checks")).set("market_searches",updated.path("checks").path("market_searches").deepCopy());
+                }
+                refreshStarted(merged);merged.put("as_of",Instant.now().toString());List<String> errors=Checks.validate(merged);if(!errors.isEmpty())throw new IllegalStateException("Oddize catalogue validation: "+errors.subList(0,Math.min(3,errors.size())));
+                store.put("history/"+day+"/"+d.path("revision").asInt()+".json",d);d.set("dataset",merged);ObjectNode meta=(ObjectNode)imported.path("odds_import");meta.put("job_id",text(job,"job_id"));d.set("odds_import",meta);d.put("revision",d.path("revision").asInt()+1);d.put("updated_at",Instant.now().toString());store.put("days/"+day+".json",d);return null;
+            });
+        }catch(RuntimeException e){store.locked("day/"+day,()->{ObjectNode d=require(day);if(text(d,"odds_import.job_id").equals(text(job,"job_id"))){((ObjectNode)d.path("odds_import")).put("state","ERROR").put("reason",OddizeOdds.safeError(e)).put("last_attempt_at",Instant.now().toString());store.put("days/"+day+".json",d);}return null;});throw e;}
     }
     ObjectNode refreshScores(String day,Instant now){
         if(scores==null)return summary(require(day));ObjectNode before=require(day),result;

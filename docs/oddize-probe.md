@@ -52,3 +52,12 @@ master key, nie odpoveď Oddize. Žiadne surové chybové telo poskytovateľa an
 hodnota API kľúča sa nevracajú.
 
 Dokumentácia: https://oddize.com/api/v1/docs · https://oddize.com/odds-api
+
+## Skúška kompletného katalógu (od 4.0)
+
+GET `/api/diagnostics/oddize?mode=catalogue&day=YYYY-MM-DD` s master key
+otestuje produkčný parser a párovanie s oficiálnym NHL programom v Azure.
+Výstup obsahuje počty, dostupné typy, niekoľko cien a validačné chyby.
+Denný research ani publikáciu nemení. Ukladá iba privátnu preview cache,
+oddelenú od produkčného denného katalógu. Prvý beh stojí najviac 1 + 4×N + 2
+kredity; opakovaný beh toho istého dňa úspešné odpovede znovu nesťahuje.

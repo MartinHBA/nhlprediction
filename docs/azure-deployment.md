@@ -207,13 +207,13 @@ neregistroval. Verejný HTTP endpoint na administrátorský import nevzniká.
   `READY_FOR_ANALYSIS`. Nemá parameter sims a nič nepočíta ani nequeueuje.
 - `get_analysis` sprístupní úplný dataset, dôkazy, dodatočný research a všetky
   ceny. `get_candidates` je kompatibilný alias. Backend nepridáva predikované
-  góly, pravdepodobnosti, EV alebo preferencie. Ceny ESTIMATED sú iba trhové
-  aproximácie; handicap vyžaduje dve nezávislé kompletné kotviace hranice.
-- GPT môže presný nový kurz uložiť cez `save_game` s vlastnými evidence_ids,
-  zdrojom a pravidlami; natívne ceny nesmie prepísať. Ďalší doložený kontext
+  góly, pravdepodobnosti, EV alebo preferencie. Od verzie 4.0 sú kandidáti iba
+  skutočné backendové Oddize QUOTED ceny; aproximácie sú odstránené.
+- GPT ceny nehľadá a nemôže ich meniť ani pridávať cez `save_game`. Doložený športový kontext
   patrí do `analysis_context`. `post_tips` ukladá vlastné rozhodnutia GPT
   pre celý deň. COMPLETE znamená publikované rozhodnutia a musí sa overiť
-  `final_tips.state=PUBLISHED`. Zmena podkladov ich označí NEEDS_REVIEW.
+  `final_tips.state=PUBLISHED`. Publikovaný snapshot sa pri automatických
+  behoch nemení; ďalší ad-hoc research ho nahradí až úspešnou publikáciou.
 - Pri začatých zápasoch sa nevytvárajú nové predzápasové trhy. Poctivo nedostupné
   vstupy ostávajú označené ako nedostupné; GPT posúdi vhodnosť tipu, nevymýšľa čísla.
 - Kontrola každých 15 minút označí zaseknutý import bez aktualizácie dlhšej než 2 hodiny
@@ -223,22 +223,32 @@ neregistroval. Verejný HTTP endpoint na administrátorský import nevzniká.
 
 ## Overenie
 
-Od verzie 2.3 je nasadená aj funkcia `oddsWatch`: UTC cron `0 0,30 * * * *`.
-Java vyhodnocuje povolené okno 17:45–08:00 v `Europe/Bratislava`, takže DST sa
-nerieši pevným UTC posunom. Predstih 17:45 chráni mierne predčasný trigger
-18:00; cron sa nemení a samostatný beh o 17:45 nevzniká.
-Zdroj je verejný NHL/DraftKings feed `partner-game/US/now`.
-Import odmietne nesprávny NHL deň, publikáciu staršiu než dve hodiny, inú
-orientáciu tímov, nesúhlasný gameId/UTC začiatok a začaté zápasy. Páry over/under
-a handicapov musia mať zodpovedajúce hranice; 1/X/2 musí obsahovať všetky tri
-výsledky. Neznámy `MONEY_LINE_2_WAY_TNB` a chýbajúce ceny sa nedopočítavajú.
+Od verzie **4.0.0** zbiera kurzy samostatná funkcia `oddizeSnapshot`:
+UTC cron `0 45 * * * *`, lokálny filter **19:45 Europe/Bratislava** vrátane DST.
+Backend vyžaduje app setting **ODDIZE_API_KEY**; kľúč je iba v serverovom HTTP
+headeri, nie v dátach, odpovediach, frontende ani diagnostických výstupoch.
 
-`odds_import` v dennom API ukazuje skutočný čas HTTP kontroly, čas publikácie,
-deň feedu, počet zápasov a stav WAITING/PARTIAL/READY/ERROR. Pri dobehnutí kurzov
-sa obnoví dátový snapshot bez predikčného výpočtu. Súbežný `save_game` chráni revision;
-sieťová požiadavka prebieha mimo Blob lease. Nové Azure resources nevznikajú.
-Cloudový ChatGPT research o 20:00 nastaví vlastník podľa
-`docs/chatgpt-scheduled-prompt.md`; prístup jeho úlohy k MCP musí overiť Run now.
+`oddsWatch` má UTC cron `0 0,30 * * * *` a lokálne okno **17:45–08:00**.
+O 18:00 pripraví program a športové štatistiky; po publikácii obnovuje iba skóre.
+Predstih chráni tesne skorý trigger 18:00. Dokončený Oddize katalóg už neobnovuje.
+Pri nedokončenom importe môže zaradiť retry; úspešné jednotlivé API odpovede
+z privátnej cache `cache/oddize/v1/snapshot/YYYY-MM-DD/...` sa znovu neplatia.
+Nie je potrebný nový Azure resource. Fronta `predictions` spracúva aj kind=oddize.
+Sieť prebieha mimo denného Blob lease; výsledok sa spojí s najnovším researchom.
+
+`odds_import` obsahuje SCHEDULED/QUEUED/RUNNING/READY/PARTIAL/ERROR,
+čas plánovaného/uskutočneného zberu, čas ceny od poskytovateľa, počty ponúk,
+pokrytie a náklady aktuálneho pokusu. Pravidlá `regulation` aj `official_final`
+sú povolené iba s overením bookmakera. Neznáme pravidlá a neaktuálne alebo
+nekonzistentné ponuky sú blokované, nie preoznačené. Pásmo je 1,18–1,35.
+
+Cloudový research o 20:00 nastaví vlastník podľa
+[denného promptu](chatgpt-scheduled-prompt.md); po deployi obnov MCP tools a
+vlož nový text do úlohy. Azure prompt v účte automaticky nemení. GPT dopĺňa
+športový research, ale ceny ani bookmakerove pravidlá už nevyhľadáva.
+Diagnostika `/api/diagnostics/oddize?mode=catalogue&day=YYYY-MM-DD` vyžaduje
+master key; používa oddelenú preview cache a NEMENÍ denné dáta ani publikáciu.
+Spotrebuje najviac 1 + 4×počet zápasov + 2 kredity pri prvom behu.
 
 Všetkých 32 oficiálnych log NHL je v `frontend/assets/teams`. Deployment
 frontendu kopíruje aj túto zložku. Pri zlyhaní obrázka UI zobrazí tímový kód.
@@ -256,7 +266,7 @@ Jednorazový testovací authorization code vloží priamo správca; tým sa over
 PKCE/token/MCP cesta, **nie interaktívne Microsoft prihlásenie**. Všetky testovacie
 client/code/access/refresh údaje sa po teste odstránia. Nezískava platené AI dáta.
 
-Testy overujú dátový import, validáciu, overené/odhadované ceny, publikáciu
+Testy overujú dátový import, validáciu, backendové overené ceny, publikáciu
 GPT bez Java reportu, konflikty snapshotov a migráciu starých výberov.
 Autoritatívna JSON schéma je súčasťou Java backendu
 v `backend/src/main/resources/schema.json`. GitHub Actions overuje Java backend

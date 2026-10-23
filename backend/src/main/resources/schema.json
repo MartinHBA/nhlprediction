@@ -252,13 +252,19 @@
           "minimum": 0
         },
         "save_pct_current": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1,
           "description": "NHL regular-season saves / shotsAgainst before the NHL day; fraction 0..1, including relief appearances."
         },
         "save_pct_prior": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1,
           "description": "Previous NHL regular-season saves / shotsAgainst before the NHL day; fraction 0..1."
@@ -497,7 +503,8 @@
         "score_basis": {
           "enum": [
             "regulation",
-            "official_final"
+            "official_final",
+            "unknown"
           ]
         },
         "source": {
@@ -522,6 +529,46 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "bookmaker": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "bookmaker_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "provider_event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "offer_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "snapshot_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "quality_warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
         }
       }
     },

@@ -51,20 +51,11 @@ class NativeMarketTest {
         ObjectNode forgedEdit=edit;assertThrows(IllegalArgumentException.class,()->workflow.saveGame(day,forgedEdit.path("game"),forgedEdit.path("evidence"),0));
         assertEquals(0,workflow.require(day).path("revision").asInt());
     }
-    @Test void newerVerifiedBookmakerPriceCanBeSavedAndUpdatedWithoutChangingNativeQuotes(){
-        ObjectNode edit=editable(),nativeQuote=draw(edit.path("game")).deepCopy(),quote=nativeQuote.deepCopy();
-        quote.put("id","research-current-price").put("odds",1.27).set("evidence_ids",arr().add("research-price-proof"));
-        ((ObjectNode)quote.path("source")).put("url","https://example.org/bookmaker/game/123").put("checked_at",Instant.now().minusSeconds(1).toString());
+    @Test void gptCannotAddOrUpdateBookmakerPrices(){
+        ObjectNode edit=editable(),quote=draw(edit.path("game")).deepCopy();
+        quote.put("id","research-current-price").put("odds",1.27);
         ((ArrayNode)edit.path("game").path("markets")).add(quote);
-        ((ArrayNode)edit.path("evidence")).add(obj("id","research-price-proof","url","https://example.org/bookmaker/game/123","checked_at",text(quote,"source.checked_at")));
-        workflow.saveGame(day,edit.path("game"),edit.path("evidence"),0);
-        assertEquals(nativeQuote,draw(workflow.require(day).path("dataset").path("games").get(0)));
-        ObjectNode next=editable();ObjectNode revised=(ObjectNode)next.path("game").path("markets").get(next.path("game").path("markets").size()-1);
-        revised.put("odds",1.29).set("evidence_ids",arr().add("research-price-proof-new"));
-        ((ObjectNode)revised.path("source")).put("checked_at",Instant.now().toString());
-        ((ArrayNode)next.path("evidence")).add(obj("id","research-price-proof-new","url",text(revised,"source.url"),"checked_at",text(revised,"source.checked_at")));
-        workflow.saveGame(day,next.path("game"),next.path("evidence"),1);
-        JsonNode current=workflow.require(day).path("dataset").path("games").get(0);assertEquals(nativeQuote,draw(current));
-        assertTrue(MarketQuotes.all(current,Instant.now()).valueStream().anyMatch(c->text(c,"id").equals("research-current-price")&&c.path("price").asDouble()==1.29&&c.path("selectable").asBoolean()));
+        assertThrows(IllegalArgumentException.class,()->workflow.saveGame(day,edit.path("game"),edit.path("evidence"),0));
+        assertEquals(0,workflow.require(day).path("revision").asInt());
     }
 }
