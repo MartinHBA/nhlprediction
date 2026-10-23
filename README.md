@@ -1,7 +1,7 @@
 # NHL Analyzer Online
 
 Azure Java backend pripravuje analytické dáta a kurzy. ChatGPT cez MCP doplní
-research, porovná možnosti podľa stratégie a uloží vlastný finálny výber.
+research, porovná možnosti podľa stratégie v1.8 a uloží vlastný finálny výber.
 **Backend nemá predikčný model, simulácie, očakávané skóre, pravdepodobnosti,
 EV ani automatický výber tipov. Nevolá platené LLM API.**
 
@@ -34,7 +34,7 @@ Pripoj NHL Observatory ako vlastný MCP server s vyššie uvedenou URL a OAuth.
 Prihlás sa Microsoft účtom vlastníka Azure aplikácie. OpenAI API kľúč ani
 Microsoft client secret sa do ChatGPT nezadávajú.
 
-Po aktualizácii na **3.3.0** obnov nástroje pripojenia a over `resume_plan`
+Po aktualizácii na **3.4.0** obnov nástroje pripojenia a over `resume_plan`
 v odpovedi `start_day` alebo `get_results`.
 Použi [denný prompt so stratégiou](docs/chatgpt-scheduled-prompt.md); do úlohy
 vlož iba jeho blok `text`. Azure deployment uložený prompt úlohy nemení.
@@ -144,13 +144,27 @@ NHL dňa, ID, tímov a UTC začiatku. Publikácia musí byť najviac dve hodiny 
 `odds_import` rozlišuje WAITING/PARTIAL/READY/ERROR/NO_UPCOMING_GAMES.
 
 `get_analysis` obsahuje všetky dostupné ceny vrátane tých mimo preferovaného
-pásma; `candidates` sú iba **1,20–1,35 vrátane**. Žiadne poradie neznamená
+pásma; `candidates` sú iba **1,18–1,35 vrátane**. Žiadne poradie neznamená
 odporúčanie. `selectable` kontroluje cenu, aktuálnosť a pravidlá; neposudzuje
 predikčnú výhodu ani kvalitu tímu. **Tímový over 2,5 je pozastavený.**
 
+Stratégia v1.8 posudzuje útok každého tímu proti súperovej obrane a brankárovi
+samostatne. Pri porovnateľných tímových aj brankárskych metrikách používa dôraz
+60 % aktuálna/40 % minulá sezóna, s výslovnou neistotou malých vzoriek.
+OVER aj UNDER vyžadujú konkrétny štatistický protiargument a vysvetlenie výberu.
+Obhájiteľný LOW confidence TIP zostáva povolený.
+
+**Celkové aj tímové góly sa smú vybrať výhradne za 60 minút**:
+`score_basis=regulation` s overenými pravidlami bookmakera. Backend zablokuje
+výber `official_final` totalov; zachová ich iba ako pôvodné dátové podklady.
+Ani ich ceny nemožno preoznačiť alebo použiť ako kotvu regulation odhadu.
+Chýbajúcu regulation ponuku musí GPT dohľadať. Moneyline vrátane OT/SO zostáva
+samostatným trhom; handicap zachováva vlastné overené pravidlá vyhodnotenia.
+Historické publikované tipy a ich pôvodné pravidlá sa spätne nemenia.
+
 - **QUOTED:** skutočne overená ponuka so zdrojom, časom a pravidlami trhu.
 - **ESTIMATED total:** cenová krivka z čerstvej kompletnej dvojice over/under
-  rovnakého bookmakera, publikácie a pravidiel. Po odstránení marže sa prispôsobí
+  za 60 minút rovnakého bookmakera, publikácie a overených pravidiel. Po odstránení marže sa prispôsobí
   Poissonov tvar cenovej krivky a pre ďalšie polgólové hranice sa predpokladá
   rovnaká marža. Ide iba o aproximáciu ceny z trhu, nie model tímov či skóre.
 - **ESTIMATED handicap:** iba interpolácia medzi **dvoma nezávislými kompletnými

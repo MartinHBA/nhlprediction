@@ -4,7 +4,7 @@
 
 Úloha beží denne o **20:00 Europe/Bratislava** s pripojeným NHL Observatory,
 webovým researchom a cloudovým behom. Do jej promptu vlož iba obsah bloku `text`.
-Po nasadení verzie 3.3 obnov nástroje pripojenia; `start_day` a `get_results`
+Po nasadení verzie 3.4 obnov nástroje pripojenia; `start_day` a `get_results`
 vracajú aj `resume_plan` pre pokračovanie uloženého researchu.
 Uložený prompt úlohy sa zmenou tohto súboru ani Azure deploymentom neaktualizuje.
 Požiadavka na hĺbku analýzy v prompte nenahrádza technický výber modelu
@@ -12,7 +12,7 @@ a reasoning effort v nastavení úlohy; sama nepotvrdzuje zapnutie High.
 
 Azure pripravuje dáta a ceny. **Nepočítame Java predikčný model, simulácie,
 očakávané skóre, pravdepodobnosti, EV ani automatické tipy.** GPT načíta podklady,
-dohľadá zostávajúce informácie a podľa stratégie v1.7 urobí vlastný finálny výber.
+dohľadá zostávajúce informácie a podľa stratégie v1.8 urobí vlastný finálny výber.
 `finalize_day` iba validuje a uzavrie research, bez parametra `sims` a bez fronty
 výpočtu. `COMPLETE` po novom znamená uložené rozhodnutia GPT, nie Java model.
 
@@ -53,10 +53,17 @@ model ani jeho preferencia. Ty posúdiš dáta, dohľadáš podstatné medzery,
 porovnáš možnosti a rozhodneš. Nespúšťaj simulácie ani nenahrádzaj chýbajúci
 model vymyslenými pravdepodobnosťami, EV alebo predikovaným skóre.
 
-Použi analytické princípy NHL PREDICTION STRATEGY v1.7 s týmito úpravami:
-- Kurz jednej udalosti musí byť 1,20–1,35 vrátane pred zaokrúhlením.
+Použi NHL PREDICTION STRATEGY v1.8 (pôvodná v1.7 s pravidlami nižšie):
+- Kurz jednej udalosti musí byť 1,18–1,35 vrátane pred zaokrúhlením.
 - Najviac jeden TIP na zápas alebo NO_BET; všetky zápasy musia dostať rozhodnutie.
 - Tímový over 2,5 je zakázaný aj ako rezervný tip.
+- Všetky gólové trhy (total aj team_total, over aj under) sú VÝHRADNE za
+  60 minút: score_basis=regulation. Góly v predĺžení a nájazdoch sa nikdy
+  nezapočítavajú. Bez overených pravidiel bookmakera pre riadny hrací čas
+  takého kandidáta nepouži. Toto pravidlo nemá výnimku ani pre ESTIMATED.
+  Cena official_final nie je cenou pre 60 minút a nesmie sa tak preoznačiť
+  ani použiť ako kotva odhadu pre regulation. Moneyline vrátane OT/SO ostáva
+  samostatný typ; pri handicape rešpektuj jeho vlastné overené pravidlá.
 - Posúď dostupného víťaza vrátane OT/SO, výsledok po 60 minútach, oba smery
   handicapov, over aj under. Nepreferuj automaticky žiadny typ a nevynucuj
   rôznorodosť ani tip na každý zápas.
@@ -104,26 +111,42 @@ Použi analytické princípy NHL PREDICTION STRATEGY v1.7 s týmito úpravami:
    môžu byť vynechané; server ich obnoví. Nemeň natívne hodnoty ani zaokrúhlením.
    Aktuálna schéma je autoritatívna; nepridávaj vlastné nepovolené JSON polia.
 
-   Z pôvodnej stratégie zachovaj tieto heuristické priority posúdenia:
-   A. Dlhodobá kvalita (30 %): prior počet zápasov, points_pct, 5v5 xGF/xGA za
-      60 minút, strely, high-danger metriky a doložené zmeny kádra.
-   B. Aktuálna kvalita (20 %): current zodpovedajúce metriky a vzorka, rozdiel
-      oproti minulému roku. Malá vzorka nesmie prevážiť dlhodobé údaje.
-   C. Brankári (20 %): skutočné meno, confirmed/probable/unknown, aktuálne
+   Pri porovnávaní zodpovedajúcich štatistík tímov AJ brankárov dávaj dôraz
+   60 % aktuálnej sezóne a 40 % minulej sezóne. Tento pomer nahrádza staré
+   priority 30 % dlhodobá/20 % aktuálna kvalita; nevytváraj súčasne dve
+   protichodné váhovania. Porovnávaj iba rovnaký význam, jednotky a situácie.
+   Pri chýbajúcej jednej sezóne ju nenahrádzaj nulou ani fiktívnou hodnotou.
+   Uveď vzorku oboch období. Najmä 1–3 štarty brankára znamenajú vysokú
+   neistotu; pomer 60/40 nesmie vytvárať falošnú presnosť alebo tvrdenie
+   o stabilnom trende. Je to analytický dôraz na historické dáta, nie model,
+   pravdepodobnosť, vypočítaná confidence alebo garantovaná úspešnosť.
+
+   Posúď všetky tieto oblasti:
+   A. Minulá sezóna (40 % pri porovnateľných metrikách): prior počet zápasov,
+      points_pct, 5v5 xGF/xGA za 60 minút, strely, high-danger a zmeny kádra.
+   B. Aktuálna sezóna (60 % pri porovnateľných metrikách): current zodpovedajúce
+      metriky, počet zápasov a rozdiel oproti minulému roku s uvedením neistoty.
+   C. Brankári: skutočné meno, confirmed/probable/unknown, aktuálne
       a minulé starts, GSAx/60 a save_pct_current/prior (SV%, zlomok 0..1),
       zdroj a čas. SV% posudzuj so vzorkou a kvalitou striel; samo osebe
       nevyjadruje kvalitu brankára. Istota štartu sa nerovná kvalite;
       1–5 štartov nestačí na záver o zmene dlhodobej výkonnosti.
-   D. Zostavy (15 %): absencie, otázni hráči, návraty, scratches, útočné formácie,
+   D. Zostavy: absencie, otázni hráči, návraty, scratches, útočné formácie,
       obranné páry, PP jednotky a náhradníci. Posúď relatívnu kvalitu proti
       súperovi, nie iba počet absencií.
-   E. PP/PK (10 %): pp_xgf_per60, pk_xga_per60, disciplína, vynútené/spáchané
+   E. PP/PK: pp_xgf_per60, pk_xga_per60, disciplína, vynútené/spáchané
       tresty a absencie v špeciálnych formáciách. Počet trestov nie je presný
       počet presilovkových príležitostí.
-   F. Kontext (5 %): oddych, back-to-back, cestovanie, časové pásma, domáce
+   F. Kontext: oddych, back-to-back, cestovanie, časové pásma, domáce
       prostredie a doložené zaťaženie. Psychológiu iba s konkrétnym zdrojom.
-   Percentá sú poradie analytickej pozornosti, nie implementované váhy modelu
-   ani vzorec na skóre, pravdepodobnosť alebo confidence.
+
+   Pre KAŽDÝ zápas samostatne urob obojstrannú analýzu gólov:
+   - Útok domácich proti obrane a brankárovi hostí.
+   - Útok hostí proti obrane a brankárovi domácich.
+   Na oboch stranách porovnaj 5v5 xGF/60 proti súperovmu xGA/60, high-danger
+   šance, strely, PP/PK a relevantné absencie so vzorkami a pomerom 60/40.
+   Silný útok iba jedného tímu automaticky neodôvodňuje OVER. Posúď aj slabú
+   ofenzívu druhého tímu a schopnosť súperovej obrany/brankára tlmiť góly.
 
    Dohľadaj iba unchecked_fields, unchecked_market_searches, refresh_fields
    a konkrétne chyby alebo nové podstatné informácie. Ostatné uložené hodnoty,
@@ -163,7 +186,7 @@ Použi analytické princípy NHL PREDICTION STRATEGY v1.7 s týmito úpravami:
    Zavolaj get_analysis(day, game_id) pre každý zápas. Dostaneš štatistiky oboch
    tímov, brankárov, zostavy, analysis_context, kontroly, dôkazy a cenový prehľad.
    markets obsahuje všetky dostupné ceny aj mimo pásma na porovnanie;
-   candidates sú možnosti v pásme 1,20–1,35. Nie sú zoradeným odporúčaním modelu.
+   candidates sú možnosti v pásme 1,18–1,35. Nie sú zoradeným odporúčaním modelu.
    get_candidates je len kompatibilný alias; uprednostni get_analysis.
    QUOTED znamená skutočný kurz so zdrojom a časom; ESTIMATED približnú cenu
    z backendových kotiev. Prečítaj method, assumptions a anchor údaje.
@@ -184,8 +207,11 @@ Použi analytické princípy NHL PREDICTION STRATEGY v1.7 s týmito úpravami:
    Over konkrétny zápas, tímy, začiatok, predzápasový stav, presnú hranicu,
    desatinný kurz, bookmakera, skutočný UTC čas kontroly a pravidlá.
    Moneyline vrátane OT/SO nie je výsledok po 60 minútach. Pri totaloch
-   a handicape musí score_basis presne zodpovedať overeným pravidlám.
-   Presná cena sa môže od odhadu líšiť. Ak je mimo 1,20–1,35, nepouži pôvodný
+   aj tímových góloch musí byť score_basis=regulation a pravidlá výslovne
+   overené pre 60 minút. Ak feed obsahuje iba official_final, dohľadaj
+   samostatnú regulation ponuku; pôvodné kurzy a pravidlá neprepisuj.
+   Pri handicape musí score_basis presne zodpovedať overeným pravidlám.
+   Presná cena sa môže od odhadu líšiť. Ak je mimo 1,18–1,35, nepouži pôvodný
    odhad namiesto nej. Prever inú analyticky vhodnú hranicu alebo typ trhu
    a aj ich skutočnú cenu; ak vhodný kandidát neostane, vyber NO_BET.
    Novú skutočne overenú cenu pridaj cez save_game do markets s novým vlastným
@@ -206,7 +232,10 @@ Použi analytické princípy NHL PREDICTION STRATEGY v1.7 s týmito úpravami:
    ulož do analysis_context konkrétne preverované zdroje, čas a príčinu zlyhania.
    Neoznač cenu za QUOTED. Ak research stále podporuje aktuálneho selectable
    ESTIMATED kandidáta, môže zostať iba výslovne predbežným podmieneným tipom
-   s priznaným neúspešným overením; inak NO_BET. Nenájdená presná ponuka sama
+   s priznaným neúspešným overením ceny; inak NO_BET. Pri gólovom trhu musí
+   byť aj vtedy preukázané vyhodnotenie bookmakera iba za 60 minút a odhad
+   musí vychádzať z regulation kotiev. Neoverené pravidlá vždy znamenajú
+   nepoužiteľný gólový kandidát, nikdy podmienenú výnimku. Nenájdená cena sama
    osebe nevyvracia analytický dôvod výberu. Na overovanie nečakaj celé hodiny.
 
 5. ANALYTICKÉ POROVNANIE A ROZHODNUTIE
@@ -216,6 +245,14 @@ Použi analytické princípy NHL PREDICTION STRATEGY v1.7 s týmito úpravami:
    automaticky neznamená bezpečný či výhodný tip. Vysvetli, ktoré fakty podporujú
    záver a ktoré proti nemu hovoria. Ak všetko vychádza under, prever spoločný
    dôvod a skreslenie researchu či odhadovaných cien; nevynucuj iné typy.
+   Pred výberom OVER povinne preskúmaj nízkogólový scenár; pred UNDER
+   vysokogólový scenár. Uveď konkrétne dostupné štatistiky podporujúce opačný
+   výsledok (napr. xGA/60, high-danger, SV%, PP/PK alebo slabšiu ofenzívu),
+   príslušné tímy a obdobie. V comparison vysvetli, prečo zvolený trh obstál
+   aj proti tomuto protiargumentu; risks zachytí zostávajúce riziko.
+   Nevyrábaj čísla, ak chýbajú; medzeru priznaj. Všeobecná veta o náhodnosti
+   nenahrádza konkrétny protiargument. Pri ostatných typoch tiež posúď
+   najsilnejší doložený argument proti výberu.
    Najviac jeden aktuálny selectable kandidát alebo NO_BET na zápas. selectable
    je technická prípustnosť ceny, nie odporúčanie alebo dôkaz výhody.
    Chýbajúce vstupy posúď podľa významu pre konkrétny výber. Keď podklady nestačia
@@ -233,6 +270,9 @@ Použi analytické princípy NHL PREDICTION STRATEGY v1.7 s týmito úpravami:
    Confidence LOW/MODERATE/HIGH vyjadruje kvalitu tvojej analytickej opory,
    nie vypočítanú úspešnosť. Pri odhadovanej cene najviac MODERATE; pri zásadnej
    neistote brankára, neaktuálnych zostavách alebo slabých podkladoch LOW/NO_BET.
+   LOW confidence TIP je výslovne povolený, ak má obhájiteľnú analytickú oporu
+   a spĺňa pravidlá trhu a ceny. Samotná nízka confidence nie je automatický
+   dôvod na NO_BET; neprelamuje však zákaz neovereného vyhodnotenia gólov.
 
 6. UZAVRETIE DÁT A PUBLIKÁCIA
    Skontroluj aktuálny resume_plan: brankárov a zostavy znovu overuj iba pri
@@ -322,7 +362,10 @@ Zachované sú všetky zápasy, oba tímy, dlhodobý/aktuálny výkon, brankári
 vplyv zostáv, PP/PK, kontext, zdroje, porovnanie typov, NO_BET a záverečný audit.
 Pôvodné matematické fázy sú podľa aktuálneho zadania odstránené. Nepredstierame,
 že analytický názor je vykonaný kvantitatívny model alebo historicky preukázaná
-výhoda. Kurzové pásmo je 1,20–1,35 a zostáva zákaz tímového overu 2,5.
+výhoda. Kurzové pásmo je 1,18–1,35 a zostáva zákaz tímového overu 2,5.
+Verzia 1.8 vyžaduje obojstrannú gólovú analýzu, dôraz current/prior 60/40
+pre porovnateľné tímové aj brankárske metriky, konkrétny opačný scenár
+a výhradne regulation gólové trhy s overenými pravidlami. LOW TIP je povolený.
 
 Aktuálnych 86 polí na zápas vrátane SV% pre obe sezóny ostáva dostupných v `home`/`away` skupinách
 `prior`, `current`, `goalie`, `roster`, `context`. Dodatočný doložený kontext sa

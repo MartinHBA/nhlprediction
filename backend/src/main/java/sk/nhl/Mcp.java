@@ -6,7 +6,7 @@ import java.util.*;
 import static sk.nhl.Json.*;
 
 final class Mcp {
-    static final String VERSION="3.3.0";
+    static final String VERSION="3.4.0";
     final Workflow workflow;
     static final String INSTRUCTIONS="""
         You are the NHL research agent AND the final prediction analyst. Azure is DATA ONLY: it collects
@@ -29,8 +29,18 @@ final class Mcp {
         Repair check_day and call finalize_day WITHOUT sims: this only validates/completes research synchronously.
         Get get_analysis for the complete data snapshot (get_candidates is a compatibility alias).
         Evaluate all offered types using strategy, sources and actual current data. You decide the final TIP
-        or NO_BET, not the backend. Maximum one per game in inclusive 1.20-1.35. No forced under, over, favourite,
-        handicap, variety or mandatory pick. Team over 2.5 is suspended. Estimated prices are conditional,
+        or NO_BET, not the backend. Strategy v1.8: assess each team's attack against the opponent's defence and
+        goalie separately, using 5v5 xGF/xGA, high-danger chances, shots, PP/PK and absences. One strong attack
+        alone does not justify OVER. For comparable team/goalie statistics give current season 60% and prior
+        season 40% analytical emphasis; explicitly flag tiny samples (especially 1-3 goalie starts). These are
+        analytical priorities, not a prediction model or invented numerical probability. Before OVER examine
+        the low-scoring counter-case; before UNDER the high-scoring counter-case, citing concrete statistics.
+        Explain in comparison why the chosen side still prevails. LOW confidence TIP is allowed when defensible;
+        uncertainty alone does not mandate NO_BET. Maximum one per game in inclusive 1.18-1.35. No forced under, over, favourite,
+        handicap, variety or mandatory pick. Team over 2.5 is suspended. ALL total/team_total picks require
+        score_basis=regulation and verified 60-minute bookmaker settlement, without exceptions. Never relabel
+        official_final quotes or use their anchors to estimate regulation prices. Moneyline with OT/SO remains
+        separate; handicap keeps its own verified settlement basis. Estimated prices are conditional,
         never verified offers. Search for an exact current quote if useful, save it with evidence and rules,
         re-finalize research and reload get_analysis before publication. No invented probabilities or EV.
         Confidence describes your analytical support, not a guaranteed hit rate. Explain alternatives and risks.

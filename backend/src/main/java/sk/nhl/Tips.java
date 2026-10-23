@@ -52,13 +52,14 @@ final class Tips {
                 for(String group:List.of("goalie","roster"))if(old(text(game,side+"."+group+".source.checked_at"),now,21600))warnings.add(side.toUpperCase()+"_"+group.toUpperCase()+"_CHECK_STALE");
             }
             if(quotes.valueStream().noneMatch(q->text(q,"kind").equals("handicap")&&text(q,"odds_type").equals("ESTIMATED")))warnings.add("NO_HANDICAP_PRICE_INTERPOLATION_WITHOUT_TWO_INDEPENDENT_ANCHOR_LINES");
+            if(quotes.valueStream().noneMatch(q->MarketQuotes.goalTotal(q)&&text(q,"score_basis").equals("regulation")&&text(q,"odds_type").equals("QUOTED")&&MarketQuotes.fresh(q,now)))warnings.add("NO_VERIFIED_REGULATION_TOTALS_FIND_60_MINUTE_BOOKMAKER_OFFER");
             games.add(obj("game_id",id,"starts_at",text(game,"starts_at"),"status",text(game,"status"),"basis_id",gameBasis(game,now),"home",game.path("home"),"away",game.path("away"),
                 "analysis_context",game.path("analysis_context").isArray()?game.path("analysis_context"):arr(),"checks",game.path("checks"),"evidence",evidence,"markets",quotes,"candidates",band,"data_warnings",warnings));
         }
         if(!found)throw new IllegalArgumentException("Unknown game_id");
         return obj("day",text(day,"day"),"state",state,"revision",day.path("revision"),"analysis_id",analysisId(day,now),"research_complete",day.path("research_complete").asBoolean(),
             "odds_import",day.path("odds_import"),"coverage",Checks.coverage(day.path("dataset")),"odds_min",MarketQuotes.MIN_ODDS,"odds_max",MarketQuotes.MAX_ODDS,"games",games,
-            "instruction","DATA ONLY. No Java model, simulations, predicted scores, probabilities, EV or automatic picks. GPT must research, compare all market types and make the final decision. All quoted prices are included; candidates contains the 1.20-1.35 band. Estimated prices are not verified offers. Save any newly verified price and evidence via save_game, finalize the research, reload this snapshot, then post_tips for every game.");
+            "instruction","DATA ONLY. No Java model, simulations, predicted scores, probabilities, EV or automatic picks. GPT uses strategy v1.8: compare both attacks against opposing defence/goalie; current/prior emphasis 60/40 with sample uncertainty; explain the concrete opposite scoring case. LOW TIP is allowed when defensible. All quoted prices are included; candidates contains the 1.18-1.35 band, including blocked entries. Total/team_total picks MUST be regulation-only with verified 60-minute bookmaker rules. Never relabel official_final or estimate regulation prices from final-score anchors. Search for an exact regulation offer if missing. Moneyline OT/SO is separate. Estimated prices are not verified offers. Save new prices/evidence via save_game, finalize, reload this snapshot, then post_tips for every game.");
     }
     static ObjectNode view(JsonNode day,Instant now){
         JsonNode saved=day.path("final_tips");if(!saved.isObject())return obj("state",text(day,"state").equals("NO_GAMES")?"NO_GAMES":"AWAITING_ANALYSIS","games",arr());
@@ -100,7 +101,8 @@ final class Tips {
                 if(day.path("dataset").path("synthetic_data").asBoolean())throw new IllegalArgumentException("Cannot publish a real TIP from synthetic data");
                 if(!text(game,"status").equals("scheduled")||!Checks.time(text(game,"starts_at")).isAfter(now))throw new IllegalArgumentException("Cannot publish a pregame tip after the start");
                 JsonNode selected=null;for(JsonNode quote:MarketQuotes.all(game,now))if(text(quote,"candidate_id").equals(text(request,"candidate_id")))selected=quote;
-                if(selected==null||!selected.path("selectable").asBoolean())throw new IllegalArgumentException("Select a current, verified/anchored price in 1.20-1.35");
+                if(selected!=null&&MarketQuotes.goalTotal(selected)&&!text(selected,"score_basis").equals("regulation"))throw new IllegalArgumentException("Goal totals require regulation (60-minute) settlement. Find a verified regulation offer; official_final cannot be selected or relabelled.");
+                if(selected==null||!selected.path("selectable").asBoolean())throw new IllegalArgumentException("Select a current selectable price in 1.18-1.35 with verified settlement; read blocking_reasons.");
                 if(request.path("evidence_ids").isEmpty())throw new IllegalArgumentException("TIP requires supporting evidence_ids");
                 if(text(selected,"odds_type").equals("ESTIMATED")&&request.path("risks").isEmpty())throw new IllegalArgumentException("Estimated price requires an explicit risk explanation");
                 ObjectNode quote=selected.deepCopy();quote.put("confidence",text(request,"confidence"));quote.put("recommendation_status",text(selected,"odds_type").equals("ESTIMATED")?"PRELIMINARY":"GPT_SELECTION");decision.set("candidate",quote);

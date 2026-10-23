@@ -26,7 +26,8 @@ final class AlternativeTotals {
     }
     static boolean alreadyQuoted(JsonNode game,String kind,String selection,String basis,double line){for(JsonNode quote:game.path("markets"))if(text(quote,"kind").equals(kind)&&text(quote,"selection").equals(selection)&&text(quote,"score_basis").equals(basis)&&number(quote,"line")==line)return true;return false;}
     static ArrayNode estimate(JsonNode game,Instant now){
-        ArrayNode out=arr();for(String basis:List.of("official_final","regulation")){
+        // A final-score quote cannot anchor a regulation-only price curve.
+        ArrayNode out=arr();for(String basis:List.of("regulation")){
             Anchor a=anchor(game,now,basis);if(a==null)continue;
             for(double line=2.5;line<=10.5;line++)for(String selection:List.of("over","under")){
                 if(alreadyQuoted(game,"total",selection,basis,line))continue;

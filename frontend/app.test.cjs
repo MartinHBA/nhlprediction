@@ -26,6 +26,23 @@ const fixture=()=>{
 };
 function overview(full){const data=structuredClone(full);data.data_snapshot_id='snapshot-one';data.details_loaded=false;data.games=data.games.map(g=>({game_id:g.game_id,starts_at:g.starts_at,status:g.status,home:{name:g.home.name,goalie:{name:g.home.goalie.name,status:g.home.goalie.status}},away:{name:g.away.name,goalie:{name:g.away.goalie.name,status:g.away.goalie.status}},has_analysis_context:!!g.analysis_context?.length}));return data;}
 
+test('goalie names and localized confirmation appear at the card edges before statistics load',async()=>{
+ const full=fixture();full.games[0].away.goalie={name:'Juuse Saros',status:'probable'};full.games[0].home.goalie={name:'Michael DiPietro',status:'confirmed'};
+ full.games[1].away.goalie={name:null,status:'unknown'};
+ const dom=await boot(overview(full),200,w=>{w.fetch=async url=>({ok:true,json:async()=>url.endsWith('/api/days')?{days:[]}:overview(full)});});
+ try{
+  const card=dom.window.document.querySelector('.game-card');
+  assert.equal(card.querySelector('.goalie-preview.away .goalie-name').textContent,'Juuse Saros');
+  assert.equal(card.querySelector('.goalie-preview.home .goalie-name').textContent,'Michael DiPietro');
+  assert.equal(card.querySelector('.goalie-preview.away .goalie-status').textContent,'Predpokladaný');
+  assert.equal(card.querySelector('.goalie-preview.home .goalie-status').textContent,'Potvrdený');
+  assert.equal(dom.window.document.querySelectorAll('.game-card')[1].querySelector('.goalie-preview.away .goalie-name').textContent,'N/A');
+  dom.window.NHL_I18N.setLanguage('en');const translated=dom.window.document.querySelector('.game-card');
+  assert.equal(translated.querySelector('.goalie-preview.away .goalie-status').textContent,'Probable');assert.equal(translated.querySelector('.goalie-preview.home .goalie-status').textContent,'Confirmed');
+  assert.equal(card.querySelectorAll('.field-row').length,0);
+ }finally{dom.window.close();}
+});
+
 test('cards and tips render before the delayed statistics, which remain lazy until opened',async()=>{
  const full=fixture();full.data_snapshot_id='snapshot-one';full.details_loaded=true;
  publish(full,0,{kind:'total',selection:'under',line:7.5,score_basis:'official_final',odds_type:'QUOTED',odds:1.25});
@@ -82,7 +99,7 @@ test('shows the AI choice, rationale and confidence independently of the model p
   const doc=d.window.document,tip=doc.querySelector('.recommendation');assert.match(tip.textContent,/PREDBEŽNÝ TIP/);assert.match(tip.textContent,/Handicap/);assert.match(tip.textContent,/\+2,5/);assert.doesNotMatch(tip.textContent,/pod 8,5/);assert.match(tip.textContent,/≈1,25/);assert.doesNotMatch(tip.textContent,/84\.0 %|P\(model\)/);assert.match(tip.textContent,/Confidence: nízka/);
   assert.match(tip.querySelector('.recommendation-confidence').title,/Kvalita analytických/);expand(tip);assert.match(tip.querySelector('.tip-analysis').textContent,/Research podporuje/);
   assert.equal(doc.querySelectorAll('.recommendation h3').length,1);assert.equal(doc.querySelectorAll('table').length,0);assert.equal(tip.closest('details'),null);
-  assert.match(doc.getElementById('status-title').textContent,/Analýza uložená/);assert.match(doc.getElementById('status-detail').textContent,/1,20–1,35: 1/);assert.equal(doc.getElementById('ticket').hidden,true);
+  assert.match(doc.getElementById('status-title').textContent,/Analýza uložená/);assert.match(doc.getElementById('status-detail').textContent,/1,18–1,35: 1/);assert.equal(doc.getElementById('ticket').hidden,true);
   assert.match(doc.querySelectorAll('.recommendation')[1].textContent,/BEZ TIPU/);
  }finally{d.window.close();}
 });
@@ -97,10 +114,10 @@ test('changed inputs mark the saved AI choice for review without replacing it',a
  const d=await boot(f);try{const doc=d.window.document,tip=doc.querySelector('.recommendation');assert.match(doc.getElementById('status-title').textContent,/nové overenie/);assert.ok(tip.classList.contains('needs-review'));assert.match(tip.textContent,/Podklady sa zmenili/);assert.match(tip.textContent,/pod 8,5/);assert.doesNotMatch(tip.textContent,/P\(model\)|konzervatívnom scenári/);assert.doesNotMatch(tip.textContent,/od 1,46 do 1,35/);}finally{d.window.close();}
 });
 
-test('hides any saved selection outside the inclusive 1.20 to 1.35 price band',async()=>{
- for(const price of [1.04,1.19999,1.20,1.35,1.35001]){
+test('hides any saved selection outside the inclusive 1.18 to 1.35 price band',async()=>{
+ for(const price of [1.04,1.17999,1.18,1.19,1.20,1.35,1.35001]){
   const f=fixture();publish(f,0,{kind:'total',selection:'under',line:8.5,odds_type:'ESTIMATED',estimated_odds:price,p_win:.95,robust_edge:false,recommendation_status:'PRELIMINARY',confidence:'LOW',confidence_reasons:[]});
-  const d=await boot(f);try{const inside=price>=1.20&&price<=1.35;assert.equal(d.window.document.querySelectorAll('.recommendation h3').length,inside?1:0,'price='+price);}finally{d.window.close();}
+  const d=await boot(f);try{const inside=price>=1.18&&price<=1.35;assert.equal(d.window.document.querySelectorAll('.recommendation h3').length,inside?1:0,'price='+price);}finally{d.window.close();}
  }
 });
 

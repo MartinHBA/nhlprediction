@@ -12,6 +12,11 @@
 @media(max-width:480px){.matchup{padding:20px 0;gap:10px}.team,.team.home{flex-direction:column;justify-content:flex-start;gap:10px;text-align:center}.team.home .team-code{order:-1}.team-code{width:88px;height:88px}.team-name strong{font-size:23px;letter-spacing:-.3px}.team-name small{font-size:9px;margin-bottom:6px}.versus{font-size:10px}}
 
 .games-grid{align-items:start}
+.goalie-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:-6px 0 22px}
+.goalie-preview{min-width:0;overflow-wrap:anywhere;line-height:1.5}
+.goalie-preview.home{text-align:right}
+.goalie-name{display:block;font-size:13px;font-weight:600}
+.goalie-status{display:block;font-size:10px;color:var(--muted);margin-top:3px}
 .recommendation{margin-top:18px;padding:14px 16px;border-left:3px solid #628dcf;background:#20385e44}
 .recommendation h3{font-size:18px;line-height:1.4;margin:0 0 10px;font-weight:650}
 .recommendation .eyebrow{margin-bottom:7px;font-size:9px}
