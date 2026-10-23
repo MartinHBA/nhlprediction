@@ -27,15 +27,17 @@ final class Tips {
     }
     static void removeCheckTimes(JsonNode n){if(n.isObject()){((ObjectNode)n).remove("checked_at");n.forEach(Tips::removeCheckTimes);}else if(n.isArray())n.forEach(Tips::removeCheckTimes);}
     static boolean old(String time,Instant now,long seconds){try{return Checks.time(time).isBefore(now.minusSeconds(seconds));}catch(RuntimeException e){return true;}}
-    static String gameBasis(JsonNode game,Instant now){
+    static String gameBasis(JsonNode game,Instant now){return gameBasis(game,now,MarketQuotes.VERSION);}
+    static String gameBasis(JsonNode game,Instant now,String policy){
         ObjectNode copy=game.deepCopy();copy.remove("checks");removeCheckTimes(copy);
         List<JsonNode> quotes=new ArrayList<>();copy.path("markets").forEach(quotes::add);quotes.sort(Comparator.comparing(m->canonical(m).toString()));copy.set("markets",M.valueToTree(quotes));
         ObjectNode age=obj();for(String side:List.of("home","away"))for(String group:List.of("goalie","roster"))age.put(side+"."+group,old(text(game,side+"."+group+".source.checked_at"),now,21600));
         ObjectNode statuses=obj();for(String group:List.of("fields","market_searches"))game.path("checks").path(group).fields().forEachRemaining(e->statuses.put(group+"."+e.getKey(),text(e.getValue(),"status")));
         List<String> stale=new ArrayList<>();for(JsonNode q:game.path("markets"))if(old(text(q,"source.checked_at"),now,7200))stale.add(text(q,"id"));Collections.sort(stale);
-        return OAuth.hash(canonical(obj("policy",MarketQuotes.VERSION,"game",copy,"checks",statuses,"old_checks",age,"stale_quotes",stale)).toString());
+        return OAuth.hash(canonical(obj("policy",policy,"game",copy,"checks",statuses,"old_checks",age,"stale_quotes",stale)).toString());
     }
-    static String analysisId(JsonNode day,Instant now){ObjectNode games=obj();for(JsonNode g:day.path("dataset").path("games"))games.put(text(g,"game_id"),gameBasis(g,now));return "analysis-"+OAuth.hash(canonical(games).toString());}
+    static String analysisId(JsonNode day,Instant now){return analysisId(day,now,MarketQuotes.VERSION);}
+    static String analysisId(JsonNode day,Instant now,String policy){ObjectNode games=obj();for(JsonNode g:day.path("dataset").path("games"))games.put(text(g,"game_id"),gameBasis(g,now,policy));return "analysis-"+OAuth.hash(canonical(games).toString());}
     static Set<String> references(JsonNode game){
         Set<String> refs=new LinkedHashSet<>();for(String group:List.of("fields","market_searches"))for(JsonNode check:game.path("checks").path(group))refs.addAll(strings(check.path("evidence_ids")));
         for(JsonNode market:game.path("markets"))refs.addAll(strings(market.path("evidence_ids")));

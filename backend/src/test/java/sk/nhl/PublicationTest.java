@@ -10,6 +10,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static sk.nhl.Json.*;
 
 class PublicationTest {
+    @Test void oldPolicyFingerprintStillIdentifiesExactHistoricalInputsAfterUpgrade(){
+        TipsTest f=new TipsTest();f.setup();
+        ObjectNode saved=obj("published_at",f.now.toString(),"policy_version","3.1.0-regulation-totals","analysis_id",Tips.analysisId(f.day,f.now,"3.1.0-regulation-totals"));
+        assertTrue(Publication.matches(f.day,saved));
+        ObjectNode changed=f.day.deepCopy();((ObjectNode)changed.path("dataset").path("games").get(0).path("home").path("current")).put("games",99);
+        assertFalse(Publication.matches(changed,saved),"Compatibility still requires an exact matching dataset");
+    }
     TipsTest f;
     @BeforeEach void init(){f=new TipsTest();f.setup();}
     void publish(){f.workflow.postTips(f.date,f.body(true));}

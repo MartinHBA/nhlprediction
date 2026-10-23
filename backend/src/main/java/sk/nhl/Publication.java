@@ -29,7 +29,12 @@ final class Publication {
         tips.set("dataset_snapshot",snapshot);tips.set("odds_import_snapshot",day.path("odds_import").deepCopy());tips.set("enrichment_snapshot",day.path("enrichment").deepCopy());
     }
     static boolean matches(JsonNode source,JsonNode tips){
-        try{return text(tips,"analysis_id").equals(Tips.analysisId(source,Checks.time(text(tips,"published_at"))));}catch(RuntimeException e){return false;}
+        try{
+            // The stored hash is immutable; an odds-policy upgrade must not prevent exact archive recovery.
+            for(String policy:List.of(text(tips,"policy_version"),MarketQuotes.VERSION,"3.1.0-regulation-totals","3.0.0-data"))
+                if(text(tips,"analysis_id").equals(Tips.analysisId(source,Checks.time(text(tips,"published_at")),policy)))return true;
+            return false;
+        }catch(RuntimeException e){return false;}
     }
     /** Read-only recovery from a revision written before the old timer changed the dataset. */
     static boolean recover(ObjectNode day,Store store){
