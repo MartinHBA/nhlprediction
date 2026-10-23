@@ -12,6 +12,18 @@
 @media(max-width:480px){.matchup{padding:20px 0;gap:10px}.team,.team.home{flex-direction:column;justify-content:flex-start;gap:10px;text-align:center}.team.home .team-code{order:-1}.team-code{width:88px;height:88px}.team-name strong{font-size:23px;letter-spacing:-.3px}.team-name small{font-size:9px;margin-bottom:6px}.versus{font-size:10px}}
 
 .games-grid{align-items:stretch}
+.status-banner.has-countdowns{display:grid;grid-template-columns:8px minmax(0,1fr) minmax(0,2fr);gap:20px;align-items:center}
+.has-countdowns #status-time{display:none}
+.status-copy{min-width:0}
+.daily-countdowns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;min-width:0}
+.daily-stage{text-align:center;padding:4px 18px;border-left:1px solid var(--line);min-width:0}
+.countdown-label{display:block;font-size:12px;color:var(--muted);line-height:1.5}
+.countdown-value{display:block;margin:7px 0;font-size:32px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:1px;color:var(--accent);line-height:1.3;white-space:nowrap}
+.countdown-value.is-state{font-size:18px;letter-spacing:0;white-space:normal}
+.countdown-value.is-complete{color:var(--text)}
+.daily-stage small{display:block;font-size:10px;color:var(--muted);line-height:1.5}
+@media(max-width:850px){.status-banner.has-countdowns{grid-template-columns:8px minmax(0,1fr);gap:12px}.daily-countdowns{grid-column:1/-1;padding-top:15px;border-top:1px solid var(--line)}.daily-stage:first-child{border-left:0}}
+@media(max-width:600px){.daily-countdowns{grid-template-columns:1fr;gap:16px}.daily-stage{border-left:0;padding:0 0 16px;border-bottom:1px solid var(--line)}.daily-stage:last-child{padding-bottom:0;border-bottom:0}.status-banner.has-countdowns .status-dot{margin-top:0}}
 .goalie-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:-6px 0 22px}
 .goalie-preview{min-width:0;overflow-wrap:anywhere;line-height:1.5}
 .goalie-preview.home{text-align:right}

@@ -26,6 +26,68 @@ const fixture=()=>{
 };
 function overview(full){const data=structuredClone(full);data.data_snapshot_id='snapshot-one';data.details_loaded=false;data.games=data.games.map(g=>({game_id:g.game_id,starts_at:g.starts_at,status:g.status,home:{name:g.home.name,goalie:{name:g.home.goalie.name,status:g.home.goalie.status}},away:{name:g.away.name,goalie:{name:g.away.goalie.name,status:g.away.goalie.status}},has_analysis_context:!!g.analysis_context?.length}));return data;}
 
+function clockAt(w,iso){
+ let now=Date.parse(iso);const OriginalDate=w.Date;
+ w.Date=class extends OriginalDate{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}};
+ return iso=>{now=Date.parse(iso);};
+}
+
+test('today countdowns tick locally and translate without making network requests',async()=>{
+ let advance,tick,requests=0;
+ const dom=await boot({},404,w=>{
+  advance=clockAt(w,'2026-10-20T14:15:25Z');w.setInterval=run=>{tick=run;return 1;};
+  w.fetch=async url=>{requests++;return url.endsWith('/api/days')?{ok:true,json:async()=>({days:[]})}:{ok:false,status:404};};
+ });
+ try{
+  const doc=dom.window.document;assert.equal(doc.getElementById('daily-countdowns').hidden,false);
+  assert.equal(doc.getElementById('data-countdown').textContent,'01:44:35');assert.equal(doc.getElementById('analysis-countdown').textContent,'03:44:35');
+  const before=requests;advance('2026-10-20T14:15:26Z');tick();assert.equal(doc.getElementById('data-countdown').textContent,'01:44:34');assert.equal(requests,before);
+  for(const lang of ['en','cs','sv','fi','de']){dom.window.NHL_I18N.setLanguage(lang);assert.notEqual(doc.getElementById('data-countdown-label').textContent,'Zápasy a prvé dáta');assert.equal(doc.getElementById('data-countdown').textContent,'01:44:34');}
+  assert.equal(doc.getElementById('daily-countdowns').getAttribute('aria-live'),'off');
+ }finally{dom.window.close();}
+});
+
+test('countdowns use Bratislava deadlines across both daylight-saving transitions',async()=>{
+ for(const [day,expected] of [['2026-03-28','02:44:35'],['2026-03-29','01:44:35'],['2026-10-24','01:44:35'],['2026-10-25','02:44:35']]){
+  const dom=await boot({},404,w=>{clockAt(w,day+'T14:15:25Z');w.history.replaceState(null,'','?day='+day);});
+  try{assert.equal(dom.window.document.getElementById('data-countdown').textContent,expected,day);}finally{dom.window.close();}
+ }
+});
+
+test('missing today quietly discovers the imported cards after the countdown expires',async()=>{
+ let advance,next,available=false;const data=fixture();data.state='COLLECTING';
+ const dom=await boot({},404,w=>{
+  advance=clockAt(w,'2026-10-20T15:59:58Z');w.setTimeout=(run,delay)=>{next={run,delay};return 1;};Object.defineProperty(w.document,'hidden',{value:false,configurable:true});
+  w.fetch=async url=>url.endsWith('/api/days')?{ok:true,json:async()=>({days:[]})}:available?{ok:true,json:async()=>structuredClone(data)}:{ok:false,status:404};
+ });
+ try{
+  const doc=dom.window.document;assert.equal(next.delay,2000);
+  advance('2026-10-20T16:00:00Z');await next.run();assert.equal(doc.getElementById('data-countdown').textContent,'Čakáme na dáta');assert.equal(next.delay,300000);
+  available=true;await next.run();assert.equal(doc.querySelectorAll('.game-card').length,3);assert.equal(doc.getElementById('data-countdown').textContent,'Dáta načítané');assert.equal(doc.getElementById('analysis-countdown').textContent,'02:00:00');
+ }finally{dom.window.close();}
+});
+
+test('analysis waits after 20:00 and completes only when decisions are published',async()=>{
+ const data=fixture();data.state='READY_FOR_ANALYSIS';
+ const waiting=await boot(data,200,w=>clockAt(w,'2026-10-20T18:05:00Z'));
+ try{const doc=waiting.window.document;assert.equal(doc.getElementById('data-countdown').textContent,'Dáta načítané');assert.equal(doc.getElementById('analysis-countdown').textContent,'Čakáme na analýzu');}finally{waiting.window.close();}
+ data.final_tips={state:'PUBLISHED',tip_count:0,no_bet_count:3,games:[]};
+ const done=await boot(data,200,w=>clockAt(w,'2026-10-20T18:06:00Z'));
+ try{assert.equal(done.window.document.getElementById('analysis-countdown').textContent,'Analýza dokončená');}finally{done.window.close();}
+});
+
+test('countdowns stay hidden for archives, future dates, no games and connection errors',async()=>{
+ for(const [data,status,now] of [[{},404,'2026-10-21T14:00:00Z'],[{},404,'2026-10-19T14:00:00Z'],[{day:'2026-10-20',state:'NO_GAMES',game_count:0,games:[]},200,'2026-10-20T14:00:00Z'],[{},500,'2026-10-20T14:00:00Z']]){
+  const dom=await boot(data,status,w=>clockAt(w,now));
+  try{assert.equal(dom.window.document.getElementById('daily-countdowns').hidden,true);}finally{dom.window.close();}
+ }
+});
+
+test('after Slovak midnight the NHL day does not roll countdowns to the next evening',async()=>{
+ const dom=await boot({},404,w=>clockAt(w,'2026-10-20T23:00:00Z'));
+ try{const doc=dom.window.document;assert.equal(doc.getElementById('daily-countdowns').hidden,false);assert.equal(doc.getElementById('data-countdown').textContent,'Čakáme na dáta');assert.equal(doc.getElementById('analysis-countdown').textContent,'Čakáme na analýzu');}finally{dom.window.close();}
+});
+
 test('goalie names and localized confirmation appear at the card edges before statistics load',async()=>{
  const full=fixture();full.games[0].away.goalie={name:'Juuse Saros',status:'probable',starts_current:99};full.games[0].home.goalie={name:'Michael DiPietro',status:'confirmed'};
  full.goalie_appearances={[full.games[0].game_id]:{away:0,home:3}};

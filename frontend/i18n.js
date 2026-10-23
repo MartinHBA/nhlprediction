@@ -3,6 +3,14 @@ window.NHL_I18N=(()=>{
  const languages={sk:{name:'Slovenčina',locale:'sk-SK',flag:'sk'},en:{name:'English',locale:'en-GB',flag:'gb'},cs:{name:'Čeština',locale:'cs-CZ',flag:'cz'},sv:{name:'Svenska',locale:'sv-SE',flag:'se'},fi:{name:'Suomi',locale:'fi-FI',flag:'fi'},de:{name:'Deutsch',locale:'de-DE',flag:'de'}};
  // Columns: Slovak source, English, Czech, Swedish, Finnish, German.
  const rows=[
+ ['Zápasy a prvé dáta','Games and initial data','Zápasy a první data','Matcher och första data','Ottelut ja ensimmäiset tiedot','Spiele und erste Daten'],
+ ['Podrobná analýza a tipy','In-depth analysis and picks','Podrobná analýza a tipy','Fördjupad analys och tips','Perusteellinen analyysi ja vihjeet','Ausführliche Analyse und Tipps'],
+ ['Dáta načítané','Data loaded','Data načtena','Data inlästa','Tiedot ladattu','Daten geladen'],
+ ['Analýza dokončená','Analysis complete','Analýza dokončena','Analysen är klar','Analyysi valmis','Analyse abgeschlossen'],
+ ['Čakáme na dáta','Waiting for data','Čekáme na data','Väntar på data','Odotetaan tietoja','Warten auf Daten'],
+ ['Čakáme na analýzu','Waiting for analysis','Čekáme na analýzu','Väntar på analys','Odotetaan analyysia','Warten auf die Analyse'],
+ ['Dnes o {time} · slovenský čas','Today at {time} · Slovakia time','Dnes v {time} · slovenský čas','I dag kl. {time} · slovakisk tid','Tänään klo {time} · Slovakian aikaa','Heute um {time} · slowakische Zeit'],
+ ['Začiatok o {time} · slovenský čas','Starts at {time} · Slovakia time','Začátek v {time} · slovenský čas','Start kl. {time} · slovakisk tid','Alkaa klo {time} · Slovakian aikaa','Beginn um {time} · slowakische Zeit'],
  ['Jazyk stránky','Website language','Jazyk stránky','Webbplatsens språk','Sivuston kieli','Sprache der Website'],
  ['Logo {team}','{team} logo','Logo {team}','{team}-logotyp','{team}-logo','Logo von {team}'],
  ['NHL Analyzer Online domov','NHL Analyzer Online home','NHL Analyzer Online domů','NHL Analyzer Online startsida','NHL Analyzer Online etusivu','NHL Analyzer Online Startseite'],
