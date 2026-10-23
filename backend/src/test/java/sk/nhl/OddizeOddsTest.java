@@ -86,4 +86,12 @@ class OddizeOddsTest {
         w.requestOdds(DAY,NOW);w.processImport(jobs.get(0));var saved=w.require(DAY);
         assertEquals(9,saved.path("revision").asInt());assertEquals(3,saved.path("dataset").path("games").get(0).path("home").path("context").path("rest_days").asInt());assertFalse(saved.path("dataset").path("games").get(0).path("markets").isEmpty());
     }
+    @Test void batchCutoffIncludesEvidenceReceivedAfterTheBatchStarted(){
+        AtomicReference<Instant> time=new AtomicReference<>(NOW);
+        Clock moving=new Clock(){public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return time.get();}};
+        var client=new OddizeClient(new MemoryStore(),moving,"key",r->{time.updateAndGet(t->t.plusSeconds(2));return new OddizeProbe.Upstream(200,HttpHeaders.of(Map.of(),(a,b)->true),response(r.uri().toString().substring(OddizeClient.BASE.length())).toString());},"test",false);
+        var result=new OddizeOdds(client,moving).collect(DAY,data());
+        assertEquals(NOW.plusSeconds(8).toString(),text(result,"dataset.as_of"));assertEquals(4,result.path("odds_import").path("selectable_count").asInt());
+        assertTrue(Checks.validate(result.path("dataset")).isEmpty(),Checks.validate(result.path("dataset")).toString());
+    }
 }
