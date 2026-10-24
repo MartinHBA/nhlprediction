@@ -11,6 +11,7 @@ import static sk.nhl.Json.*;
 final class Schedule {
     static final HttpClient HTTP=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).followRedirects(HttpClient.Redirect.NEVER).build();
     static String day(String day){LocalDate.parse(day);return day;}
+    static boolean programWindow(Instant now){var time=now.atZone(ZoneId.of("Europe/Bratislava")).toLocalTime();int minute=time.getHour()*60+time.getMinute();return minute>=12*60+45&&minute<17*60+45;}
     static ObjectNode fetch(String day){
         day(day);String url="https://api-web.nhle.com/v1/schedule/"+day;
         try{

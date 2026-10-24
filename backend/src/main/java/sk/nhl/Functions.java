@@ -67,7 +67,7 @@ public final class Functions {
     public void importData(@QueueTrigger(name="job",queueName="predictions",connection="AzureWebJobsStorage")String job,ExecutionContext context){Services.WORKFLOW.processImport(parse(job));}
     @FunctionName("oddsWatch")
     public void oddsWatch(@TimerTrigger(name="timer",schedule="0 0,30 * * * *")String timer,ExecutionContext context){
-        var now=java.time.Instant.now();if(NhlOdds.pollingWindow(now))Services.WORKFLOW.eveningTick(now);
+        var now=java.time.Instant.now();if(NhlOdds.pollingWindow(now))Services.WORKFLOW.eveningTick(now);else if(Schedule.programWindow(now))Services.WORKFLOW.programTick(now);
     }
     @FunctionName("oddizeSnapshot")
     public void oddizeSnapshot(@TimerTrigger(name="timer",schedule="0 45 * * * *")String timer,ExecutionContext context){

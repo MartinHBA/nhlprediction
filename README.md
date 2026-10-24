@@ -16,7 +16,8 @@ Doména webu používa DNS CNAME a spravovaný HTTPS certifikát.
 **Azure resource group:** `nhlprediction` · `westeurope`.
 
 ```text
-18:00 Europe/Bratislava → Azure: program a štatistiky
+13:00 Europe/Bratislava → Azure: iba program zápasov, bez pokročilých štatistík
+18:00 Europe/Bratislava → Azure: pokročilé štatistiky
 19:45 Europe/Bratislava → Azure: jeden denný katalóg Oddize vrátane alternatív
 Každých 30 minút do 08:00 → skóre; po publikácii žiadne nové analytické dáta
 20:00 → ChatGPT Cloud úloha: MCP dáta + webový research
@@ -209,6 +210,9 @@ Verejné /api/days/{day} vracia zmrazené štatistiky s oddeleným scoreboard.
 Bez dátumu v URL web do 13:00 v `Europe/Bratislava` predvolene zobrazí
 predchádzajúci hrací deň s nočnými výsledkami; od 13:00 aktuálny dátum.
 Pravidlo rešpektuje letný/zimný čas. Explicitné `?day=` a ručný výber majú prednosť.
+O 13:00 polhodinový timer pripraví iba oficiálny program nového dňa. Karty
+sú hneď dostupné, pokročilé údaje sú naplánované na 18:00 a kurzy na 19:45.
+Opakované kontroly programu nespúšťajú pokročilý import ani neprepisujú publikácie.
 Browser po publikovaní každých päť minút načíta iba /api/days/{day}/live;
 štatistiky znovu stiahne až po novej publikácii alebo ručnom obnovení.
 Po konečnom skóre všetkých zápasov tiché kontroly prestanú. Skryté karty

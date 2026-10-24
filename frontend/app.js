@@ -134,13 +134,13 @@ function updateCountdowns(){
  const data=countdownData,visible=countdownKnown&&$('day').value===nhlToday()&&data?.state!=='NO_GAMES';
  $('daily-countdowns').hidden=!visible;$('status').classList.toggle('has-countdowns',visible);
  if(!visible)return;
- const published=data?.final_tips?.state==='PUBLISHED',dataReady=published||!!data?.games?.length&&data.state!=='PREFILLING';
+ const published=data?.final_tips?.state==='PUBLISHED',dataReady=published||!!data?.games?.length&&data.state!=='PREFILLING'&&data.enrichment?.state!=='SCHEDULED';
  for(const [stage,hour,ready,label,done,waiting] of [['data',18,dataReady,'Zápasy a prvé dáta','Dáta načítané','Čakáme na dáta'],['analysis',20,published,'Podrobná analýza a tipy','Analýza dokončená','Čakáme na analýzu']]){
   const remaining=Math.max(0,Math.ceil((dailyTarget($('day').value,hour)-Date.now())/1000)),node=$(stage+'-countdown');
   const text=ready?t(done):remaining?[Math.floor(remaining/3600),Math.floor(remaining/60)%60,remaining%60].map(n=>String(n).padStart(2,'0')).join(':'):t(waiting);
   if(node.textContent!==text)node.textContent=text;
   node.classList.toggle('is-state',ready||!remaining);node.classList.toggle('is-complete',ready);
-  $(stage+'-countdown-label').textContent=t(label);
+  $(stage+'-countdown-label').textContent=t(stage==='data'&&data?.enrichment?.state==='SCHEDULED'?'Rozšírené štatistiky':label);
   $(stage+'-countdown-note').textContent=t(stage==='data'?'Dnes o {time} · slovenský čas':'Začiatok o {time} · slovenský čas',{time:hour+':00'});
  }
 }
@@ -153,8 +153,9 @@ async function get(path){if(!api())throw new Error(t('Chýba konfigurácia backe
 function schedulePoll(){
  clearTimeout(poll);
  if(loadFailure==='missing'&&$('day').value===nhlToday()){
-  const untilImport=dailyTarget($('day').value,18)-Date.now();
-  poll=setTimeout(()=>{if(document.hidden){schedulePoll();return;}return load({silent:true});},untilImport>0?Math.min(POLL_INTERVAL,untilImport):POLL_INTERVAL);return;
+  const untilProgram=dailyTarget($('day').value,13)-Date.now();
+  const delay=untilProgram>0?Math.min(POLL_INTERVAL,untilProgram):untilProgram>-5*60*1000?15000:POLL_INTERVAL;
+  poll=setTimeout(()=>{if(document.hidden){schedulePoll();return;}return load({silent:true});},delay);return;
  }
  if(current&&(['PREFILLING','COLLECTING'].includes(current.state)||(!current.publication?.frozen&&current.state==='READY_FOR_ANALYSIS')||current.publication?.refresh_in_progress||(current.publication?.frozen?!(current.scoreboard?.games?.length===current.game_count&&current.scoreboard.games.every(g=>g.status==='final')):(current.odds_import?.upcoming_games||0)>0))){
   poll=setTimeout(()=>{if(document.hidden){schedulePoll();return;}return load({silent:true});},POLL_INTERVAL);
@@ -210,7 +211,8 @@ function showLoadFailure(){
 function render(data){const coverage=data.coverage,stale=Date.now()-Date.parse(data.updated_at)>18*3600000;let title=states[data.state]||data.state,detail='';let type='neutral';
  setCountdowns(data);
  $('ticket').hidden=true;$('coverage').hidden=true;$('coverage-detail').textContent='';$('import-warnings').hidden=true;$('import-warning-list').replaceChildren();
- if(data.state==='PREFILLING'){detail=t('Načítavam publikované štatistiky MoneyPuck a oficiálne údaje NHL.');}
+ if(data.enrichment?.state==='SCHEDULED'&&data.state!=='NO_GAMES'){title='Program zápasov je pripravený';detail=t('Rozšírené štatistiky sa načítajú o 18:00 slovenského času.');}
+ else if(data.state==='PREFILLING'){detail=t('Načítavam publikované štatistiky MoneyPuck a oficiálne údaje NHL.');}
  else if(data.state==='NO_GAMES'){detail=t('Oficiálny program na tento deň neobsahuje zápasy základnej časti.');}
  else if(data.state==='ERROR'){type='error';detail=data.error||t('Zber nebol dokončený.');}
  else{title='Čaká na finálnu analýzu';detail=t(data.research_complete?'Research je pripravený. Finálne výbery ešte nie sú uložené.':'Priebežné údaje. Prebieha dopĺňanie researchu a posúdenie zápasov.');}

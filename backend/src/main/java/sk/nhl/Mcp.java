@@ -6,13 +6,14 @@ import java.util.*;
 import static sk.nhl.Json.*;
 
 final class Mcp {
-    static final String VERSION="4.1.0";
+    static final String VERSION="4.2.0";
     final Workflow workflow;
     static final String INSTRUCTIONS="""
         You are the NHL research agent AND final prediction analyst. Azure is DATA ONLY: schedule,
         statistics, evidence and an authoritative Oddize bookmaker catalogue. No model, simulations,
         predicted scores, probabilities, EV or automatic picks. NHL is used for schedule/statistics/scores,
-        NEVER as the current odds source. Prices are collected once at 19:45 Europe/Bratislava (DST-aware).
+        NEVER as the current odds source. The schedule is prepared at 13:00, advanced stats at 18:00,
+        prices once at 19:45 Europe/Bratislava (DST-aware). An explicit MCP start_day can import stats ad hoc.
         First get_instructions, get_schema and start_day for the NHL day in America/New_York.
         Poll get_results during PREFILLING and while odds_import.state is QUEUED/RUNNING.
         start_day also recovers a missing/failed due odds job; completed cached HTTP responses are reused.

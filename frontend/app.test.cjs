@@ -96,16 +96,18 @@ test('countdowns use Bratislava deadlines across both daylight-saving transition
  }
 });
 
-test('missing today quietly discovers the imported cards after the countdown expires',async()=>{
- let advance,next,available=false;const data=fixture();data.state='COLLECTING';
+test('missing today quietly discovers the 13:00 schedule before advanced statistics arrive',async()=>{
+ let advance,next,available=false;const data=fixture();data.state='COLLECTING';data.enrichment={state:'SCHEDULED'};
  const dom=await boot({},404,w=>{
-  advance=clockAt(w,'2026-10-20T15:59:58Z');w.setTimeout=(run,delay)=>{next={run,delay};return 1;};Object.defineProperty(w.document,'hidden',{value:false,configurable:true});
+  advance=clockAt(w,'2026-10-20T10:59:58Z');w.setTimeout=(run,delay)=>{next={run,delay};return 1;};Object.defineProperty(w.document,'hidden',{value:false,configurable:true});
   w.fetch=async url=>url.endsWith('/api/days')?{ok:true,json:async()=>({days:[]})}:available?{ok:true,json:async()=>structuredClone(data)}:{ok:false,status:404};
  });
  try{
   const doc=dom.window.document;assert.equal(next.delay,2000);
-  advance('2026-10-20T16:00:00Z');await next.run();assert.equal(doc.getElementById('data-countdown').textContent,'Čakáme na dáta');assert.equal(next.delay,300000);
-  available=true;await next.run();assert.equal(doc.querySelectorAll('.game-card').length,3);assert.equal(doc.getElementById('data-countdown').textContent,'Dáta načítané');assert.equal(doc.getElementById('analysis-countdown').textContent,'02:00:00');
+  advance('2026-10-20T11:00:00Z');await next.run();assert.equal(doc.getElementById('data-countdown').textContent,'05:00:00');assert.equal(next.delay,15000);
+  available=true;await next.run();assert.equal(doc.querySelectorAll('.game-card').length,3);assert.equal(doc.getElementById('data-countdown').textContent,'05:00:00');assert.equal(doc.getElementById('analysis-countdown').textContent,'07:00:00');
+  assert.equal(doc.getElementById('status-title').textContent,'Program zápasov je pripravený');assert.equal(doc.getElementById('data-countdown-label').textContent,'Rozšírené štatistiky');
+  for(const lang of ['en','cs','sv','fi','de']){dom.window.NHL_I18N.setLanguage(lang);assert.notEqual(doc.getElementById('status-title').textContent,'Program zápasov je pripravený');assert.match(doc.getElementById('status-detail').textContent,/18:00/);}
  }finally{dom.window.close();}
 });
 

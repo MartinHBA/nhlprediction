@@ -16,7 +16,7 @@ class OddizeOddsTest {
     static final Clock CLOCK=Clock.fixed(NOW,ZoneOffset.UTC);
     static ObjectNode data(){
         ObjectNode d=DataCollectorTest.template(DAY,"2026-10-24T00:10:00Z");d.put("as_of",NOW.toString());
-        ObjectNode g=(ObjectNode)d.path("games").get(0);((ObjectNode)g.path("away")).put("name","MTL");((ObjectNode)g.path("home")).put("name","CHI");
+        ObjectNode g=(ObjectNode)d.path("games").get(0);g.put("status","scheduled");((ObjectNode)g.path("away")).put("name","MTL");((ObjectNode)g.path("home")).put("name","CHI");
         for(String side:List.of("home","away"))for(String group:List.of("prior","current","goalie","roster"))((ObjectNode)g.path(side).path(group).path("source")).put("checked_at",NOW.minusSeconds(120).toString());return d;
     }
     static ObjectNode price(String book,String type,String side,double line){return obj("book",book,"book_name",book,"offer_type",type,"team",side,"line",line,"american_odds","-400","timestamp",NOW.minusSeconds(60).toString(),"ts",NOW.minusSeconds(60).getEpochSecond());}

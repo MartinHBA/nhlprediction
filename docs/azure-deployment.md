@@ -229,7 +229,10 @@ Backend vyžaduje app setting **ODDIZE_API_KEY**; kľúč je iba v serverovom HT
 headeri, nie v dátach, odpovediach, frontende ani diagnostických výstupoch.
 
 `oddsWatch` má UTC cron `0 0,30 * * * *` a lokálne okno **17:45–08:00**.
-O 18:00 pripraví program a športové štatistiky; po publikácii obnovuje iba skóre.
+Od verzie 4.2 má aj ľahké okno 12:45–17:45: prvý beh o 13:00 pripraví iba
+oficiálny program so stavom enrichment=SCHEDULED. O 18:00 zaradí pokročilé
+štatistiky; po publikácii obnovuje iba skóre. Explicitný MCP start_day môže
+štatistiky vyžiadať aj skôr; automatický programový beh to nerobí.
 Predstih chráni tesne skorý trigger 18:00. Dokončený Oddize katalóg už neobnovuje.
 Pri nedokončenom importe môže zaradiť retry; úspešné jednotlivé API odpovede
 z privátnej cache `cache/oddize/v1/snapshot/YYYY-MM-DD/...` sa znovu neplatia.
