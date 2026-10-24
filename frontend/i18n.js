@@ -3,6 +3,9 @@ window.NHL_I18N=(()=>{
  const languages={sk:{name:'Slovenčina',locale:'sk-SK',flag:'sk'},en:{name:'English',locale:'en-GB',flag:'gb'},cs:{name:'Čeština',locale:'cs-CZ',flag:'cz'},sv:{name:'Svenska',locale:'sv-SE',flag:'se'},fi:{name:'Suomi',locale:'fi-FI',flag:'fi'},de:{name:'Deutsch',locale:'de-DE',flag:'de'}};
  // Columns: Slovak source, English, Czech, Swedish, Finnish, German.
  const rows=[
+ ['Prosím počkajte...','Please wait...','Prosím počkejte...','Vänligen vänta...','Odota...','Bitte warten...'],
+ ['Začiatok analýzy o {time}','Analysis starts at {time}','Začátek analýzy v {time}','Analysen startar kl. {time}','Analyysi alkaa klo {time}','Analysebeginn um {time}'],
+ ['Načítanie dát o {time}','Data collection at {time}','Načtení dat v {time}','Data hämtas kl. {time}','Tiedot haetaan klo {time}','Datenabruf um {time}'],
  ['Elo pred zápasom: {rating} · sezóna {season}','Pregame Elo: {rating} · season {season}','Elo před zápasem: {rating} · sezóna {season}','Elo före match: {rating} · säsong {season}','Elo ennen ottelua: {rating} · kausi {season}','Elo vor dem Spiel: {rating} · Saison {season}'],
  ['Program zápasov je pripravený','Game schedule is ready','Program zápasů je připraven','Spelschemat är klart','Otteluohjelma on valmis','Der Spielplan ist bereit'],
  ['Rozšírené štatistiky','Advanced statistics','Pokročilé statistiky','Fördjupad statistik','Tarkemmat tilastot','Erweiterte Statistiken'],

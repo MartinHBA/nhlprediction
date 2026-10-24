@@ -130,14 +130,28 @@ function dailyTarget(day,hour){
  for(let i=0;i<2;i++){const parts=Object.fromEntries(scheduleZone.formatToParts(new Date(target)).map(p=>[p.type,p.value]));target+=wall-Date.UTC(+parts.year,+parts.month-1,+parts.day,+parts.hour,+parts.minute,+parts.second);}
  scheduleTargets.set(key,target);return target;
 }
+const countdownClock=seconds=>[Math.floor(seconds/3600),Math.floor(seconds/60)%60,seconds%60].map(value=>String(value).padStart(2,'0')).join(':');
+function inlineCountdown(stage){const node=el('span','inline-countdown card-countdown');node.dataset.countdownStage=stage;node.hidden=true;node.setAttribute('aria-live','off');node.title=t(stage==='data'?'Načítanie dát o {time}':'Začiatok analýzy o {time}',{time:stage==='data'?'18:00':'20:00'});return node;}
+function updateCardCountdowns(root=$('games'),data=countdownData){
+ const now=Date.now(),day=data?.day,today=countdownKnown&&day===$('day').value&&day===nhlToday()&&data?.state!=='NO_GAMES';
+ const published=data?.final_tips?.state==='PUBLISHED'||data?.publication?.frozen,dataReady=published||!!data?.games?.length&&data.state!=='PREFILLING'&&!['SCHEDULED','QUEUED','RUNNING','ERROR'].includes(data.enrichment?.state);
+ for(const node of root.querySelectorAll('.card-countdown')){
+  const id=node.closest('.game-card')?.dataset.gameId,game=data?.games?.find(game=>String(game.game_id)===id),score=data?.scoreboard?.games?.find(game=>String(game.game_id)===id),stage=node.dataset.countdownStage;
+  const upcoming=game&&(score?.status||game.status)==='scheduled'&&Date.parse(game.starts_at)>now,decided=published||data?.final_tips?.games?.some(game=>String(game.game_id)===id);
+  const remaining=today?Math.max(0,Math.ceil((dailyTarget(day,stage==='data'?18:20)-now)/1000)):0;
+  node.hidden=!today||!upcoming||(stage==='data'?dataReady:decided||remaining===0);
+  if(!node.hidden){const text=t('Prosím počkajte...')+(remaining?' '+countdownClock(remaining):'');if(node.textContent!==text)node.textContent=text;}
+ }
+}
 function updateCountdowns(){
+ updateCardCountdowns();
  const data=countdownData,visible=countdownKnown&&$('day').value===nhlToday()&&data?.state!=='NO_GAMES';
  $('daily-countdowns').hidden=!visible;$('status').classList.toggle('has-countdowns',visible);
  if(!visible)return;
  const published=data?.final_tips?.state==='PUBLISHED',dataReady=published||!!data?.games?.length&&data.state!=='PREFILLING'&&data.enrichment?.state!=='SCHEDULED';
  for(const [stage,hour,ready,label,done,waiting] of [['data',18,dataReady,'Zápasy a prvé dáta','Dáta načítané','Čakáme na dáta'],['analysis',20,published,'Podrobná analýza a tipy','Analýza dokončená','Čakáme na analýzu']]){
   const remaining=Math.max(0,Math.ceil((dailyTarget($('day').value,hour)-Date.now())/1000)),node=$(stage+'-countdown');
-  const text=ready?t(done):remaining?[Math.floor(remaining/3600),Math.floor(remaining/60)%60,remaining%60].map(n=>String(n).padStart(2,'0')).join(':'):t(waiting);
+  const text=ready?t(done):remaining?countdownClock(remaining):t(waiting);
   if(node.textContent!==text)node.textContent=text;
   node.classList.toggle('is-state',ready||!remaining);node.classList.toggle('is-complete',ready);
   $(stage+'-countdown-label').textContent=t(stage==='data'&&data?.enrichment?.state==='SCHEDULED'?'Rozšírené štatistiky':label);
@@ -243,7 +257,7 @@ function render(data){const coverage=data.coverage,stale=Date.now()-Date.parse(d
   if(at!==cards[i])$('games').insertBefore(cards[i],at||null);
  }
  while($('games').children.length>cards.length)$('games').lastElementChild.remove();
-
+ updateCardCountdowns();
 }
 function noBetCopy(value){return String(value??'').replace(/^\s*[*`]*NO[_\s-]*BET\b[*`]*\s*(?:[:;,.–—-]\s*)?/iu,'').trim();}
 function detailCopy(final){
@@ -256,7 +270,7 @@ function detailCopy(final){
 }
 function recommendationBlock(final,game,data){
  const box=el('div','recommendation');
- if(!final){box.append(el('p','subtle',t('Čaká na finálny výber.')));return box;}
+ if(!final){const waiting=el('p','subtle',t('Čaká na finálny výber.'));waiting.append(inlineCountdown('analysis'));box.append(waiting);return box;}
  const needsReview=final.state==='NEEDS_REVIEW';
  const outcome=final.settlement?.state,labels={WIN:'SPRÁVNY TIP',LOSS:'NESPRÁVNY TIP',PUSH:'NA HRANICI · PUSH',UNAVAILABLE:'VÝSLEDOK SA NEDÁ URČIŤ'};
  if(final.decision==='TIP'&&labels[outcome]){box.classList.add('outcome-'+outcome.toLowerCase());box.append(el('p','settlement '+outcome.toLowerCase(),t(labels[outcome])));}
@@ -298,11 +312,12 @@ function card(game,data){
  let details;
  if(data.details_loaded===false)details=pendingDetails('Dáta','fields','field-details',data);
  else if(data.publication?.frozen&&data.publication.snapshot_available===false){details=el('details','field-details');details.dataset.section='fields';details.append(el('summary','',t('Dáta')),el('p','subtle',t('Presné pôvodné podklady analýzy sa nepodarilo obnoviť. Aktuálne štatistiky ich nenahrádzajú.')));}else details=fieldDetails(game);
+ const summary=details.querySelector('summary'),copy=el('span','field-summary-copy');copy.append(...summary.childNodes,inlineCountdown('data'));summary.replaceChildren(copy);
  const available=data.coverage?.games?.find(g=>String(g.game_id)===String(game.game_id));
  if(available)details.querySelector('summary').after(el('p','subtle fields-coverage',t('{found}/{total} dostupných polí',{found:available.field_found,total:available.field_total})));
  article.append(details);
  if(game.has_analysis_context||game.analysis_context?.length)article.append(data.details_loaded===false?pendingDetails('Doplňujúci research','analysis-context','field-details',data):disclosure('Doplňujúci research','analysis-context','field-details',section=>{for(const item of game.analysis_context||[])section.append(el('strong','',item.topic),el('p','subtle',item.summary));}));
- return article;
+ updateCardCountdowns(article,data);return article;
 }
 function marketName(m){const kinds={total:'Góly spolu',team_total:'Tímové góly',handicap:'Handicap',moneyline:'Víťaz vrátane OT',regulation_1x2:'Výsledok 60 min',double_chance:'Dvojtip 60 min'};const sides={home:'domáci',away:'hostia',draw:'remíza',over:'nad',under:'pod'};return `${t(kinds[m.kind]||m.kind)} · ${t(sides[m.selection]||m.selection)}${m.line!==null&&m.line!==undefined?' '+(m.kind==='handicap'&&m.line>0?'+':'')+Number(m.line).toLocaleString(i18n.locale,{useGrouping:false}):''}${m.team?' ('+t(sides[m.team]||m.team)+')':''}`;}
 function renderArchive(){

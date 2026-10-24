@@ -102,7 +102,17 @@ Použi NHL PREDICTION STRATEGY v1.8 s aktuálnymi pravidlami:
    Over úplný oficiálny počet, jedinečné game_id, domácich/hostí, stav a starts_at.
    Časy používateľovi zobrazuj v Europe/Bratislava vrátane DST; dôkazy v UTC.
    Zápasy, ktoré už začali, neanalyzuj ako nové predzápasové tipy: live/final,
-   bez markets a vo finálnych decisions vždy NO_BET. Ak už k nim bol uložený
+   bez markets a vo finálnych decisions vždy NO_BET, candidate_id=null.
+   V rationale výslovne uveď, že zápas bol pri kontrole už rozohraný, prípadne
+   ukončený, a preto nebol vytvorený predzápasový tip. Pridaj plánovaný začiatok
+   a skutočný čas kontroly; používateľovi v Europe/Bratislava, dôkazy v UTC.
+   Ak máš iba uplynutý starts_at bez potvrdeného živého stavu, napíš presne,
+   že už uplynul plánovaný začiatok; nevymýšľaj potvrdenie, že sa hrá.
+   V comparison uveď, že predzápasové kandidáty sa z časového dôvodu
+   neposudzovali. Taký zápas nevynechaj z decisions ani ho neoznač ako
+   analyticky nevhodný; ide o časové vyradenie. Pokračuj analýzou ostatných
+   ešte nezačatých zápasov a neposúvaj ani nezastavuj celý denný beh.
+   Ak už k nemu bol uložený
    predzápasový tip, backend ho zachová ako historické rozhodnutie; nový NO_BET
    ho nesmie vymazať. Finálne počty preber z odpovede, nie iba zo svojho requestu.
 
@@ -300,7 +310,10 @@ Použi NHL PREDICTION STRATEGY v1.8 s aktuálnymi pravidlami:
    nie je navždy aktuálna. Rešpektuj aktuálne backendové blockers; webové ceny
    nehľadaj. Neopakuj dokončený zber pri návrate do tohto kroku.
    Ulož nové
-   zistenia; zavolaj check_day a oprav validačné/evidence chyby a not_checked.
+   zistenia; zavolaj check_day a oprav validačné/evidence chyby a not_checked
+   pre ešte nezačaté zápasy. Pri SKIP_STARTED nedohľadávaj predzápasové údaje
+   ani nevypĺňaj ich kontroly fiktívnym researchom; finalize_day ich po
+   aktualizácii stavu vyradí z predzápasového checklistu.
    unavailable je uzavretá kontrola, nie dostupný údaj. Dokonči research aj pri
    odds_import PARTIAL/ERROR; nevymýšľaj kurzy ani na ne nečakaj celé hodiny.
    Aktívny QUEUED/RUNNING import nechaj najprv dobehnúť; finalize_day počas
@@ -325,6 +338,10 @@ Použi NHL PREDICTION STRATEGY v1.8 s aktuálnymi pravidlami:
    risks zachytí zostávajúce riziká. Posúď všetky dostupné vhodné možnosti,
    ale texty udrž v limitoch schémy. Nevytváraj nové JSON polia alebo vymyslené
    alternatívy.
+   Tesne pred publikáciou znovu skontroluj starts_at voči skutočnému aktuálnemu
+   času a stav zápasov. Aj zápas, ktorý začal až počas tohto researchu, musí
+   dostať NO_BET s časovým dôvodom namiesto nového TIP. Zachovanie skoršieho
+   platného predzápasového rozhodnutia na backende tým nie je dotknuté.
    Publikuj cez post_tips(day, revision, analysis_id, decisions) naraz celý deň,
    vrátane NO_BET za začaté zápasy. Pri konflikte načítaj nový snapshot;
    pri zmene analysis_id znovu posúď dotknuté rozhodnutia. Over odpoveď a

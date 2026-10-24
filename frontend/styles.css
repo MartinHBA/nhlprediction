@@ -38,6 +38,9 @@
 .recommendation-facts>span{cursor:help}
 .recommendation-confidence{text-decoration:underline dotted;text-underline-offset:4px}
 .recommendation>.subtle{margin:8px 0 0;font-size:11px}
+.inline-countdown{font:inherit;line-height:inherit;color:inherit;font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:8px}
+.field-summary-copy{display:inline-flex;align-items:baseline;min-width:0}
+.field-summary-copy .inline-countdown{color:var(--muted)}
 .recommendation>small{display:block;margin-top:6px;font-size:10px}
 .recommendation.needs-review{border-left-color:var(--amber);background:#332c2244}
 .tip-analysis{margin-top:12px}

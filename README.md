@@ -213,6 +213,10 @@ Pravidlo rešpektuje letný/zimný čas. Explicitné `?day=` a ručný výber ma
 O 13:00 polhodinový timer pripraví oficiálny program nového dňa a historické Elo. Karty
 sú hneď dostupné, pokročilé údaje sú naplánované na 18:00 a kurzy na 19:45.
 Opakované kontroly programu nespúšťajú pokročilý import ani neprepisujú publikácie.
+Rozpracované dnešné karty majú malé odpočty do 18:00 pri Dátach a do 20:00
+pri čakaní na finálny výber. Bežia na spoločnom sekundovom časovači prehliadača
+bez API volaní. Po doplnení dát/publikácii či začiatku zápasu zmiznú; po 20:00
+sa nepredstiera dokončená analýza a zostáva text čakania na skutočný výber.
 
 Elo sa na začiatku každej sezóny resetuje na **1500 pre všetkých 32 tímov**.
 Používa klasický vzorec `E = 1 / (1 + 10^((R_súper − R_tím) / 400))`

@@ -102,6 +102,37 @@ test('today countdowns tick locally and translate without making network request
  }finally{dom.window.close();}
 });
 
+function pendingCards(){const data=fixture();data.state='COLLECTING';data.enrichment={state:'SCHEDULED'};data.games.forEach(game=>{game.status='scheduled';game.starts_at='2026-10-20T22:30:00Z';});return data;}
+test('inline card countdowns share the page timer, tick without requests or card replacement and translate',async()=>{
+ const data=pendingCards();let advance,tick,intervals=0,requests=0;
+ const dom=await boot(data,200,w=>{advance=clockAt(w,'2026-10-20T14:42:15Z');w.setInterval=run=>{tick=run;intervals++;return 1;};w.fetch=async url=>{requests++;return {ok:true,json:async()=>structuredClone(url.endsWith('/api/days')?{days:[]}:data)};};});
+ try{
+  const doc=dom.window.document,original=doc.querySelector('.game-card'),counter=stage=>doc.querySelector(`[data-countdown-stage="${stage}"]`),before=requests;
+  assert.equal(intervals,1);assert.equal(counter('analysis').hidden,false);assert.equal(counter('analysis').textContent,'Prosím počkajte... 03:17:45');assert.equal(counter('data').textContent,'Prosím počkajte... 01:17:45');
+  advance('2026-10-20T14:42:16Z');tick();assert.equal(counter('analysis').textContent,'Prosím počkajte... 03:17:44');assert.equal(doc.querySelector('.game-card'),original);assert.equal(requests,before);
+  for(const [lang,prefix] of [['sk','Prosím počkajte...'],['en','Please wait...'],['cs','Prosím počkejte...'],['sv','Vänligen vänta...'],['fi','Odota...'],['de','Bitte warten...']]){dom.window.NHL_I18N.setLanguage(lang);assert.equal(counter('analysis').textContent,prefix+' 03:17:44');assert.equal(counter('data').textContent,prefix+' 01:17:44');assert.match(counter('analysis').title,/20:00/);}
+ }finally{dom.window.close();}
+});
+test('inline data timers disappear on completed import and selection timers stop at 20:00 or publication',async()=>{
+ for(const [state,enrichment,published,now,dataHidden,analysisHidden] of [
+  ['PREFILLING','RUNNING',false,'2026-10-20T14:42:15Z',false,false],
+  ['COLLECTING','DONE',false,'2026-10-20T14:42:15Z',true,false],
+  ['ERROR','ERROR',false,'2026-10-20T16:05:00Z',false,false],
+  ['READY_FOR_ANALYSIS','DONE',false,'2026-10-20T18:05:00Z',true,true],
+  ['COMPLETE','DONE',true,'2026-10-20T14:42:15Z',true,true]
+ ]){
+  const data=pendingCards();data.state=state;data.enrichment.state=enrichment;if(published)data.final_tips={state:'PUBLISHED',games:[]};
+  const dom=await boot(data,200,w=>clockAt(w,now));try{const doc=dom.window.document;assert.equal(doc.querySelector('[data-countdown-stage="data"]').hidden,dataHidden,enrichment);assert.equal(doc.querySelector('[data-countdown-stage="analysis"]').hidden,analysisHidden,state);if(now.includes('18:05'))assert.match(doc.querySelector('.recommendation').textContent,/Čaká na finálny výber/);}finally{dom.window.close();}
+ }
+});
+test('card timers are hidden for started or postponed games and archives, including a start between refreshes',async()=>{
+ const data=pendingCards();data.games[0].starts_at='2026-10-20T15:00:00Z';data.games[1].status='live';data.games[2].status='final';let advance,tick;
+ const dom=await boot(data,200,w=>{advance=clockAt(w,'2026-10-20T14:42:15Z');w.setInterval=run=>{tick=run;return 1;};});
+ try{const doc=dom.window.document;assert.equal(doc.querySelector('.card-countdown').hidden,false);assert([...doc.querySelectorAll('.game-card')].slice(1).every(card=>[...card.querySelectorAll('.card-countdown')].every(node=>node.hidden)));advance('2026-10-20T15:00:00Z');tick();assert([...doc.querySelectorAll('.card-countdown')].every(node=>node.hidden));}finally{dom.window.close();}
+ const archive=await boot(pendingCards(),200,w=>clockAt(w,'2026-10-21T14:00:00Z'));try{assert([...archive.window.document.querySelectorAll('.card-countdown')].every(node=>node.hidden));}finally{archive.window.close();}
+ const postponed=pendingCards();postponed.scoreboard={games:postponed.games.map(game=>({game_id:String(game.game_id),status:'postponed'}))};const delayed=await boot(postponed,200,w=>clockAt(w,'2026-10-20T14:00:00Z'));try{assert([...delayed.window.document.querySelectorAll('.card-countdown')].every(node=>node.hidden));}finally{delayed.window.close();}
+});
+
 test('countdowns use Bratislava deadlines across both daylight-saving transitions',async()=>{
  for(const [day,expected] of [['2026-03-28','02:44:35'],['2026-03-29','01:44:35'],['2026-10-24','01:44:35'],['2026-10-25','02:44:35']]){
   const dom=await boot({},404,w=>{clockAt(w,day+'T14:15:25Z');w.history.replaceState(null,'','?day='+day);});
