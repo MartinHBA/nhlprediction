@@ -117,6 +117,11 @@ const dateLabel=day=>new Intl.DateTimeFormat(i18n.locale,{day:'numeric',month:'l
 const timeLabel=value=>value?new Intl.DateTimeFormat(i18n.locale,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:'Europe/Bratislava'}).format(new Date(value)):'';
 const nhlToday=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const scheduleZone=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Bratislava',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+function defaultDisplayDay(){
+ const parts=Object.fromEntries(scheduleZone.formatToParts(new Date()).map(p=>[p.type,p.value]));
+ // Shift the calendar date in UTC, not by 24 local hours across DST changes.
+ return new Date(Date.UTC(+parts.year,+parts.month-1,+parts.day-(+parts.hour<13?1:0))).toISOString().slice(0,10);
+}
 const scheduleTargets=new Map();
 function dailyTarget(day,hour){
  const key=day+'|'+hour;if(scheduleTargets.has(key))return scheduleTargets.get(key);
@@ -308,7 +313,7 @@ function renderArchive(){
 async function loadArchive(){try{archiveData=await get('/api/days');archiveFailed=false;}catch{archiveFailed=true;}renderArchive();}
 function select(){if(!/^\d{4}-\d{2}-\d{2}$/.test($('day').value))return;const url=new URL(location.href);url.searchParams.set('day',$('day').value);history.replaceState(null,'',url.pathname+url.search+url.hash);load();loadArchive();}
 function move(delta){const date=new Date($('day').value+'T12:00:00Z');date.setUTCDate(date.getUTCDate()+delta);$('day').value=date.toISOString().slice(0,10);select();}
-const query=new URLSearchParams(location.search).get('day');$('day').value=query&&/^\d{4}-\d{2}-\d{2}$/.test(query)&&!Number.isNaN(Date.parse(query))?query:nhlToday();$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('day').onchange=select;$('refresh').onclick=select;
+const query=new URLSearchParams(location.search).get('day');$('day').value=query&&/^\d{4}-\d{2}-\d{2}$/.test(query)&&!Number.isNaN(Date.parse(query))?query:defaultDisplayDay();$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('day').onchange=select;$('refresh').onclick=select;
 i18n.init(()=>{if(current)render(current);else{ $('metric-check-note').textContent=t('skutočne vyplnené polia');if(loadFailure)showLoadFailure();else banner('Načítavam prehľad',dateLabel($('day').value));}renderArchive();});$('metric-check-note').textContent=t('skutočne vyplnené polia');load();loadArchive();
 setInterval(updateCountdowns,1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateCountdowns();});

@@ -43,6 +43,37 @@ function clockAt(w,iso){
  return iso=>{now=Date.parse(iso);};
 }
 
+test('default page keeps the previous NHL night until 13:00 Bratislava across DST and calendar boundaries',async()=>{
+ for(const [now,day] of [
+  ['2026-10-23T22:30:00Z','2026-10-23'],
+  ['2026-10-24T08:00:00Z','2026-10-23'],
+  ['2026-10-24T10:59:59Z','2026-10-23'],
+  ['2026-10-24T11:00:00Z','2026-10-24'],
+  ['2026-10-25T11:59:59Z','2026-10-24'],
+  ['2026-10-25T12:00:00Z','2026-10-25'],
+  ['2026-03-29T10:59:59Z','2026-03-28'],
+  ['2026-03-29T11:00:00Z','2026-03-29'],
+  ['2026-01-01T11:59:59Z','2025-12-31'],
+  ['2028-03-01T11:59:59Z','2028-02-29']
+ ]){
+  const requests=[];const dom=await boot({},404,w=>{
+   clockAt(w,now);w.history.replaceState(null,'','/?lang=fi');
+   w.fetch=async url=>{requests.push(url);return url.endsWith('/api/days')?{ok:true,json:async()=>({days:[]})}:{ok:false,status:404};};
+  });
+  try{assert.equal(dom.window.document.getElementById('day').value,day,now);assert.ok(requests.includes('https://api.nhl.example/api/days/'+day+'/cards'),now);}finally{dom.window.close();}
+ }
+});
+
+test('an explicit game date and manual navigation override the morning default',async()=>{
+ const dom=await boot({},404,w=>{clockAt(w,'2026-10-24T08:00:00Z');w.history.replaceState(null,'','/?day=2026-10-24&lang=de');});
+ try{
+  const doc=dom.window.document;assert.equal(doc.getElementById('day').value,'2026-10-24');
+  dom.window.NHL_I18N.setLanguage('en');assert.equal(doc.getElementById('day').value,'2026-10-24');
+  doc.getElementById('prev').click();await new Promise(resolve=>setTimeout(resolve,15));
+  assert.equal(doc.getElementById('day').value,'2026-10-23');assert.equal(new URL(dom.window.location.href).searchParams.get('day'),'2026-10-23');
+ }finally{dom.window.close();}
+});
+
 test('today countdowns tick locally and translate without making network requests',async()=>{
  let advance,tick,requests=0;
  const dom=await boot({},404,w=>{

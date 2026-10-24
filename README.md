@@ -206,6 +206,9 @@ Browser ho zobrazí ako prvý; až po vykreslení načíta kompletné údaje z
 /api/days/{day}. Tie sa musia zhodovať podľa data_snapshot_id. Rozbalené detaily
 sa vytvoria až pri otvorení; chyba detailov neodstráni karty a umožní opakovanie.
 Verejné /api/days/{day} vracia zmrazené štatistiky s oddeleným scoreboard.
+Bez dátumu v URL web do 13:00 v `Europe/Bratislava` predvolene zobrazí
+predchádzajúci hrací deň s nočnými výsledkami; od 13:00 aktuálny dátum.
+Pravidlo rešpektuje letný/zimný čas. Explicitné `?day=` a ručný výber majú prednosť.
 Browser po publikovaní každých päť minút načíta iba /api/days/{day}/live;
 štatistiky znovu stiahne až po novej publikácii alebo ručnom obnovení.
 Po konečnom skóre všetkých zápasov tiché kontroly prestanú. Skryté karty
