@@ -233,7 +233,7 @@ window.NHL_I18N=(()=>{
    const toggle=document.createElement('button');toggle.id='language-toggle';toggle.className='language-toggle';toggle.type='button';toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls','language-menu');
    const flag=document.createElement('img');flag.className='language-flag';flag.alt='';flag.width=24;flag.height=16;
    const name=document.createElement('span');name.className='language-name';const code=document.createElement('span');code.className='language-code';code.setAttribute('aria-hidden','true');
-   const arrow=document.createElement('span');arrow.className='language-arrow';arrow.textContent='⌄';arrow.setAttribute('aria-hidden','true');toggle.append(flag,name,code,arrow);
+   const arrow=document.createElementNS('http://www.w3.org/2000/svg','svg');arrow.classList.add('language-arrow');arrow.setAttribute('viewBox','0 0 16 16');arrow.setAttribute('width','14');arrow.setAttribute('height','14');arrow.setAttribute('aria-hidden','true');arrow.setAttribute('focusable','false');const chevron=document.createElementNS('http://www.w3.org/2000/svg','path');chevron.setAttribute('d','M4 6l4 4 4-4');arrow.append(chevron);toggle.append(flag,name,code,arrow);
    const menu=document.createElement('div');menu.id='language-menu';menu.className='language-menu';menu.hidden=true;menu.setAttribute('role','group');menu.setAttribute('data-i18n-aria-label','Jazyk stránky');
    for(const [code,definition] of Object.entries(languages)){
     const button=document.createElement('button');button.type='button';button.dataset.language=code;button.lang=code;
