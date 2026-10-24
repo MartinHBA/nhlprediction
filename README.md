@@ -223,10 +223,18 @@ sezóny striktne pred zobrazovaným NHL dňom; výsledky zoradí podľa začiatk
 v `America/New_York` a pri zhode podľa ID zápasu. Výpočet uchováva plnú presnosť,
 na karte sa zobrazí zaokrúhlené celé číslo nad vonkajším okrajom loga.
 Denný snapshot zostáva nemenný aj po zápase; nočné výsledky ovplyvnia až Elo
-ďalšieho hracieho dňa. Zdrojom je oficiálny sezónny zoznam NHL Stats API,
-s kontrolou úplnosti, jedinečnosti ID, sezóny, výsledkov a 32 tímov. Pri chybe
-sa číslo nevymýšľa; timer pokus zopakuje. Súkromná cache uchováva aj použité
-výsledky. Elo je historický rating, nie kalibrovaná úspešnosť tipu ani návrat
+ďalšieho hracieho dňa. Aktuálny rating všetkých 32 tímov a už započítané zápasy
+sú trvalo uložené v Azure Blob Storage. Celý sezónny zoznam NHL Stats API
+sa sťahuje iba pri prvej inicializácii sezóny; existujúce denné cache sa
+prevezmú bez opätovného sťahovania histórie. Potom sa spracujú iba dni od
+posledného úspešného stavu: prednosť majú uložené finálne skóre, NHL denné
+API sa volá len pri chýbajúcich alebo neúplných výsledkoch. Úplné denné
+výsledky sa cachujú; živé zápasy ostávajú otvorené na ďalšiu kontrolu.
+ID zápasu zabraňuje dvojitému započítaniu. Oneskorený výsledok či oprava
+vyvolá iba lokálny prepočet z uloženej histórie, nikdy nový sezónny download.
+Súbežné aktualizácie chráni Blob lease a verzia sezónneho stavu; pri chybe
+sa posledný úspešný stav neprepíše. Starší dátum sa zostaví z uloženej histórie
+bez posunu aktuálneho stavu dozadu. Elo je historický rating, nie kalibrovaná úspešnosť tipu ani návrat
 predikčného modelu. Je oddelené od uloženého researchu, jeho revision a tipov.
 Browser po publikovaní každých päť minút načíta iba /api/days/{day}/live;
 štatistiky znovu stiahne až po novej publikácii alebo ručnom obnovení.

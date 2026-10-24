@@ -236,6 +236,14 @@ aktuálnej sezóny, K=20, iba finálne výsledky pred týmto NHL dňom). Cache
 `cache/elo/v1/YYYY-MM-DD.json` uchová presné ratingy aj použité výsledky;
 `day.elo` obsahuje menší prehľad pre karty. Úspešný snapshot sa neobnovuje
 počas noci ani pri opakovanom MCP behu a nemení revision, research či tipy.
+Od 4.3.1 je aktuálny sezónny stav všetkých 32 tímov vrátane započítaných ID
+v `cache/elo/v1/seasons/YYYYYYYY.json`. Inicializácia preberá najnovšiu staršiu
+dennú cache; iba pri chýbajúcej histórii načíta celý sezónny NHL zoznam.
+Ďalšie dni použijú uložené finálne skóre a prípadne iba chýbajúce denné feedy.
+Tie zostávajú v `cache/elo/v1/results/YYYY-MM-DD.json`; neukončené zápasy sa
+znovu preveria. Výsledok sa započíta iba raz. Sieť prebieha mimo Blob lease,
+zápis sezónneho stavu kontroluje jeho generation; výpadok nemení posledný
+úspešný stav. Zmeškané dni sa dobehnú bez nového sťahovania celej sezóny.
 Výpadok Elo neblokuje karty ani pokročilý import; ďalší timer ho zopakuje.
 O 18:00 zaradí pokročilé
 štatistiky; po publikácii obnovuje iba skóre. Explicitný MCP start_day môže
