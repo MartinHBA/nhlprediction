@@ -1,5 +1,4 @@
 {
-  "trailingSlash": "never",
   "routes": [
     { "route": "/power-rankings", "rewrite": "/power-rankings.html", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/power-rankings.html", "headers": { "Cache-Control": "no-cache" } },
