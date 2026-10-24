@@ -5,6 +5,12 @@
 
 
 .coverage-panel{margin:32px 0 0;padding:1rem 1.25rem;border:1px solid var(--border,#293b59);border-radius:12px;color:var(--muted,#a1b1ca);font-size:.9rem;line-height:1.7}.coverage-panel p{margin:0}.coverage-panel summary{cursor:pointer;margin-top:.6rem}.coverage-panel ul{padding-left:1.4rem;overflow-wrap:anywhere}footer a{color:inherit;text-decoration:underline}
+.brand-navigation{display:flex;align-items:center;gap:34px;min-width:0}
+.main-nav{display:flex;align-items:center;gap:20px}
+.main-nav a{display:inline-flex;align-items:center;min-height:40px;padding:8px 0;border-bottom:2px solid transparent;color:var(--muted);font-size:12px;line-height:1.4;white-space:nowrap}
+.main-nav a:hover{color:var(--text);text-decoration:none}
+.main-nav a[aria-current=page]{color:var(--accent);border-bottom-color:var(--accent)}
+@media(max-width:600px){.topbar.has-navigation{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:56px auto;gap:10px 12px;height:auto;padding:14px 0}.brand-navigation{display:contents}.brand-navigation>.brand{grid-column:1;grid-row:1}.brand-navigation>.main-nav{grid-column:1/-1;grid-row:2}.has-navigation .top-controls{grid-column:2;grid-row:1}.main-nav{gap:22px}.main-nav a{font-size:11px;min-height:30px;padding:5px 0}}
 .team-code.has-logo{border:0;background:transparent}/* NHL SVGs include a standard canvas margin; enlarge the image inside its reserved logo space. */
 .team-elo{position:absolute;bottom:calc(100% + 5px);left:0;white-space:nowrap;color:var(--muted);font-family:var(--font);font-size:10px;line-height:16px;font-weight:400;letter-spacing:.6px}
 .home .team-elo{left:auto;right:0;text-align:right}

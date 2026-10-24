@@ -1,0 +1,162 @@
+[
+  {
+    "code": "ANA",
+    "name": "Anaheim Ducks",
+    "conference": "Western"
+  },
+  {
+    "code": "BOS",
+    "name": "Boston Bruins",
+    "conference": "Eastern"
+  },
+  {
+    "code": "BUF",
+    "name": "Buffalo Sabres",
+    "conference": "Eastern"
+  },
+  {
+    "code": "CAR",
+    "name": "Carolina Hurricanes",
+    "conference": "Eastern"
+  },
+  {
+    "code": "CBJ",
+    "name": "Columbus Blue Jackets",
+    "conference": "Eastern"
+  },
+  {
+    "code": "CGY",
+    "name": "Calgary Flames",
+    "conference": "Western"
+  },
+  {
+    "code": "CHI",
+    "name": "Chicago Blackhawks",
+    "conference": "Western"
+  },
+  {
+    "code": "COL",
+    "name": "Colorado Avalanche",
+    "conference": "Western"
+  },
+  {
+    "code": "DAL",
+    "name": "Dallas Stars",
+    "conference": "Western"
+  },
+  {
+    "code": "DET",
+    "name": "Detroit Red Wings",
+    "conference": "Eastern"
+  },
+  {
+    "code": "EDM",
+    "name": "Edmonton Oilers",
+    "conference": "Western"
+  },
+  {
+    "code": "FLA",
+    "name": "Florida Panthers",
+    "conference": "Eastern"
+  },
+  {
+    "code": "LAK",
+    "name": "Los Angeles Kings",
+    "conference": "Western"
+  },
+  {
+    "code": "MIN",
+    "name": "Minnesota Wild",
+    "conference": "Western"
+  },
+  {
+    "code": "MTL",
+    "name": "Montréal Canadiens",
+    "conference": "Eastern"
+  },
+  {
+    "code": "NJD",
+    "name": "New Jersey Devils",
+    "conference": "Eastern"
+  },
+  {
+    "code": "NSH",
+    "name": "Nashville Predators",
+    "conference": "Western"
+  },
+  {
+    "code": "NYI",
+    "name": "New York Islanders",
+    "conference": "Eastern"
+  },
+  {
+    "code": "NYR",
+    "name": "New York Rangers",
+    "conference": "Eastern"
+  },
+  {
+    "code": "OTT",
+    "name": "Ottawa Senators",
+    "conference": "Eastern"
+  },
+  {
+    "code": "PHI",
+    "name": "Philadelphia Flyers",
+    "conference": "Eastern"
+  },
+  {
+    "code": "PIT",
+    "name": "Pittsburgh Penguins",
+    "conference": "Eastern"
+  },
+  {
+    "code": "SEA",
+    "name": "Seattle Kraken",
+    "conference": "Western"
+  },
+  {
+    "code": "SJS",
+    "name": "San Jose Sharks",
+    "conference": "Western"
+  },
+  {
+    "code": "STL",
+    "name": "St. Louis Blues",
+    "conference": "Western"
+  },
+  {
+    "code": "TBL",
+    "name": "Tampa Bay Lightning",
+    "conference": "Eastern"
+  },
+  {
+    "code": "TOR",
+    "name": "Toronto Maple Leafs",
+    "conference": "Eastern"
+  },
+  {
+    "code": "UTA",
+    "name": "Utah Mammoth",
+    "conference": "Western"
+  },
+  {
+    "code": "VAN",
+    "name": "Vancouver Canucks",
+    "conference": "Western"
+  },
+  {
+    "code": "VGK",
+    "name": "Vegas Golden Knights",
+    "conference": "Western"
+  },
+  {
+    "code": "WPG",
+    "name": "Winnipeg Jets",
+    "conference": "Western"
+  },
+  {
+    "code": "WSH",
+    "name": "Washington Capitals",
+    "conference": "Eastern"
+  }
+]

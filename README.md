@@ -7,6 +7,14 @@ EV ani automatický výber tipov. Nevolá platené LLM API.**
 
 **Web:** https://www.nhlanalyzer.online
 
+**Power Rankings:** https://www.nhlanalyzer.online/power-rankings — tmavý
+rebríček všetkých 32 tímov s logami a plnými názvami; prepínač celá liga /
+konferencie. Hlavička oboch stránok prepína medzi analýzami a rebríčkom.
+Verejný `GET /api/power-rankings` číta aktuálny uložený sezónny stav ratingov;
+otvorenie stránky nesťahuje výsledky NHL, neprepočítava body a nemení storage.
+Poradie vychádza z nezaokrúhlených hodnôt, web zobrazuje celé body. Chýbajúci
+stav sa zobrazí ako čakanie na dáta, bez vymysleného rebríčka.
+
 **Azure Static Web Apps / Free:** https://orange-mud-0c78ff503.1.azurestaticapps.net
 Frontend je resource `nhl-analyzer-online`; Java Functions sú samostatné API.
 Doména webu používa DNS CNAME a spravovaný HTTPS certifikát.

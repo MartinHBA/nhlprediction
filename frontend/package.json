@@ -1,6 +1,6 @@
 {
   "name": "nhl-observatory-frontend",
   "private": true,
-  "scripts": {"test": "node --test app.test.cjs"},
+  "scripts": {"test": "node --test app.test.cjs power-rankings.test.cjs"},
   "devDependencies": {"jsdom": "27.4.0"}
 }

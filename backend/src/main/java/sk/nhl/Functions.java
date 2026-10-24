@@ -43,6 +43,7 @@ public final class Functions {
                 var input=parse(request.getBody().orElse("{}"));if(!input.isObject())return response(request,400,Mcp.error(com.fasterxml.jackson.databind.node.NullNode.instance,-32600,"JSON-RPC object required"));
                 ObjectNode result=Services.MCP.handle(input);return response(request,result==null?202:200,result);
             }
+            if(method.equals("GET")&&path.equals("/api/power-rankings"))return response(request,200,PowerRankings.view(Services.STORE,java.time.Instant.now()));
             if(method.equals("GET")&&path.equals("/api/days"))return response(request,200,obj("days",Services.WORKFLOW.archive()));
             if(method.equals("GET")&&path.matches("/api/days/\\d{4}-\\d{2}-\\d{2}/cards")){
                 String day=path.substring(10,20);ObjectNode d=Services.STORE.get("days/"+day+".json");if(d==null)return response(request,404,obj("error","Day has not been collected yet"));

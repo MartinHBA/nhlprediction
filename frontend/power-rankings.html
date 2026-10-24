@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" data-i18n-content="Power Rankings všetkých 32 tímov NHL. Celá liga alebo poradie podľa konferencií." content="Power Rankings všetkých 32 tímov NHL. Celá liga alebo poradie podľa konferencií.">
+  <link rel="canonical" href="https://www.nhlanalyzer.online/power-rankings">
+  <meta name="color-scheme" content="dark">
+  <title>NHL Analyzer Power Rankings</title>
+  <link rel="icon" type="image/png" href="/assets/brand/nhl-analyzer-online.png">
+  <link rel="stylesheet" href="/styles.css?v=3.11.0"><link rel="stylesheet" href="/power-rankings.css?v=3.11.0">
+  <script src="/config.js" defer></script><script src="/i18n.js?v=3.11.0" defer></script><script src="/power-rankings.js?v=3.11.0" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar has-navigation"><div class="brand-navigation"><a class="brand" href="/" aria-label="NHL Analyzer Online domov" data-i18n-aria-label="NHL Analyzer Online domov"><img class="brand-logo" src="/assets/brand/nhl-analyzer-online.png" width="72" height="72" alt="" decoding="async"><span>NHL <strong>ANALYZER</strong><small>ONLINE</small></span></a><nav class="main-nav" aria-label="Hlavná navigácia" data-i18n-aria-label="Hlavná navigácia"><a href="/" data-i18n="Analýzy">Analýzy</a><a href="/power-rankings" aria-current="page">Power Rankings</a></nav></div><div class="top-controls"><span class="top-label"><i></i><span data-i18n="DÁTA PRED ZÁPASOM">DÁTA PRED ZÁPASOM</span></span><div id="language-switcher" class="language-switcher"></div></div></header>
+    <main class="rating-main">
+      <section class="rating-intro" aria-labelledby="rating-title"><div><p class="eyebrow" data-i18n="NHL / SILA TÍMOV">NHL / SILA TÍMOV</p><h1 id="rating-title">NHL Analyzer <span>Power Ranking</span></h1><p data-i18n="Aktuálne poradie všetkých 32 tímov NHL.">Aktuálne poradie všetkých 32 tímov NHL.</p></div><div class="rating-snapshot"><span data-i18n="SEZÓNA">SEZÓNA</span><strong id="ranking-season">—</strong></div></section>
+      <div class="rating-toolbar"><div class="view-switch" role="group" aria-label="Zobrazenie rebríčka" data-i18n-aria-label="Zobrazenie rebríčka"><button type="button" data-view="league" aria-pressed="true" aria-controls="standings"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12"/></svg><span data-i18n="Celá liga">Celá liga</span></button><button type="button" data-view="conferences" aria-pressed="false" aria-controls="standings"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="3" width="5" height="10" rx="1"/><rect x="9.5" y="3" width="5" height="10" rx="1"/></svg><span data-i18n="Konferencie">Konferencie</span></button></div><span class="rating-sort-note" data-i18n="Zoradené podľa bodov zostupne">Zoradené podľa bodov zostupne</span></div>
+      <div id="ranking-status" class="ranking-state" role="status"><p id="ranking-status-text" data-i18n="Načítavam Power Rankings...">Načítavam Power Rankings...</p><button id="ranking-retry" class="refresh-button" type="button" data-i18n="Skúsiť znovu" hidden>Skúsiť znovu</button></div>
+      <div id="standings" class="standings-grid" hidden></div><p id="view-status" class="visually-hidden" role="status"></p><div id="ranking-meta" class="rating-meta" hidden></div>
+    </main>
+    <footer><span><strong>NHL ANALYZER ONLINE</strong><span class="footer-slash">/</span><span data-i18n="Čísla pred zápasom.">Čísla pred zápasom.</span></span><span data-i18n="Program · Dáta · Analýza">Program · Dáta · Analýza</span></footer>
+  </div>
+</body>
+</html>
