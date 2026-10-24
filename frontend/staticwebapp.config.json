@@ -1,6 +1,6 @@
 {
+  "trailingSlash": "never",
   "routes": [
-    { "route": "/power-rankings/", "redirect": "/power-rankings", "statusCode": 301 },
     { "route": "/power-rankings", "rewrite": "/power-rankings.html", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/power-rankings.html", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/power-rankings.js", "headers": { "Cache-Control": "no-cache" } },
