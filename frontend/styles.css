@@ -6,6 +6,8 @@
 
 .coverage-panel{margin:32px 0 0;padding:1rem 1.25rem;border:1px solid var(--border,#293b59);border-radius:12px;color:var(--muted,#a1b1ca);font-size:.9rem;line-height:1.7}.coverage-panel p{margin:0}.coverage-panel summary{cursor:pointer;margin-top:.6rem}.coverage-panel ul{padding-left:1.4rem;overflow-wrap:anywhere}footer a{color:inherit;text-decoration:underline}
 .team-code.has-logo{border:0;background:transparent}/* NHL SVGs include a standard canvas margin; enlarge the image inside its reserved logo space. */
+.team-elo{position:absolute;bottom:calc(100% + 5px);left:0;white-space:nowrap;color:var(--muted);font-family:var(--font);font-size:10px;line-height:16px;font-weight:400;letter-spacing:.6px}
+.home .team-elo{left:auto;right:0;text-align:right}
 .team-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;width:150%;height:150%;max-width:none;object-fit:contain;filter:drop-shadow(0 2px 3px #0006)}
 
 @media(max-width:1100px){.games-grid{grid-template-columns:1fr}.team-name strong{font-size:30px}}

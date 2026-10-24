@@ -16,7 +16,7 @@ Doména webu používa DNS CNAME a spravovaný HTTPS certifikát.
 **Azure resource group:** `nhlprediction` · `westeurope`.
 
 ```text
-13:00 Europe/Bratislava → Azure: iba program zápasov, bez pokročilých štatistík
+13:00 Europe/Bratislava → Azure: program zápasov a predzápasové Elo, bez pokročilých štatistík
 18:00 Europe/Bratislava → Azure: pokročilé štatistiky
 19:45 Europe/Bratislava → Azure: jeden denný katalóg Oddize vrátane alternatív
 Každých 30 minút do 08:00 → skóre; po publikácii žiadne nové analytické dáta
@@ -210,9 +210,24 @@ Verejné /api/days/{day} vracia zmrazené štatistiky s oddeleným scoreboard.
 Bez dátumu v URL web do 13:00 v `Europe/Bratislava` predvolene zobrazí
 predchádzajúci hrací deň s nočnými výsledkami; od 13:00 aktuálny dátum.
 Pravidlo rešpektuje letný/zimný čas. Explicitné `?day=` a ručný výber majú prednosť.
-O 13:00 polhodinový timer pripraví iba oficiálny program nového dňa. Karty
+O 13:00 polhodinový timer pripraví oficiálny program nového dňa a historické Elo. Karty
 sú hneď dostupné, pokročilé údaje sú naplánované na 18:00 a kurzy na 19:45.
 Opakované kontroly programu nespúšťajú pokročilý import ani neprepisujú publikácie.
+
+Elo sa na začiatku každej sezóny resetuje na **1500 pre všetkých 32 tímov**.
+Používa klasický vzorec `E = 1 / (1 + 10^((R_súper − R_tím) / 400))`
+a `R_nové = R_staré + 20 × (S − E)`, kde výhra znamená `S=1` a prehra `S=0`,
+rovnako po predĺžení alebo nájazdoch. Bez výhody domáceho prostredia a bez
+vplyvu gólového rozdielu. Započítava ukončené zápasy základnej časti aktuálnej
+sezóny striktne pred zobrazovaným NHL dňom; výsledky zoradí podľa začiatku
+v `America/New_York` a pri zhode podľa ID zápasu. Výpočet uchováva plnú presnosť,
+na karte sa zobrazí zaokrúhlené celé číslo nad vonkajším okrajom loga.
+Denný snapshot zostáva nemenný aj po zápase; nočné výsledky ovplyvnia až Elo
+ďalšieho hracieho dňa. Zdrojom je oficiálny sezónny zoznam NHL Stats API,
+s kontrolou úplnosti, jedinečnosti ID, sezóny, výsledkov a 32 tímov. Pri chybe
+sa číslo nevymýšľa; timer pokus zopakuje. Súkromná cache uchováva aj použité
+výsledky. Elo je historický rating, nie kalibrovaná úspešnosť tipu ani návrat
+predikčného modelu. Je oddelené od uloženého researchu, jeho revision a tipov.
 Browser po publikovaní každých päť minút načíta iba /api/days/{day}/live;
 štatistiky znovu stiahne až po novej publikácii alebo ručnom obnovení.
 Po konečnom skóre všetkých zápasov tiché kontroly prestanú. Skryté karty

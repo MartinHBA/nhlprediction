@@ -8,11 +8,12 @@ import java.util.function.*;
 import static sk.nhl.Json.*;
 
 final class Workflow {
-    final Store store;final Function<String,ObjectNode> schedule;final Consumer<ObjectNode> queue;final DataCollector collector;final GameScores scores;
+    final Store store;final Function<String,ObjectNode> schedule;final Consumer<ObjectNode> queue;final DataCollector collector;final GameScores scores;final Elo elo;
     final Map<String,ObjectNode> recoveredSnapshots=new java.util.concurrent.ConcurrentHashMap<>();
     Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue){this(store,schedule,queue,null);}
     Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue,DataCollector collector){this(store,schedule,queue,collector,null);}
-    Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue,DataCollector collector,GameScores scores){this.store=store;this.schedule=schedule;this.queue=queue;this.collector=collector;this.scores=scores;}
+    Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue,DataCollector collector,GameScores scores){this(store,schedule,queue,collector,scores,null);}
+    Workflow(Store store,Function<String,ObjectNode> schedule,Consumer<ObjectNode> queue,DataCollector collector,GameScores scores,Elo elo){this.store=store;this.schedule=schedule;this.queue=queue;this.collector=collector;this.scores=scores;this.elo=elo;}
     ObjectNode require(String day){ObjectNode d=store.get("days/"+Schedule.day(day)+".json");if(d==null)throw new IllegalArgumentException("Day not found. Call start_day first.");restoreSnapshot(d);return migrate(d);}
     void restoreSnapshot(ObjectNode d){
         if(!Publication.exists(d)||Publication.frozen(d))return;
@@ -30,7 +31,7 @@ final class Workflow {
     }
     ObjectNode start(String day){return start(day,false);}
     ObjectNode start(String day,boolean refreshSources){
-        ObjectNode result=startResearch(day,refreshSources);
+        ObjectNode result=startResearch(day,refreshSources);ensureElo(day,Instant.now());if(elo!=null)result=summary(require(day));
         return collector!=null&&collector.odds instanceof OddizeOdds?requestOdds(day,Instant.now()):result;
     }
     ObjectNode startResearch(String day,boolean refreshSources){
@@ -43,7 +44,13 @@ final class Workflow {
         }
         prepareSchedule(day,Instant.now());return requestPrefill(day);
     }
-    void programTick(Instant now){prepareSchedule(NhlOdds.pollDay(now),now);}
+    void programTick(Instant now){String day=NhlOdds.pollDay(now);prepareSchedule(day,now);ensureElo(day,now);}
+    void ensureElo(String day,Instant now){
+        if(elo==null)return;ObjectNode before=require(day);if(text(before,"state").equals("NO_GAMES")||text(before,"elo.state").equals("READY"))return;
+        ObjectNode result;try{result=elo.collect(day,before.path("dataset"),now);}catch(RuntimeException error){result=obj("state","ERROR","last_attempt_at",now.toString(),"error",DataCollector.rootMessage(error));}
+        final ObjectNode snapshot=result;
+        store.locked("day/"+day,()->{ObjectNode latest=require(day);if(!text(latest,"elo.state").equals("READY")){latest.set("elo",snapshot);store.put("days/"+day+".json",latest);}return null;});
+    }
     ObjectNode prepareSchedule(String day,Instant now){
         Schedule.day(day);if(store.get("days/"+day+".json")!=null)return summary(require(day));
         ObjectNode data=schedule.apply(day);
@@ -174,11 +181,12 @@ final class Workflow {
         ObjectNode d=migrate(input.deepCopy());restoreSnapshot(d);JsonNode data=Publication.data(d);
         return obj("day",text(d,"day"),"state",text(d,"state"),"updated_at",text(d,"updated_at"),"revision",d.path("revision"),"game_count",data.path("games").size(),"as_of",data.path("as_of"),"error",d.path("error"),
             "enrichment",Publication.metadata(d,"enrichment"),"odds_import",Publication.metadata(d,"odds_import"),"research_complete",d.path("research_complete").asBoolean(),"coverage",Checks.coverage(data),"publication",Publication.info(d),
-            "scoreboard",d.path("scoreboard"),"goalie_appearances",GoalieAppearances.view(data,text(d,"day")),"final_tips",Tips.view(d,Instant.now()),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));
+            "scoreboard",d.path("scoreboard"),"elo",d.path("elo"),"goalie_appearances",GoalieAppearances.view(data,text(d,"day")),"final_tips",Tips.view(d,Instant.now()),"web_url",System.getenv().getOrDefault("WEB_URL","")+"?day="+text(d,"day"));
     }
     void eveningTick(Instant now){
         String day=NhlOdds.pollDay(now);ObjectNode existing=store.get("days/"+day+".json");
         if(existing==null){start(day);refreshScores(day,now);return;}
+        ensureElo(day,now);
         if(Publication.exists(existing)){refreshScores(day,now);return;}
         if(collector!=null&&(text(existing,"enrichment.state").equals("SCHEDULED")||!text(existing,"enrichment.version").equals(DataCollector.VERSION)))requestPrefill(day);
         if(collector!=null&&collector.odds instanceof OddizeOdds)requestOdds(day,now);

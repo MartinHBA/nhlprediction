@@ -12,7 +12,7 @@ public final class Functions {
     static final class Services {
         static final Store STORE=Store.cloud();
         static final QueueClient QUEUE=new QueueClientBuilder().connectionString(System.getenv("AzureWebJobsStorage")).queueName("predictions").messageEncoding(QueueMessageEncoding.BASE64).buildClient();
-        static final Workflow WORKFLOW=new Workflow(STORE,Schedule::fetch,j->QUEUE.sendMessage(j.toString()),new DataCollector(STORE),new GameScores());
+        static final Workflow WORKFLOW=new Workflow(STORE,Schedule::fetch,j->QUEUE.sendMessage(j.toString()),new DataCollector(STORE),new GameScores(),new Elo(STORE));
         static final OAuth AUTH=new OAuth(STORE);
         static final Mcp MCP=new Mcp(WORKFLOW);
     }

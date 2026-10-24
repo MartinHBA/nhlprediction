@@ -37,6 +37,19 @@ test('Oddize collection states use the daily 19:45 schedule in every language',a
 });
 function overview(full){const data=structuredClone(full);data.data_snapshot_id='snapshot-one';data.details_loaded=false;data.games=data.games.map(g=>({game_id:g.game_id,starts_at:g.starts_at,status:g.status,home:{name:g.home.name,goalie:{name:g.home.goalie.name,status:g.home.goalie.status}},away:{name:g.away.name,goalie:{name:g.away.goalie.name,status:g.away.goalie.status}},has_analysis_context:!!g.analysis_context?.length}));return data;}
 
+test('pregame Elo appears as plain rounded numbers over the matching team logos in cards and details',async()=>{
+ const f=fixture(),game=f.games[0];game.away.name='MTL';game.home.name='CHI';f.elo={state:'READY',season:'20262027',games:{[game.game_id]:{away:1490.42,home:1474.76}}};
+ for(const data of [f,overview(f)]){
+  const dom=await boot(data);try{
+   const doc=dom.window.document,card=doc.querySelector('.game-card'),away=card.querySelector('.away .team-elo'),home=card.querySelector('.home .team-elo');
+   assert.equal(away.textContent,'1490');assert.equal(home.textContent,'1475');assert.equal(away.querySelector('strong'),null);assert.equal(home.parentElement.querySelector('img').getAttribute('src'),`assets/teams/${game.home.name}.svg`);
+   assert.equal(doc.querySelectorAll('.team-elo').length,2);
+   for(const lang of ['sk','en','cs','sv','fi','de']){dom.window.NHL_I18N.setLanguage(lang);assert.equal(doc.querySelector('.away .team-elo').textContent,'1490');assert.match(doc.querySelector('.away .team-elo').title,/20262027/);}
+  }finally{dom.window.close();}
+ }
+ const missing=await boot(fixture());try{assert.equal(missing.window.document.querySelectorAll('.team-elo').length,0);}finally{missing.window.close();}
+});
+
 function clockAt(w,iso){
  let now=Date.parse(iso);const OriginalDate=w.Date;
  w.Date=class extends OriginalDate{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}};

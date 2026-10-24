@@ -229,8 +229,15 @@ Backend vyžaduje app setting **ODDIZE_API_KEY**; kľúč je iba v serverovom HT
 headeri, nie v dátach, odpovediach, frontende ani diagnostických výstupoch.
 
 `oddsWatch` má UTC cron `0 0,30 * * * *` a lokálne okno **17:45–08:00**.
-Od verzie 4.2 má aj ľahké okno 12:45–17:45: prvý beh o 13:00 pripraví iba
-oficiálny program so stavom enrichment=SCHEDULED. O 18:00 zaradí pokročilé
+Od verzie 4.2 má aj ľahké okno 12:45–17:45: prvý beh o 13:00 pripraví
+oficiálny program so stavom enrichment=SCHEDULED. Od verzie 4.3 zároveň
+pripraví samostatný denný Elo snapshot z NHL Stats API (všetci 1500 od začiatku
+aktuálnej sezóny, K=20, iba finálne výsledky pred týmto NHL dňom). Cache
+`cache/elo/v1/YYYY-MM-DD.json` uchová presné ratingy aj použité výsledky;
+`day.elo` obsahuje menší prehľad pre karty. Úspešný snapshot sa neobnovuje
+počas noci ani pri opakovanom MCP behu a nemení revision, research či tipy.
+Výpadok Elo neblokuje karty ani pokročilý import; ďalší timer ho zopakuje.
+O 18:00 zaradí pokročilé
 štatistiky; po publikácii obnovuje iba skóre. Explicitný MCP start_day môže
 štatistiky vyžiadať aj skôr; automatický programový beh to nerobí.
 Predstih chráni tesne skorý trigger 18:00. Dokončený Oddize katalóg už neobnovuje.

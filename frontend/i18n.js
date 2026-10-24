@@ -3,6 +3,7 @@ window.NHL_I18N=(()=>{
  const languages={sk:{name:'Slovenčina',locale:'sk-SK',flag:'sk'},en:{name:'English',locale:'en-GB',flag:'gb'},cs:{name:'Čeština',locale:'cs-CZ',flag:'cz'},sv:{name:'Svenska',locale:'sv-SE',flag:'se'},fi:{name:'Suomi',locale:'fi-FI',flag:'fi'},de:{name:'Deutsch',locale:'de-DE',flag:'de'}};
  // Columns: Slovak source, English, Czech, Swedish, Finnish, German.
  const rows=[
+ ['Elo pred zápasom: {rating} · sezóna {season}','Pregame Elo: {rating} · season {season}','Elo před zápasem: {rating} · sezóna {season}','Elo före match: {rating} · säsong {season}','Elo ennen ottelua: {rating} · kausi {season}','Elo vor dem Spiel: {rating} · Saison {season}'],
  ['Program zápasov je pripravený','Game schedule is ready','Program zápasů je připraven','Spelschemat är klart','Otteluohjelma on valmis','Der Spielplan ist bereit'],
  ['Rozšírené štatistiky','Advanced statistics','Pokročilé statistiky','Fördjupad statistik','Tarkemmat tilastot','Erweiterte Statistiken'],
  ['Rozšírené štatistiky sa načítajú o 18:00 slovenského času.','Advanced statistics will be loaded at 18:00 Slovakia time.','Pokročilé statistiky se načtou v 18:00 slovenského času.','Fördjupad statistik hämtas kl. 18:00 slovakisk tid.','Tarkemmat tilastot haetaan klo 18:00 Slovakian aikaa.','Erweiterte Statistiken werden um 18:00 Uhr slowakischer Zeit geladen.'],
