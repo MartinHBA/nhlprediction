@@ -235,7 +235,17 @@ sezóny striktne pred zobrazovaným NHL dňom; výsledky zoradí podľa začiatk
 v `America/New_York` a pri zhode podľa ID zápasu. Výpočet uchováva plnú presnosť,
 na karte sa zobrazí zaokrúhlené celé číslo nad vonkajším okrajom loga.
 Denný snapshot zostáva nemenný aj po zápase; nočné výsledky ovplyvnia až Elo
-ďalšieho hracieho dňa. Aktuálny rating všetkých 32 tímov a už započítané zápasy
+ďalšieho hracieho dňa. Od 4.4.1 vzniká aj v deň bez zápasov: denný programový
+timer o 13:00 pripraví všetkých 32 ratingov a pri výpadku ďalší beh zopakuje
+uloženie. Udržiava sa aspoň **8 po sebe idúcich kalendárnych dní** (aktuálny
+deň + 7 predchádzajúcich); staršie snímky sa nemažú. Chýbajúce historické
+snímky sa doplnia z uloženého sezónneho výsledkového denníka bez nového
+sezónneho downloadu, iba z výsledkov pred príslušným dátumom. Majú označenie
+`history_origin=RECONSTRUCTED` a skutočný čas vytvorenia; už existujúce snímky
+sa neprepisujú. Deň po voľnom dni prenesie nezmenené body; voľný dnešný deň
+stále zohľadní nové výsledky zo včerajška. Pri hranici sezóny sa každý dátum
+odvodí zo svojej sezóny. `day.elo.history` potvrdzuje dokončený rozsah.
+Aktuálny rating všetkých 32 tímov a už započítané zápasy
 sú trvalo uložené v Azure Blob Storage. Celý sezónny zoznam NHL Stats API
 sa sťahuje iba pri prvej inicializácii sezóny; existujúce denné cache sa
 prevezmú bez opätovného sťahovania histórie. Potom sa spracujú iba dni od

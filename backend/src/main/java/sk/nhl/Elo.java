@@ -11,27 +11,21 @@ import static sk.nhl.Json.*;
 /** Historical season rating, not a calibrated prediction or a source of betting probabilities. */
 final class Elo {
     static final String VERSION="1",TEAMS_URL="https://api.nhle.com/stats/rest/en/team";
-    static final int INITIAL=1500,K=20;
+    static final int INITIAL=1500,K=20,HISTORY_DAYS=8;
     final Store store;final Function<String,JsonNode> fetch;
     Elo(Store store){this(store,url->parse(DataCollector.download(url).content()));}
     Elo(Store store,Function<String,JsonNode> fetch){this.store=store;this.fetch=fetch;}
     static String season(String day){int year=DataCollector.season(LocalDate.parse(day));return ""+year+(year+1);}
     static String gamesUrl(String day){return "https://api.nhle.com/stats/rest/en/game?cayenneExp=season="+season(day)+"%20and%20gameType=2&limit=-1";}
     static String stateKey(String day){return "cache/elo/v"+VERSION+"/seasons/"+season(day)+".json";}
+    static String snapshotKey(String day){return "cache/elo/v"+VERSION+"/"+day+".json";}
     ObjectNode collect(String day,JsonNode dataset,Instant now){
         Schedule.day(day);
         if(LocalDate.parse(day).isAfter(now.atZone(ZoneId.of("America/New_York")).toLocalDate()))throw new IllegalArgumentException("Future NHL day: Elo snapshot is not ready");
-        String key="cache/elo/v"+VERSION+"/"+day+".json";ObjectNode snapshot=store.get(key);
+        String key=snapshotKey(day);ObjectNode snapshot=store.get(key);
         ObjectNode state=seasonState(day,now);
         if(snapshot==null){
-            if(text(state,"cutoff_day").compareTo(day)<0){
-                SortedSet<String> dates=new TreeSet<>(strings(state.path("pending_days")));
-                for(LocalDate date=LocalDate.parse(text(state,"cutoff_day"));date.isBefore(LocalDate.parse(day));date=date.plusDays(1))dates.add(date.toString());
-                dates.removeIf(date->date.compareTo(day)>=0);List<ObjectNode> updates=new ArrayList<>();
-                for(String date:dates)updates.add(results(date,state,now));
-                ObjectNode advanced=advance(day,state,updates,now);int generation=state.path("generation").asInt();
-                state=store.locked("elo/season/"+season(day),()->{ObjectNode latest=store.get(stateKey(day));if(latest==null||latest.path("generation").asInt()!=generation)throw new BusyException();store.put(stateKey(day),advanced);return advanced;});
-            }
+            state=advanceTo(day,state,now);
             ObjectNode calculated=snapshot(day,state,now);
             snapshot=store.locked("elo/"+day,()->{ObjectNode existing=store.get(key);if(existing!=null)return existing;store.put(key,calculated);return calculated;});
         }
@@ -43,7 +37,29 @@ final class Elo {
             }
             games.set(text(game,"game_id"),ratings);
         }
-        view.set("games",games);return view;
+        view.set("games",games);view.set("history",ensureHistory(day,state,now));return view;
+    }
+    ObjectNode advanceTo(String day,ObjectNode state,Instant now){
+        if(text(state,"cutoff_day").compareTo(day)>=0)return state;
+        SortedSet<String> dates=new TreeSet<>(strings(state.path("pending_days")));
+        for(LocalDate date=LocalDate.parse(text(state,"cutoff_day"));date.isBefore(LocalDate.parse(day));date=date.plusDays(1))dates.add(date.toString());
+        dates.removeIf(date->date.compareTo(day)>=0);List<ObjectNode> updates=new ArrayList<>();
+        for(String date:dates)updates.add(results(date,state,now));
+        ObjectNode advanced=advance(day,state,updates,now);int generation=state.path("generation").asInt();
+        return store.locked("elo/season/"+season(day),()->{ObjectNode latest=store.get(stateKey(day));if(latest==null||latest.path("generation").asInt()!=generation)throw new BusyException();store.put(stateKey(day),advanced);return advanced;});
+    }
+    ObjectNode ensureHistory(String day,ObjectNode current,Instant now){
+        LocalDate end=LocalDate.parse(day),start=end.minusDays(HISTORY_DAYS-1);Map<String,ObjectNode> seasons=new HashMap<>();seasons.put(season(day),current);
+        for(LocalDate date=end;!date.isBefore(start);date=date.minusDays(1)){
+            String target=date.toString(),key=snapshotKey(target);ObjectNode existing=store.get(key);
+            if(existing!=null){if(!text(existing,"state").equals("READY")||!text(existing,"cutoff_day").equals(target)||!text(existing,"season").equals(season(target))||existing.path("ratings").size()!=32)throw new IllegalStateException("Stored rating history is incomplete: "+target);continue;}
+            String season=season(target);ObjectNode state=seasons.get(season);
+            if(state==null){state=advanceTo(target,seasonState(target,now),now);seasons.put(season,state);}
+            if(text(state,"cutoff_day").compareTo(target)<0)throw new IllegalStateException("Rating history is ahead of stored results");
+            ObjectNode calculated=snapshot(target,state,now);calculated.put("history_origin","RECONSTRUCTED");
+            store.locked("elo/"+target,()->{if(store.get(key)==null)store.put(key,calculated);return null;});
+        }
+        return obj("state","READY","days",HISTORY_DAYS,"from",start.toString(),"to",day);
     }
     ObjectNode seasonState(String day,Instant now){
         String key=stateKey(day);ObjectNode current=store.get(key);if(current!=null)return current;

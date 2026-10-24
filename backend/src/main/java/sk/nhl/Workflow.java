@@ -46,10 +46,10 @@ final class Workflow {
     }
     void programTick(Instant now){String day=NhlOdds.pollDay(now);prepareSchedule(day,now);ensureElo(day,now);}
     void ensureElo(String day,Instant now){
-        if(elo==null)return;ObjectNode before=require(day);if(text(before,"state").equals("NO_GAMES")||text(before,"elo.state").equals("READY"))return;
+        if(elo==null)return;ObjectNode before=require(day);if(text(before,"elo.state").equals("READY")&&text(before,"elo.history.state").equals("READY")&&before.path("elo").path("history").path("days").asInt()>=Elo.HISTORY_DAYS&&text(before,"elo.history.to").equals(day))return;
         ObjectNode result;try{result=elo.collect(day,before.path("dataset"),now);}catch(RuntimeException error){result=obj("state","ERROR","last_attempt_at",now.toString(),"error",DataCollector.rootMessage(error));}
         final ObjectNode snapshot=result;
-        store.locked("day/"+day,()->{ObjectNode latest=require(day);if(!text(latest,"elo.state").equals("READY")){latest.set("elo",snapshot);store.put("days/"+day+".json",latest);}return null;});
+        store.locked("day/"+day,()->{ObjectNode latest=require(day);if(!text(latest,"elo.state").equals("READY")||!text(snapshot,"state").equals("ERROR")){latest.set("elo",snapshot);store.put("days/"+day+".json",latest);}return null;});
     }
     ObjectNode prepareSchedule(String day,Instant now){
         Schedule.day(day);if(store.get("days/"+day+".json")!=null)return summary(require(day));

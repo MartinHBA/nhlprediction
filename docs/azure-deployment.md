@@ -245,6 +245,15 @@ znovu preveria. Výsledok sa započíta iba raz. Sieť prebieha mimo Blob lease,
 zápis sezónneho stavu kontroluje jeho generation; výpadok nemení posledný
 úspešný stav. Zmeškané dni sa dobehnú bez nového sťahovania celej sezóny.
 Výpadok Elo neblokuje karty ani pokročilý import; ďalší timer ho zopakuje.
+Od 4.4.1 `ensureElo` spracuje aj `NO_GAMES` a migruje staré READY dni bez
+histórie. Pri úspechu `day.elo.history` obsahuje READY, days=8 a rozsah from/to.
+Osem samostatných snímok všetkých tímov pokrýva každý kalendárny deň vrátane
+voľných dní; staršie sa nemažú. Medzery sa rekonštruujú z persistovaného denníka
+výsledkov s cutoff príslušného dňa, označia `history_origin=RECONSTRUCTED`
+a neprepisujú existujúci snapshot. Nejde o nové sťahovanie sezónnej histórie.
+Reštart nevytvára duplicity ani neposúva rating sezóny dozadu. Migrácia nemení
+research, revision ani publikované rozhodnutia. Pri chybe zachová už READY
+rating a rozsah histórie zopakuje ďalší timer; NO_GAMES zostáva NO_GAMES.
 O 18:00 zaradí pokročilé
 štatistiky; po publikácii obnovuje iba skóre. Explicitný MCP start_day môže
 štatistiky vyžiadať aj skôr; automatický programový beh to nerobí.
