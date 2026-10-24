@@ -76,7 +76,7 @@ final class DataCollector {
             locked.set(text(game,"game_id"),protectedPaths);
         }
         ObjectNode goalie=enrichGoalies(day,data);for(JsonNode w:goalie.path("warnings"))warnings.add(w);
-        // Statistics start at 18:00. Prices are collected separately, once at 19:45 Bratislava.
+        // Statistics start with the 13:00 programme. Prices are collected separately, once at 19:45 Bratislava.
         ObjectNode oddsMeta=null;if(odds!=null&&!(odds instanceof OddizeOdds)){ObjectNode imported=odds.collect(day,data);data=(ObjectNode)imported.path("dataset");oddsMeta=(ObjectNode)imported.path("odds_import");}
         data.put("as_of",clock.instant().toString());for(JsonNode g:data.path("games"))if(text(g,"status").equals("scheduled")&&!Checks.time(text(g,"starts_at")).isAfter(clock.instant())){((ObjectNode)g).put("status","live");((ObjectNode)g).set("markets",arr());}
         var validation=Checks.validate(data);if(!validation.isEmpty())throw new IllegalStateException("Imported data failed validation: "+String.join("; ",validation.subList(0,Math.min(8,validation.size()))));

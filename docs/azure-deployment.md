@@ -228,10 +228,15 @@ UTC cron `0 45 * * * *`, lokálny filter **19:45 Europe/Bratislava** vrátane DS
 Backend vyžaduje app setting **ODDIZE_API_KEY**; kľúč je iba v serverovom HTTP
 headeri, nie v dátach, odpovediach, frontende ani diagnostických výstupoch.
 
-`oddsWatch` má UTC cron `0 0,30 * * * *` a lokálne okno **17:45–08:00**.
-Od verzie 4.2 má aj ľahké okno 12:45–17:45: prvý beh o 13:00 pripraví
-oficiálny program so stavom enrichment=SCHEDULED. Od verzie 4.3 zároveň
-pripraví samostatný denný Elo snapshot z NHL Stats API (všetci 1500 od začiatku
+`oddsWatch` má UTC cron `0 0,30 * * * *` a lokálne okná **12:45–17:45**
+a **17:45–08:00**. Od 4.5.0 prvý beh o 13:00 pripraví oficiálny program,
+denný rating a rovno zaradí pokročilý import do existujúcej fronty predictions.
+Karty sú počas asynchrónneho importu dostupné so stavom PREFILLING; potom
+enrichment=DONE. Polhodinové kontroly dokončený import neopakujú, aj pri
+upozorneniach zdrojov. NO_GAMES neimportuje štatistiky ani kurzy. Publikované
+snapshoty sa neotvárajú. Okno od 12:45 toleruje tesne skorý trigger 13:00;
+všetky časy sa vyhodnocujú v Europe/Bratislava vrátane DST.
+Denný Elo snapshot z NHL Stats API používa všetkých 1500 od začiatku
 aktuálnej sezóny, K=20, iba finálne výsledky pred týmto NHL dňom). Cache
 `cache/elo/v1/YYYY-MM-DD.json` uchová presné ratingy aj použité výsledky;
 `day.elo` obsahuje menší prehľad pre karty. Úspešný snapshot sa neobnovuje
@@ -254,10 +259,10 @@ a neprepisujú existujúci snapshot. Nejde o nové sťahovanie sezónnej histór
 Reštart nevytvára duplicity ani neposúva rating sezóny dozadu. Migrácia nemení
 research, revision ani publikované rozhodnutia. Pri chybe zachová už READY
 rating a rozsah histórie zopakuje ďalší timer; NO_GAMES zostáva NO_GAMES.
-O 18:00 zaradí pokročilé
-štatistiky; po publikácii obnovuje iba skóre. Explicitný MCP start_day môže
-štatistiky vyžiadať aj skôr; automatický programový beh to nerobí.
-Predstih chráni tesne skorý trigger 18:00. Dokončený Oddize katalóg už neobnovuje.
+O 18:00 neexistuje samostatná fáza štatistík. Kurzy zostávajú oddelené od
+štatistík: samostatný timer ich načíta o 19:45. GPT o 20:00 doplní chýbajúci
+research a tipy; po publikácii sa obnovuje iba skóre. Explicitný MCP start_day
+zachováva doterajšie pravidlá ad-hoc obnovy. Dokončený Oddize katalóg sa neobnovuje.
 Pri nedokončenom importe môže zaradiť retry; úspešné jednotlivé API odpovede
 z privátnej cache `cache/oddize/v1/snapshot/YYYY-MM-DD/...` sa znovu neplatia.
 Nie je potrebný nový Azure resource. Fronta `predictions` spracúva aj kind=oddize.

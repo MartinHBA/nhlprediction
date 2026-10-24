@@ -24,8 +24,7 @@ Doména webu používa DNS CNAME a spravovaný HTTPS certifikát.
 **Azure resource group:** `nhlprediction` · `westeurope`.
 
 ```text
-13:00 Europe/Bratislava → Azure: program zápasov a predzápasové Elo, bez pokročilých štatistík
-18:00 Europe/Bratislava → Azure: pokročilé štatistiky
+13:00 Europe/Bratislava → Azure: program, ratingy a import dostupných štatistík oboch tímov
 19:45 Europe/Bratislava → Azure: jeden denný katalóg Oddize vrátane alternatív
 Každých 30 minút do 08:00 → skóre; po publikácii žiadne nové analytické dáta
 20:00 → ChatGPT Cloud úloha: MCP dáta + webový research
@@ -218,12 +217,16 @@ Verejné /api/days/{day} vracia zmrazené štatistiky s oddeleným scoreboard.
 Bez dátumu v URL web do 13:00 v `Europe/Bratislava` predvolene zobrazí
 predchádzajúci hrací deň s nočnými výsledkami; od 13:00 aktuálny dátum.
 Pravidlo rešpektuje letný/zimný čas. Explicitné `?day=` a ručný výber majú prednosť.
-O 13:00 polhodinový timer pripraví oficiálny program nového dňa a historické Elo. Karty
-sú hneď dostupné, pokročilé údaje sú naplánované na 18:00 a kurzy na 19:45.
-Opakované kontroly programu nespúšťajú pokročilý import ani neprepisujú publikácie.
-Rozpracované dnešné karty majú malé odpočty do 18:00 pri Dátach a do 20:00
-pri čakaní na finálny výber. Bežia na spoločnom sekundovom časovači prehliadača
-bez API volaní. Po doplnení dát/publikácii či začiatku zápasu zmiznú; po 20:00
+O 13:00 polhodinový timer pripraví oficiálny program nového dňa, ratingy a rovno
+zaradí import dostupných štatistík: aktuálna/minulá sezóna, oddych, cestovanie
+a dostupné brankárske dáta. Karty sú dostupné počas importu, štatistiky pribudnú
+po jeho dokončení. Kurzy sa samostatne načítajú o 19:45. Dokončený import sa
+pri polhodinových kontrolách ani večer neopakuje; výpadok sa môže zopakovať.
+Publikované podklady zostávajú zmrazené. GPT o 20:00 doplní research a tipy.
+Pri Dátach je stav načítania bez odpočtu. Rozpracované dnešné karty aj horný
+panel ponechávajú odpočet do 20:00 pri čakaní na finálny výber. Beží na spoločnom
+sekundovom časovači prehliadača bez API volaní. Po publikácii či začiatku zápasu
+odpočet na karte zmizne; po 20:00
 sa nepredstiera dokončená analýza a zostáva text čakania na skutočný výber.
 
 Elo sa na začiatku každej sezóny resetuje na **1500 pre všetkých 32 tímov**.

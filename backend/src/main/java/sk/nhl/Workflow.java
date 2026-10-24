@@ -44,7 +44,7 @@ final class Workflow {
         }
         prepareSchedule(day,Instant.now());return requestPrefill(day);
     }
-    void programTick(Instant now){String day=NhlOdds.pollDay(now);prepareSchedule(day,now);ensureElo(day,now);}
+    void programTick(Instant now){String day=NhlOdds.pollDay(now);prepareSchedule(day,now);ensureElo(day,now);requestPrefill(day);}
     void ensureElo(String day,Instant now){
         if(elo==null)return;ObjectNode before=require(day);if(text(before,"elo.state").equals("READY")&&text(before,"elo.history.state").equals("READY")&&before.path("elo").path("history").path("days").asInt()>=Elo.HISTORY_DAYS&&text(before,"elo.history.to").equals(day))return;
         ObjectNode result;try{result=elo.collect(day,before.path("dataset"),now);}catch(RuntimeException error){result=obj("state","ERROR","last_attempt_at",now.toString(),"error",DataCollector.rootMessage(error));}
@@ -57,7 +57,7 @@ final class Workflow {
         store.locked("day/"+day,()->{
             ObjectNode found=store.get("days/"+day+".json");if(found!=null)return summary(found);
             ObjectNode d=obj("day",day,"state",data.path("games").isEmpty()?"NO_GAMES":"COLLECTING","updated_at",now.toString(),"revision",0,"dataset",data,"official_games",data.path("games").deepCopy(),"report",null,"error",null,"odds_import",OddizeOdds.pending(day),
-                "enrichment",obj("state","SCHEDULED","version",DataCollector.VERSION,"scheduled_at",LocalDate.parse(day).atTime(18,0).atZone(ZoneId.of("Europe/Bratislava")).toInstant().toString(),"updated_at",now.toString(),"warnings",arr()));
+                "enrichment",obj("state","SCHEDULED","version",DataCollector.VERSION,"scheduled_at",LocalDate.parse(day).atTime(13,0).atZone(ZoneId.of("Europe/Bratislava")).toInstant().toString(),"updated_at",now.toString(),"warnings",arr()));
             store.create("days/"+day+".json",d);return summary(d);
         });return summary(require(day));
     }
